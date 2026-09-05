@@ -3,15 +3,15 @@
   "sessions": {
     "gemini": {
       "agent_id": "gemini",
-      "chat_url": "https://gemini.google.com/app/f9af5d112a6f4ba7",
+      "chat_url": "https://gemini.google.com/app/6ae52cba851824b6",
       "thread_title": "Collaborative AI review framework assignment",
-      "last_updated": "2026-08-30 11:20:51"
+      "last_updated": "2026-09-05 18:15:33"
     },
     "mistral": {
       "agent_id": "mistral",
-      "chat_url": "https://chat.mistral.ai/chat/6b1eb2f0-02c8-4adf-aa3a-4eb36fcda189",
+      "chat_url": "https://chat.mistral.ai/chat/ce4ed38b-4b9b-44a4-b54e-3e4b36b7529b",
       "thread_title": "Collaborative AI review framework assignment",
-      "last_updated": "2026-08-30 11:22:05"
+      "last_updated": "2026-09-05 18:16:37"
     }
   }
 }

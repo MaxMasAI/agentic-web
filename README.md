@@ -125,6 +125,26 @@ python app.py
 python -m unittest discover tests
 ```
 
+## 🐳 5. Run with Docker Compose
+If you prefer containerized execution, you can run the app seamlessly using the provided `docker-compose.yml`.
+
+```bash
+docker compose up --build
+```
+*(Note: Since this is a GUI application, it automatically passes your host's X11 server socket. This is primarily supported on Linux/WSL).*
+
+---
+
+## 📦 6. Build Standalone Executable
+You can easily compile Agentic Web into a standalone, portable Windows executable (`.exe`) that doesn't require Python or virtual environments!
+
+1. Open your terminal in the project root.
+2. Run the executable builder:
+```bash
+python STD_EXE.py
+```
+3. Your portable app will be generated in `dist/agentic-web/`. You can simply double-click `agentic-web.exe` to start the dashboard!
+
 ---
 
 ## 👥 Organization & Ownership

@@ -22,7 +22,8 @@ PUBLIC_CLIENT_CONFIG = {
     "google": {
         "name": "Google (Gemini & Vertex AI)",
         "icon": "🌐",
-        "client_id": "407408718192.apps.googleusercontent.com",
+        "client_id": "32555940559.apps.googleusercontent.com",
+        "client_secret": "Km2ASjzUqSqcQj2-p6wTf2u7",
         "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -118,14 +119,7 @@ def generate_code_challenge(verifier: str) -> str:
 
 
 def find_free_port(preferred_port: int = 8085) -> int:
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", preferred_port))
-            return preferred_port
-    except OSError:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            return s.getsockname()[1]
+    return preferred_port
 
 
 def load_auth_sessions() -> dict:
@@ -276,7 +270,7 @@ def start_real_oauth_flow(provider: str, preferred_port: int = 8085, timeout_sec
     # Read from .env if provided, or use public PKCE default
     if provider == "google":
         client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID") or p_cfg.get("client_id", "")
-        client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+        client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET") or p_cfg.get("client_secret", "")
     elif provider == "auth0":
         client_id = os.getenv("AUTH0_CLIENT_ID") or p_cfg.get("client_id", "")
         client_secret = os.getenv("AUTH0_CLIENT_SECRET", "")

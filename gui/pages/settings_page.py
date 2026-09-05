@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox, QTextEdit, QSlider
 )
 from PySide6.QtCore import Qt, QThread, Signal, QSize
-from PySide6.QtGui import QFont, QIcon, QColor
+from PySide6.QtGui import QFont, QIcon, QColor, QCursor
 
 from services.app_config import config
 from services.llm_provider import load_api_keys, save_api_keys
@@ -96,7 +96,7 @@ class SettingsPage(QWidget):
         "general", "api_keys", "layout", "files", "context",
         "remote_tools", "models", "prompts", "images_video",
         "vision_camera", "audio", "indexes", "agents", "accessibility",
-        "security", "personalize", "updates", "debug"
+        "security", "personalize", "updates", "debug", "about"
     ]
 
     def __init__(self, parent=None):
@@ -220,6 +220,7 @@ class SettingsPage(QWidget):
         self.stacked_widget.addWidget(self._wrap_scrollable(self.build_personalize_panel()))
         self.stacked_widget.addWidget(self._wrap_scrollable(self.build_updates_panel()))
         self.stacked_widget.addWidget(self._wrap_scrollable(self.build_debug_panel()))
+        self.stacked_widget.addWidget(self._wrap_scrollable(self.build_about_panel()))
 
     def set_category_by_key(self, key: str):
         """Switches stacked panel based on category key string."""
@@ -313,6 +314,7 @@ class SettingsPage(QWidget):
         return panel
 
     def render_auth_cards(self):
+        sessions = load_auth_sessions()
         while self.account_cards_layout.count():
             item = self.account_cards_layout.takeAt(0)
             if item.widget():
@@ -320,18 +322,47 @@ class SettingsPage(QWidget):
 
         for prov_id, info in PROVIDERS_INFO.items():
             card = QFrame()
-            card.setStyleSheet("background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px;")
+            if is_authenticated(prov_id):
+                card.setStyleSheet("background: rgba(5, 150, 105, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 8px; padding: 8px;")
+            else:
+                card.setStyleSheet("background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px;")
             h = QHBoxLayout(card)
             h.setContentsMargins(10, 6, 10, 6)
 
-            lbl_info = QLabel(f"<b>{info['name']}</b>: <span style='color: #94a3b8;'>{info['description']}</span>")
+            user_str = ""
+            if is_authenticated(prov_id):
+                sess = sessions.get(prov_id, {})
+                u_email = sess.get("user_email")
+                u_name = sess.get("user_name")
+                if u_email:
+                    user_str = f" <span style='color: #38bdf8;'>[{u_email}]</span>"
+                elif u_name:
+                    user_str = f" <span style='color: #38bdf8;'>[{u_name}]</span>"
+
+            lbl_info = QLabel(f"<b>{info['name']}</b>{user_str}: <span style='color: #94a3b8;'>{info['description']}</span>")
             h.addWidget(lbl_info, stretch=1)
 
-            btn = QPushButton("🚀 Sign In via Browser")
-            btn.setStyleSheet("background: #0284c7; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold;")
-            btn.clicked.connect(lambda ch, p=prov_id: self.start_oauth(p))
-            h.addWidget(btn)
+            if is_authenticated(prov_id):
+                btn_auth = QPushButton("✅ Authenticated")
+                btn_auth.setStyleSheet("background: #059669; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold;")
+                btn_auth.setDisabled(True)
+                h.addWidget(btn_auth)
+
+                btn_logout = QPushButton("Logout")
+                btn_logout.setStyleSheet("background: #b91c1c; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold;")
+                btn_logout.clicked.connect(lambda ch, p=prov_id: self.logout_oauth(p))
+                h.addWidget(btn_logout)
+            else:
+                btn = QPushButton("🚀 Sign In via Browser")
+                btn.setStyleSheet("background: #0284c7; color: white; border-radius: 4px; padding: 6px 12px; font-weight: bold;")
+                btn.clicked.connect(lambda ch, p=prov_id: self.start_oauth(p))
+                h.addWidget(btn)
+            
             self.account_cards_layout.addWidget(card)
+
+    def logout_oauth(self, provider: str):
+        logout_provider(provider)
+        self.render_auth_cards()
 
     def start_oauth(self, provider: str):
         worker = OAuthWorker(provider, self)
@@ -837,3 +868,24 @@ class SettingsPage(QWidget):
 
         config.save()
         QMessageBox.information(self, "Settings Saved", "All preferences and API configuration saved successfully.")
+    def build_about_panel(self) -> QWidget:
+        panel = QWidget()
+        lay = QVBoxLayout(panel)
+        lay.setContentsMargins(15, 15, 15, 15)
+        lay.setSpacing(10)
+
+        lay.addWidget(create_section_header("ℹ️ About", "Information about the application, version, and license."))
+
+        info_lbl = QLabel(
+            "<h3>Agentic Web Console</h3>"
+            "<p>Version: 1.0.0<br/>"
+            "Build Date: 2026-09-05</p>"
+            "<p>A leader-worker multi-AI collaborative system and live voice orchestrator.<br/>"
+            "Powered by Google Gemini 2.0 and PySide6.</p>"
+        )
+        info_lbl.setWordWrap(True)
+        info_lbl.setStyleSheet("color: #cbd5e1; font-size: 13px; line-height: 1.5;")
+        lay.addWidget(info_lbl)
+
+        lay.addStretch(1)
+        return panel

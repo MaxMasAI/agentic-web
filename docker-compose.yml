@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  agentic-web:
+    build: .
+    container_name: agentic-web
+    # Forward the host display to the container so PySide6 GUI can render (Primarily for Linux / WSL)
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_DEBUG_PLUGINS=1
+    volumes:
+      # Mount configuration and data folders for persistence
+      - ./.env:/app/.env
+      - ./json:/app/json
+      - ./logs:/app/logs
+      - ./tasks:/app/tasks
+      - ./downloads:/app/downloads
+      - ./db.sqlite:/app/db.sqlite
+      # Mount X11 Unix socket for GUI forwarding (Linux/WSL)
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    # Use host networking for easier communication with local X server and network interfaces
+    network_mode: host

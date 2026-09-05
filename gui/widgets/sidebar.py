@@ -136,6 +136,7 @@ class Sidebar(QWidget):
             ("settings_personalize", "✨", "Personalize"),
             ("settings_updates", "🔄", "Updates"),
             ("settings_debug", "🐞", "Debug"),
+            ("settings_about", "ℹ️", "About"),
         ])
     ]
 
@@ -257,6 +258,20 @@ class Sidebar(QWidget):
         self.layout.addWidget(self.brand_frame)
         self.layout.addSpacing(4)
 
+        # Active Missions Container
+        self.active_missions_frame = QFrame()
+        self.active_missions_frame.setStyleSheet("""
+            QFrame {
+                background: rgba(245, 158, 11, 0.08);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                border-radius: 8px;
+                padding: 4px;
+            }
+        """)
+        self.active_missions_layout = QVBoxLayout(self.active_missions_frame)
+        self.active_missions_layout.setContentsMargins(4, 4, 4, 4)
+        self.active_missions_frame.hide()
+
         # ── Dropdown Accordion Sections ──
         for section_title, items in self.NAV_SECTIONS:
             # Settings section starts open or folded
@@ -276,22 +291,9 @@ class Sidebar(QWidget):
                 self.buttons[key] = (btn, icon, label, section_widget)
                 section_widget.add_widget(btn)
 
-        self.layout.addSpacing(6)
-
-        # Active Missions Container
-        self.active_missions_frame = QFrame()
-        self.active_missions_frame.setStyleSheet("""
-            QFrame {
-                background: rgba(245, 158, 11, 0.08);
-                border: 1px solid rgba(245, 158, 11, 0.3);
-                border-radius: 8px;
-                padding: 4px;
-            }
-        """)
-        self.active_missions_layout = QVBoxLayout(self.active_missions_frame)
-        self.active_missions_layout.setContentsMargins(4, 4, 4, 4)
-        self.active_missions_frame.hide()
-        self.layout.addWidget(self.active_missions_frame)
+            if "OPERATIONS" in section_title:
+                self.layout.addWidget(self.active_missions_frame)
+                self.layout.addSpacing(6)
 
         self.layout.addStretch()
 

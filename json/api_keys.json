@@ -1,3 +1,11 @@
 {
-  "huggingface": "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"
+  "gemini": "",
+  "openrouter": "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",
+  "huggingface": "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",
+  "openai": "",
+  "anthropic": "",
+  "deepseek": "",
+  "perplexity": "",
+  "grok": "",
+  "ollama_url": "http://localhost:11434"
 }

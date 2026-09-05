@@ -9,6 +9,27 @@ import json
 import time
 import subprocess
 import re
+import multiprocessing
+
+# Freeze support for PyInstaller on Windows
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
+
+# Ensure correct base directory and path resolution when running as standalone frozen executable
+if getattr(sys, 'frozen', False):
+    app_dir = os.path.dirname(sys.executable)
+    os.chdir(app_dir)
+    if app_dir not in sys.path:
+        sys.path.insert(0, app_dir)
+    internal_dir = getattr(sys, '_MEIPASS', None)
+    if internal_dir and internal_dir not in sys.path:
+        sys.path.insert(0, internal_dir)
+
+# Support running pipeline sub-tasks directly from the standalone executable
+if "--task" in sys.argv:
+    from utils.launcher import main as run_launcher
+    run_launcher()
+    sys.exit(0)
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout,
@@ -239,13 +260,20 @@ class MainWindow(QMainWindow):
         task_log_file = os.path.join("logs", f"live_{int(time.time())}.log")
         log_fp = open(task_log_file, "w", encoding="utf-8", buffering=1)
 
-        launcher_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launcher.py")
-        cmd = [sys.executable, "-u", launcher_script, "--task", task, "--agents", agents]
+        if getattr(sys, 'frozen', False):
+            # In standalone executable mode, invoke self with --task
+            cmd = [sys.executable, "--task", task, "--agents", agents]
+            work_dir = os.path.dirname(sys.executable)
+        else:
+            launcher_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launcher.py")
+            cmd = [sys.executable, "-u", launcher_script, "--task", task, "--agents", agents]
+            work_dir = os.path.dirname(os.path.abspath(__file__))
+
         proc = subprocess.Popen(
             cmd,
             stdout=log_fp,
             stderr=subprocess.STDOUT,
-            cwd=os.path.dirname(os.path.abspath(__file__))
+            cwd=work_dir
         )
 
         self.running_procs[label] = {

@@ -85,7 +85,7 @@ except Exception:
 
 async def run_agent_loop(task, selected_agents_override=None):
     os.makedirs("visuals", exist_ok=True)
-    import agentlist
+    from core import agentlist
     all_available_agents = agentlist.list_all_active_agents()
     init_agent_status(all_available_agents)
 
@@ -519,7 +519,7 @@ def launch_voice_mode(port: int = 8000):
 
 
 if __name__ == "__main__":
-    import agentlist
+    from core import agentlist
 
     if "--voice" in sys.argv or "-v" in sys.argv:
         launch_voice_mode()
