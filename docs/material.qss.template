@@ -1,0 +1,61 @@
+/* Qt Material Design QSS Theme Template */
+QWidget {
+    background-color: #0b1120;
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    selection-background-color: #38bdf8;
+    selection-color: #020617;
+}
+
+QFrame {
+    border-radius: 8px;
+}
+
+QPushButton {
+    background-color: rgba(30, 41, 59, 0.8);
+    color: #f1f5f9;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+
+QPushButton:pressed {
+    background-color: #0284c7;
+    color: #ffffff;
+}
+
+QLineEdit, QTextEdit, QPlainTextEdit {
+    background-color: #0f172a;
+    color: #f8fafc;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 6px;
+    padding: 6px;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
+    border: 1px solid #38bdf8;
+}
+
+QScrollBar:vertical {
+    background: #0f172a;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical {
+    background: #334155;
+    border-radius: 4px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #38bdf8;
+}

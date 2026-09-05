@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "agent_skills": {
+      "name": "Addy Osmani Agent Skills Remote Git MCP Server",
+      "repository": "https://github.com/addyosmani/agent-skills.git",
+      "api_endpoint": "https://api.github.com/repos/addyosmani/agent-skills/contents/skills",
+      "raw_base_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills",
+      "version": "1.0.0",
+      "skills_count": 24,
+      "status": "active",
+      "type": "remote-git-provider",
+      "description": "Remote Git MCP Service connecting live to Addy Osmani's 24 production-grade engineering skills on GitHub."
+    },
+    "ego_lite_browser": {
+      "name": "CitroLabs Ego-Lite Parallel Browser MCP Server",
+      "repository": "https://github.com/citrolabs/ego-lite.git",
+      "api_endpoint": "https://api.github.com/repos/citrolabs/ego-lite/contents",
+      "raw_base_url": "https://raw.githubusercontent.com/citrolabs/ego-lite/main",
+      "version": "1.0.0",
+      "skills_count": 4,
+      "status": "active",
+      "type": "browser-spaces-automation",
+      "description": "Parallel human-agent Chromium spaces, authenticated session reuse, and high-speed CDP web automation for AI agents."
+    }
+  }
+}

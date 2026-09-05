@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <!-- WiX Toolset MSI Installer Configuration for Agentic Web Workstation -->
+    <Product Id="*" 
+             Name="Agentic Web Workstation" 
+             Language="1033" 
+             Version="2.5.0.0" 
+             Manufacturer="MaxMasAI (Owner: Sahil Kumar Dhala)" 
+             UpgradeCode="8A4B6B6F-273A-4F8C-8F4C-3E9B7A2D1F5E">
+        
+        <Package InstallerVersion="500" 
+                 Compressed="yes" 
+                 InstallScope="perMachine" 
+                 Description="Agentic Multi-Model AI Desktop Suite and Autonomous Workspace" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <Feature Id="ProductFeature" Title="AgenticWeb" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentRef Id="ApplicationShortcut" />
+        </Feature>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="AgenticWeb">
+                    <Directory Id="DataFolder" Name="data" />
+                    <Directory Id="LogsFolder" Name="logs" />
+                    <Directory Id="JsonFolder" Name="json" />
+                </Directory>
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="Agentic Web Workstation" />
+            </Directory>
+            <Directory Id="DesktopFolder" Name="Desktop" />
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <Component Id="MainExecutable" Guid="F3A7B9C1-8D2E-4F5A-B6C7-D8E9F0A1B2C3" Win64="yes">
+                <File Id="AgenticExe" Source="..\dist\AgenticWeb\AgenticWeb.exe" KeyPath="yes" Checksum="yes" />
+            </Component>
+        </ComponentGroup>
+
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="C1D2E3F4-A5B6-7C8D-9E0F-1A2B3C4D5E6F">
+                <Shortcut Id="ApplicationStartMenuShortcut" 
+                          Name="Agentic Web Workstation" 
+                          Description="Launch Agentic Multi-Model Desktop Control Center" 
+                          Target="[INSTALLFOLDER]AgenticWeb.exe" 
+                          WorkingDirectory="INSTALLFOLDER" />
+                <Shortcut Id="ApplicationDesktopShortcut" 
+                          Directory="DesktopFolder" 
+                          Name="Agentic Web Workstation" 
+                          Description="Launch Agentic Multi-Model Desktop Control Center" 
+                          Target="[INSTALLFOLDER]AgenticWeb.exe" 
+                          WorkingDirectory="INSTALLFOLDER" />
+                <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\AgenticWeb" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+</Wix>

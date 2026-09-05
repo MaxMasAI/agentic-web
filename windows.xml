@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PlatformConfiguration>
+    <!-- Windows Platform Specification for Agentic Web Workstation -->
+    <Platform name="Windows" id="win32" version="10/11">
+        <Architecture target="x64_arm64">
+            <DefaultShell>powershell.exe</DefaultShell>
+            <FallbackShell>cmd.exe</FallbackShell>
+            <PathSeparator>\</PathSeparator>
+        </Architecture>
+
+        <!-- Application Metadata -->
+        <Application>
+            <Name>Agentic Web Workstation</Name>
+            <Organization>MaxMasAI (https://github.com/MaxMasAI)</Organization>
+            <Owner>Sahil Kumar Dhala (https://github.com/Sahilkumardhala)</Owner>
+            <License>MIT</License>
+            <Executable>python.exe app.py</Executable>
+            <LauncherScript>run.bat</LauncherScript>
+            <InstallerScript>install.bat</InstallerScript>
+            <ProcessIdentifier>agentic_web_win.pid</ProcessIdentifier>
+        </Application>
+
+        <!-- Display and UI Rendering -->
+        <Display>
+            <Backend>DirectX / Angle / Desktop OpenGL</Backend>
+            <HighDpiScaling>True</HighDpiScaling>
+            <DpiFactor>1.0</DpiFactor>
+            <WindowDecorations>ModernFramelessDark</WindowDecorations>
+            <DefaultTheme>CyberpunkDark</DefaultTheme>
+        </Display>
+
+        <!-- System Shortcuts (Windows Keybindings) -->
+        <Shortcuts>
+            <Shortcut id="toggle_sidebar" key="Ctrl+B">Toggle Sidebar Auto-Hide / Pin</Shortcut>
+            <Shortcut id="new_chat" key="Ctrl+N">New Multi-Turn Context</Shortcut>
+            <Shortcut id="command_palette" key="Ctrl+K">Open Command Hub</Shortcut>
+            <Shortcut id="clear_canvas" key="Ctrl+Delete">Clear Active Canvas</Shortcut>
+            <Shortcut id="fullscreen" key="F11">Toggle Fullscreen</Shortcut>
+            <Shortcut id="quit_app" key="Alt+F4">Terminate Workspace</Shortcut>
+        </Shortcuts>
+
+        <!-- Hardware & System Audio/Vision Capture -->
+        <HardwareCapabilities>
+            <AudioEngine>WASAPI / PyAudio (DirectSound)</AudioEngine>
+            <ScreenCaptureEngine>MSS / GDI32 / Windows Graphics Capture</ScreenCaptureEngine>
+            <MouseKeyboardEngine>PyAutoGUI (Win32 API SendInput)</MouseKeyboardEngine>
+            <BrowserEngine>Playwright Chromium (ms-playwright\chromium)</BrowserEngine>
+        </HardwareCapabilities>
+
+        <!-- Storage Paths and Directories -->
+        <Paths>
+            <AppDataRoot>%LOCALAPPDATA%\AgenticWeb</AppDataRoot>
+            <LocalDatabase>db.sqlite</LocalDatabase>
+            <TasksDirectory>tasks\</TasksDirectory>
+            <LogsDirectory>logs\</LogsDirectory>
+            <ChatsDirectory>logs\chats\</ChatsDirectory>
+            <DownloadsDirectory>downloads\</DownloadsDirectory>
+            <ConfigDirectory>json\</ConfigDirectory>
+        </Paths>
+
+        <!-- Security & Sandbox Policies -->
+        <Security>
+            <ExecutionPolicy>Bypass</ExecutionPolicy>
+            <MaskCredentialsInPrompts>True</MaskCredentialsInPrompts>
+            <AllowSysExec>True</AllowSysExec>
+            <AutoAppendCwd>True</AutoAppendCwd>
+        </Security>
+    </Platform>
+</PlatformConfiguration>

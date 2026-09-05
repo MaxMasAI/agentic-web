@@ -1,0 +1,127 @@
+[
+  {
+    "name": "api-and-interface-design",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/api-and-interface-design",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/api-and-interface-design/SKILL.md"
+  },
+  {
+    "name": "browser-testing-with-devtools",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/browser-testing-with-devtools",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/browser-testing-with-devtools/SKILL.md"
+  },
+  {
+    "name": "ci-cd-and-automation",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/ci-cd-and-automation",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/ci-cd-and-automation/SKILL.md"
+  },
+  {
+    "name": "code-review-and-quality",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/code-review-and-quality",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/code-review-and-quality/SKILL.md"
+  },
+  {
+    "name": "code-simplification",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/code-simplification",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/code-simplification/SKILL.md"
+  },
+  {
+    "name": "constraint-driven-development",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/constraint-driven-development",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/constraint-driven-development/SKILL.md"
+  },
+  {
+    "name": "context-engineering",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/context-engineering",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/context-engineering/SKILL.md"
+  },
+  {
+    "name": "debugging-and-error-recovery",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/debugging-and-error-recovery",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/debugging-and-error-recovery/SKILL.md"
+  },
+  {
+    "name": "deprecation-and-migration",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/deprecation-and-migration",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/deprecation-and-migration/SKILL.md"
+  },
+  {
+    "name": "documentation-and-adrs",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/documentation-and-adrs",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/documentation-and-adrs/SKILL.md"
+  },
+  {
+    "name": "doubt-driven-development",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/doubt-driven-development",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/doubt-driven-development/SKILL.md"
+  },
+  {
+    "name": "frontend-ui-engineering",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/frontend-ui-engineering",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/frontend-ui-engineering/SKILL.md"
+  },
+  {
+    "name": "git-workflow-and-versioning",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/git-workflow-and-versioning",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/git-workflow-and-versioning/SKILL.md"
+  },
+  {
+    "name": "idea-refine",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/idea-refine",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/idea-refine/SKILL.md"
+  },
+  {
+    "name": "incremental-implementation",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/incremental-implementation",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/incremental-implementation/SKILL.md"
+  },
+  {
+    "name": "interview-me",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/interview-me",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/interview-me/SKILL.md"
+  },
+  {
+    "name": "observability-and-instrumentation",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/observability-and-instrumentation",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/observability-and-instrumentation/SKILL.md"
+  },
+  {
+    "name": "performance-optimization",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/performance-optimization",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/performance-optimization/SKILL.md"
+  },
+  {
+    "name": "planning-and-task-breakdown",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/planning-and-task-breakdown",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/planning-and-task-breakdown/SKILL.md"
+  },
+  {
+    "name": "security-and-hardening",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/security-and-hardening",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/security-and-hardening/SKILL.md"
+  },
+  {
+    "name": "shipping-and-launch",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/shipping-and-launch",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/shipping-and-launch/SKILL.md"
+  },
+  {
+    "name": "source-driven-development",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/source-driven-development",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/source-driven-development/SKILL.md"
+  },
+  {
+    "name": "spec-driven-development",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/spec-driven-development",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/spec-driven-development/SKILL.md"
+  },
+  {
+    "name": "test-driven-development",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/test-driven-development",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/test-driven-development/SKILL.md"
+  },
+  {
+    "name": "using-agent-skills",
+    "url": "https://github.com/addyosmani/agent-skills/tree/main/skills/using-agent-skills",
+    "raw_skill_url": "https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/using-agent-skills/SKILL.md"
+  }
+]

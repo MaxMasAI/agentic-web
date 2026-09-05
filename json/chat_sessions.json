@@ -1,0 +1,17 @@
+{
+  "thread_title": "Collaborative AI review framework assignment",
+  "sessions": {
+    "gemini": {
+      "agent_id": "gemini",
+      "chat_url": "https://gemini.google.com/app/f9af5d112a6f4ba7",
+      "thread_title": "Collaborative AI review framework assignment",
+      "last_updated": "2026-08-30 11:20:51"
+    },
+    "mistral": {
+      "agent_id": "mistral",
+      "chat_url": "https://chat.mistral.ai/chat/6b1eb2f0-02c8-4adf-aa3a-4eb36fcda189",
+      "thread_title": "Collaborative AI review framework assignment",
+      "last_updated": "2026-08-30 11:22:05"
+    }
+  }
+}

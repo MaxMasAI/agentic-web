@@ -1,0 +1,8 @@
+{
+  "profile": "custom",
+  "dispatch_delay_sec": 0.5,
+  "check_interval_sec": 0.5,
+  "debate_delay_sec": 0.8,
+  "max_timeout_sec": 30,
+  "typing_simulation_ms": 10
+}

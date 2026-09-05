@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PlatformConfiguration>
+    <!-- macOS Platform Specification for Agentic Web Workstation -->
+    <Platform name="macOS" id="darwin" version="13.0+ (Ventura/Sonoma/Sequoia)">
+        <Architecture target="arm64_x86_64">
+            <DefaultShell>/bin/zsh</DefaultShell>
+            <FallbackShell>/bin/bash</FallbackShell>
+            <PathSeparator>/</PathSeparator>
+        </Architecture>
+
+        <!-- Application Metadata & macOS App Bundle -->
+        <Application>
+            <Name>Agentic Web Workstation</Name>
+            <Organization>MaxMasAI (https://github.com/MaxMasAI)</Organization>
+            <Owner>Sahil Kumar Dhala (https://github.com/Sahilkumardhala)</Owner>
+            <License>MIT</License>
+            <BundleIdentifier>com.maxmasai.agenticweb</BundleIdentifier>
+            <Executable>python3 app.py</Executable>
+            <LauncherScript>./run.sh</LauncherScript>
+            <InstallerScript>./install.sh</InstallerScript>
+            <ProcessIdentifier>agentic_web_mac.pid</ProcessIdentifier>
+        </Application>
+
+        <!-- Display and UI Rendering -->
+        <Display>
+            <Backend>Metal / Cocoa / Native Retina Display</Backend>
+            <HighDpiScaling>True</HighDpiScaling>
+            <DpiFactor>2.0</DpiFactor>
+            <WindowDecorations>macOS Unified Dark Titlebar</WindowDecorations>
+            <DefaultTheme>CyberpunkDark</DefaultTheme>
+        </Display>
+
+        <!-- System Shortcuts (macOS Command Keybindings) -->
+        <Shortcuts>
+            <Shortcut id="toggle_sidebar" key="Cmd+B">Toggle Sidebar Auto-Hide / Pin</Shortcut>
+            <Shortcut id="new_chat" key="Cmd+N">New Multi-Turn Context</Shortcut>
+            <Shortcut id="command_palette" key="Cmd+K">Open Command Hub</Shortcut>
+            <Shortcut id="clear_canvas" key="Cmd+Backspace">Clear Active Canvas</Shortcut>
+            <Shortcut id="fullscreen" key="Ctrl+Cmd+F">Toggle Fullscreen</Shortcut>
+            <Shortcut id="quit_app" key="Cmd+Q">Quit Workstation</Shortcut>
+        </Shortcuts>
+
+        <!-- Hardware & System Audio/Vision Capture -->
+        <HardwareCapabilities>
+            <AudioEngine>CoreAudio / AVFoundation</AudioEngine>
+            <ScreenCaptureEngine>Quartz CoreGraphics (CGWindowListCreateImage) / MSS</ScreenCaptureEngine>
+            <MouseKeyboardEngine>PyAutoGUI (CoreGraphics Event Taps)</MouseKeyboardEngine>
+            <BrowserEngine>Playwright Chromium / WebKit</BrowserEngine>
+        </HardwareCapabilities>
+
+        <!-- Storage Paths and Directories -->
+        <Paths>
+            <AppDataRoot>~/Library/Application Support/AgenticWeb</AppDataRoot>
+            <LocalDatabase>db.sqlite</LocalDatabase>
+            <TasksDirectory>tasks/</TasksDirectory>
+            <LogsDirectory>logs/</LogsDirectory>
+            <ChatsDirectory>logs/chats/</ChatsDirectory>
+            <DownloadsDirectory>downloads/</DownloadsDirectory>
+            <ConfigDirectory>json/</ConfigDirectory>
+        </Paths>
+
+        <!-- Security & macOS Permissions -->
+        <Security>
+            <AccessibilityPermissionsRequired>True</AccessibilityPermissionsRequired>
+            <ScreenRecordingPermissionsRequired>True</ScreenRecordingPermissionsRequired>
+            <MicrophonePermissionsRequired>True</MicrophonePermissionsRequired>
+            <MaskCredentialsInPrompts>True</MaskCredentialsInPrompts>
+            <AllowSysExec>True</AllowSysExec>
+            <AutoAppendCwd>True</AutoAppendCwd>
+        </Security>
+    </Platform>
+</PlatformConfiguration>

@@ -1,0 +1,11 @@
+Sphinx Documentation Build Requirements:
+
+1. Install documentation builder packages:
+   pip install sphinx sphinx-rtd-theme myst-parser sphinx-copybutton
+
+2. Optional translation utilities (gettext / sphinx-intl):
+   pip install sphinx-intl
+
+3. Build documentation:
+   - Windows: make.bat html
+   - Linux/macOS: make html (or ./build-en.sh)

@@ -1,0 +1,48 @@
+[
+  {
+    "name": "Web searching",
+    "task": "",
+    "desc": "",
+    "agents": [
+      "gemini",
+      "perplexity"
+    ],
+    "created": "2026-08-30 01:48"
+  },
+  {
+    "name": "\ud83c\udf10 Enterprise Multilingual & Logistics Hub",
+    "desc": "Cross-language localization, enterprise spreadsheets & structured documentation",
+    "task": "Translate and localize software documentation across European languages with formatted enterprise sheets",
+    "agents": [
+      "gemini",
+      "mistral",
+      "copilot",
+      "chatgpt"
+    ],
+    "created": "2026-08-30 01:54"
+  },
+  {
+    "name": "\u26a1 Full-Stack Web & E-Commerce Prototypers",
+    "desc": "High-velocity web development, responsive CSS, API architecture & visual assets",
+    "task": "Develop a production-ready responsive e-commerce web application with animated product cards and interactive checkout",
+    "agents": [
+      "gemini",
+      "deepseek",
+      "chatgpt",
+      "dalle"
+    ],
+    "created": "2026-08-30 01:54"
+  },
+  {
+    "name": "\ud83e\udde9 Custom Visual Strike Team",
+    "task": "Visual workflow pipeline executing 6 visual nodes.",
+    "desc": "Built with Visual Node Agent Builder (4 agents connected)",
+    "agents": [
+      "gemini",
+      "deepseek",
+      "perplexity",
+      "claude"
+    ],
+    "created": "2026-09-05 14:31"
+  }
+]

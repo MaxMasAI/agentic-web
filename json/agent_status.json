@@ -1,0 +1,92 @@
+{
+  "gemini": {
+    "id": "gemini",
+    "name": "Google Gemini",
+    "role": "Master Orchestrator & Leadership Lead",
+    "specialization": "Project orchestration, multimodal asset evaluation, strict design quality audits, repetition filtering, prompt engineering refinement, and workflow direction.",
+    "state": "LEADER",
+    "current_task": "Master Orchestrator",
+    "last_updated": "14:41:19"
+  },
+  "deepseek": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "role": "Creative Ideator & Deep Researcher",
+    "specialization": "Trend research, rapid concept brainstorming, cross-cultural aesthetic synthesis, and technical reasoning for fresh design ideation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "chatgpt": {
+    "id": "chatgpt",
+    "name": "OpenAI ChatGPT",
+    "role": "Campaign Synthesizer & Client Dispatcher",
+    "specialization": "Final copy production, campaign aggregation, social media marketing text, hashtag generation, and formatted client-facing deliverables.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "claude": {
+    "id": "claude",
+    "name": "Anthropic Claude",
+    "role": "Editorial & Nuance Reviewer",
+    "specialization": "In-depth editorial critique, long-form content structuring, tone refinement, and adherence to complex narrative constraints.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "meta_ai": {
+    "id": "meta_ai",
+    "name": "Meta AI",
+    "role": "Social Trends & Viral Formatting Agent",
+    "specialization": "Platform-specific social media hooks, viral pattern evaluation, and rapid audience engagement tactics.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "dalle": {
+    "id": "dalle",
+    "name": "OpenAI DALL-E 3 Specialist",
+    "role": "Graphic Asset Descriptor & Visual Prompt Designer",
+    "specialization": "Detailed text-to-image prompt styling, aspect ratio calculations, visual asset layout planning, and aesthetic style translation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "perplexity": {
+    "id": "perplexity",
+    "name": "Perplexity AI",
+    "role": "Real-Time Fact Checker & Citations Specialist",
+    "specialization": "Live web searching, source verification, comparative data auditing, and academic citation gathering.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "copilot": {
+    "id": "copilot",
+    "name": "Microsoft Copilot",
+    "role": "Office Suite & Enterprise Integration Specialist",
+    "specialization": "Enterprise workflow coordination, formatting guidelines, office documentation outline structures, and macro/data table automation formulas.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "nvidia_ai": {
+    "id": "nvidia_ai",
+    "name": "Nvidia NIM AI",
+    "role": "High-Performance GPU Compute & Optimization Advisor",
+    "specialization": "Technical scaling, performance profiling recommendations, API compute efficiency, and deep math/scientific calculation auditing.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  },
+  "mistral": {
+    "id": "mistral",
+    "name": "Mistral Le Chat",
+    "role": "European Multilingual & Open-Weights Specialist",
+    "specialization": "Fluent translation across multiple European languages, light-weight utility scripts coding, and cost-effective task delegation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "14:41:19"
+  }
+}
