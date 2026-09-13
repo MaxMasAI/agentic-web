@@ -214,16 +214,30 @@ run.bat
 python app.py
 ```
 
-#### ⚡ Live Auto-Reload Development Mode (Auto-restarts on code edits):
-```bash
-# Using watchmedo directly
-watchmedo auto-restart --directory=. --pattern="*.py" --recursive -- python main.py
+#### ⚡ Live Auto-Reload Development Engine (`dev.py` & `dev.bat`):
+For active feature development and UI customization, the platform includes an intelligent live-reloading engine that monitors all `*.py` files and restarts the application automatically when code is saved.
 
-# Or using the built-in dev runner / batch file:
-python dev.py          # Auto-reloads app.py on code edits (GUI)
-python dev.py --cli    # Auto-reloads main.py on code edits (CLI)
-dev.bat                # Windows 1-click dev launcher
+```bash
+# 🖥️ Auto-reloads Desktop GUI (app.py) on code changes (Default)
+python dev.py
+
+# 💻 Auto-reloads CLI Multi-Agent Orchestrator (main.py) on code changes
+python dev.py --cli
+
+# ⏱️ Custom debounce settling delay (e.g., wait 2.0s for multi-file IDE edits to settle)
+python dev.py --delay 2.0
+
+# 🪟 Windows 1-Click Dev Launcher
+dev.bat
 ```
+
+##### 🛠️ How `dev.py` & `dev.bat` Work:
+* **Smart Change Debouncing**: Rather than restarting immediately on every intermediate file touch, `dev.py` buffers changes and waits for file edits to settle (default `1.2s`), avoiding repeated jittery restarts during multi-file saves.
+* **Clean Process Tree Termination**: Uses `taskkill /F /T /PID` on Windows (and `SIGTERM` process group cleanup on Unix) to recursively terminate child processes, preventing zombie processes, leaked sockets, or port `9222`/`8000` collisions.
+* **Dual Watcher Architecture**: Automatically uses high-performance OS file system events via `watchdog` when available, with a fallback to an internal zero-dependency file polling engine.
+* **1-Click Batch Integration (`dev.bat`)**: Configures terminal styling and forwards all command-line flags directly to `dev.py`.
+
+---
 
 ### 4. Run Test Suites
 ```bash
