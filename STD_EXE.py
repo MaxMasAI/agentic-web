@@ -29,14 +29,19 @@ def create_executable():
     build_command = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",
-        "--onedir",          # Create a one-folder bundle containing an executable
+        "--onefile",         # Create a single portable standalone executable
         "--windowed",        # Do not provide a console window for standard i/o (GUI app)
         "--name", "agentic-web",
-        "--contents-directory", ".",
         # Exclude conflicting Qt bindings that trigger PyInstaller hook conflicts
         "--exclude-module", "PyQt5",
         "--exclude-module", "PyQt6",
         "--exclude-module", "PySide2",
+        # Collect all assets and drivers for critical packages
+        "--collect-all", "playwright",
+        "--collect-all", "google.genai",
+        "--collect-all", "uvicorn",
+        "--collect-all", "fastapi",
+        "--collect-all", "sounddevice",
         # Explicit hidden imports to prevent missing runtime modules
         "--hidden-import", "pydantic",
         "--hidden-import", "dotenv",
@@ -48,6 +53,22 @@ def create_executable():
         "--hidden-import", "PySide6.QtCore",
         "--hidden-import", "PySide6.QtGui",
         "--hidden-import", "PySide6.QtWidgets",
+        "--hidden-import", "core.main",
+        "--hidden-import", "core.agents",
+        "--hidden-import", "core.agentlist",
+        "--hidden-import", "core.squad_learner",
+        "--hidden-import", "core.agent_status",
+        "--hidden-import", "browser.browser_helpers",
+        "--hidden-import", "browser.browser_controller",
+        "--hidden-import", "browser.downloader",
+        "--hidden-import", "utils.launcher",
+        "--hidden-import", "utils.chat_session_manager",
+        "--hidden-import", "utils.latency_manager",
+        "--hidden-import", "utils.pid_tracker",
+        "--hidden-import", "utils.enhanced_memory",
+        "--hidden-import", "voice.voice_narrator",
+        "--hidden-import", "voice.backend.server",
+        "--hidden-import", "voice.backend.tools",
     ]
     
     # Dynamically include ALL project folders in the root directory
@@ -76,26 +97,17 @@ def create_executable():
     result = subprocess.run(build_command)
     
     if result.returncode == 0:
-        dist_app_dir = os.path.join("dist", "agentic-web")
-        print("\n[*] Synchronizing workspace files into distribution folder...")
-        
-        # Ensure all data directories and config files exist directly in dist
-        for folder_name in ["json", "tasks", "logs", "downloads", "visuals", "tests", "plugins"]:
-            if os.path.exists(folder_name):
-                dest_dir = os.path.join(dist_app_dir, folder_name)
-                shutil.copytree(folder_name, dest_dir, dirs_exist_ok=True)
-                
-        for file_name in root_data_files:
-            if os.path.exists(file_name):
-                shutil.copy2(file_name, os.path.join(dist_app_dir, file_name))
-                
+        exe_path = os.path.join("dist", "agentic-web.exe")
         print("=======================================================")
         print("✅ SUCCESS: Build completed successfully!")
-        print("You can find the standalone application in the 'dist/agentic-web' folder.")
-        print("Simply double click 'dist/agentic-web/agentic-web.exe' to run.")
+        print("Your single standalone executable is ready at:")
+        print(f"  👉 {exe_path}")
+        print("\nAll runtime files (tasks, logs, downloads, visuals, json) will be")
+        print("cleanly stored in %APPDATA%\\AgenticWeb without polluting your folders.")
         print("=======================================================\n")
     else:
         print("\n❌ ERROR: Build failed. Please check the error output above.")
+
 
 if __name__ == "__main__":
     create_executable()

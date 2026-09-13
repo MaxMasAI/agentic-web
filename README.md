@@ -37,8 +37,6 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 - **Standardized 9-Field Schema**:
   - All MCP configurations in `json/mcp_config.json` conform strictly to the 9-field schema (`name`, `repository`, `api_endpoint`, `raw_base_url`, `version`, `skills_count`, `status`, `type`, `description`).
 
----
-
 ## 🖥️ 3. Futuristic PySide6 Desktop Console
 - **🛰️ Mission Control (Home):** Interactive telemetry cards (`Tasks Completed`, `Memory Items`, `Squad Roster`, `Agent Skills`, `Assets Saved`, `Active Missions`), Gemini Direct Task Dispatcher, and real-time Multi-Agent Hierarchy Monitor.
 - **🌳 Agent Command Hierarchy Tree:** Switchable tree & grid view with Gemini Leader at the root branching into the specialist clusters with live `🟢 FREE` vs `🟡 BUSY` indicators and agent activity inspector.
@@ -46,9 +44,40 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 - **🎮 Playground Studio:** Live HTML/CSS/JS sandbox with real-time deliverable preview, isolated Python execution sandbox, and task code extractor.
 - **🤖 Agent Squads:** Autonomous AI Squad generator based on project scope, 1-click fast presets, and repeated pattern auto-learner.
 - **📋 Mission Archive:** Searchable mission history with 5 deep inspection tabs (Gemini Plan, Worker Outputs, Final Approved Result, Live Sandbox, Downloaded Assets) and full-resolution screenshot lightboxes.
-- **📁 Folder Explorer:** Direct inline code inspector and preview for `json/`, `tasks/`, `logs/`, `downloads/`, `visuals/`, and `tests/` with safe file deletion protection.
+- **📁 Folder Explorer:** Direct inline code inspector and preview for `json/`, `tasks/`, `logs/`, `downloads/`, `visuals/`, and `plugins/` with safe file deletion protection.
 - **🔌 MCP Service Hub:** Live tool tester with dynamic parameter forms, server registry, parameter schema explorer, and custom server registration.
 - **🧠 Neural Memory Vault:** Cross-mission factual memory search, semantic categorization, importance rating, pin priority, deduplication, and `RULES.md` exporter.
+
+---
+
+## 🌌 4. Autonomous Infinite Canvas IDE (October.dev Architecture)
+
+An interactive 2D infinite workspace for autonomous multi-agent development workflows:
+
+```mermaid
+graph LR
+    subgraph Infinite Canvas Workspace
+        CLI[Terminal / CLI Node] -->|Context Bridge Edge| Agent[Autonomous Agent Node]
+        Agent -->|Tool Dispatch| CLI
+        Agent -->|Diff / Code Stream| FileNode[File / Diff Viewer Node]
+        FileNode -->|Context Feed| Agent
+    end
+    Broker[(Canvas Event Broker & Global Memory)] <--> CLI
+    Broker <--> Agent
+    Broker <--> FileNode
+    AgentLoop[Autonomous Plan-Execute-Reflect Loop] <--> Agent
+```
+
+- **Interactive Node System**:
+  - `🖥️ Terminal / CLI Node`: Embedded live shell running command-line workflows with exit code indicators and real-time stream output.
+  - `🤖 Autonomous Agent Node`: Autonomous LLM worker with objective input, dynamic status badges (`IDLE`, `PLANNING`, `EXECUTING`, `PAUSED`, `ERROR`), and tool execution feeds.
+  - `📄 File / Diff Viewer Node`: Unified git-style diff viewer (`+` green additions, `-` red deletions) with live code editing and save triggers.
+  - `⚡ Context Bridge (Bézier Wires)`: Directed data pipelines linking terminal output streams, agent context buffers, and file diff emitters.
+- **Autonomous Tool-Calling Loop**:
+  - `run_command(cmd)`: Dispatches execution to connected CLI terminal nodes.
+  - `read_file(path)` / `write_file(path, content)`: Updates workspace storage and emits live diffs to connected File nodes.
+  - `spawn_node(type, props)`: Dynamically adds dependent sub-agents or utility nodes directly onto the canvas.
+
 
 ---
 
@@ -110,6 +139,11 @@ pip install -r requirements.txt
 
 ### 3. Launch the Application
 
+> [!TIP]
+> **💡 Launcher Recommendation:**
+> - **If you are coding / customizing**: Double-click **`dev.bat`** (Live Auto-Reload mode: automatically restarts on `Ctrl+S`).
+> - **If you are just using the app**: Double-click **`run.bat`** (Standard run mode with Gemini Voice daemon).
+
 #### Launch Full Suite (Voice Server Daemon + PySide6 Desktop GUI):
 ```cmd
 run.bat
@@ -118,6 +152,17 @@ run.bat
 #### Launch Desktop GUI Directly:
 ```bash
 python app.py
+```
+
+#### ⚡ Live Auto-Reload Development Mode (Auto-restarts on code edits):
+```bash
+# Using watchmedo directly
+watchmedo auto-restart --directory=. --pattern="*.py" --recursive -- python main.py
+
+# Or using the built-in dev runner / batch file:
+python dev.py          # Auto-reloads app.py on code edits (GUI)
+python dev.py --cli    # Auto-reloads main.py on code edits (CLI)
+dev.bat                # Windows 1-click dev launcher
 ```
 
 ### 4. Run Test Suites

@@ -12,6 +12,18 @@
       "chat_url": "https://chat.mistral.ai/chat/ce4ed38b-4b9b-44a4-b54e-3e4b36b7529b",
       "thread_title": "Collaborative AI review framework assignment",
       "last_updated": "2026-09-05 18:16:37"
+    },
+    "deepseek": {
+      "agent_id": "deepseek",
+      "chat_url": "https://chat.deepseek.com/a/chat/s/b011d0ff-3e95-489f-8177-95119a463ec2",
+      "thread_title": "Collaborative AI review framework assignment",
+      "last_updated": "2026-09-13 17:27:37"
+    },
+    "perplexity": {
+      "agent_id": "perplexity",
+      "chat_url": "https://www.perplexity.ai/search/b7653b43-b8ed-4a39-88f3-b99e29eb7531",
+      "thread_title": "Collaborative AI review framework assignment",
+      "last_updated": "2026-09-13 17:27:53"
     }
   }
 }

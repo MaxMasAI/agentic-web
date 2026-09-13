@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QScrollArea, QFrame, QMessageBox
 )
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QKeySequence, QShortcut
 
 from gui.widgets.terminal_view import TerminalView
 from gui.widgets.pool_monitor import PoolMonitor
@@ -122,7 +122,7 @@ class TaskDispatchPage(QWidget):
         # Mission Prompt
         left_box.addWidget(QLabel("<b>Mission Prompt / Instructions:</b>"))
         self.prompt_edit = QTextEdit()
-        self.prompt_edit.setPlaceholderText("Describe your project, code requirements, research topic, or design asset...")
+        self.prompt_edit.setPlaceholderText("Describe your project, code requirements, research topic, or design asset... (Ctrl+Enter to deploy)")
         self.prompt_edit.setFixedHeight(120)
         left_box.addWidget(self.prompt_edit)
 
@@ -145,9 +145,10 @@ class TaskDispatchPage(QWidget):
         self.manual_frame.setStyleSheet("background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 6px;")
         m_layout = QVBoxLayout(self.manual_frame)
         m_layout.setSpacing(4)
-        m_layout.addWidget(QLabel("<span style='color:#38bdf8;font-weight:700;'>Select Specialists:</span> (Gemini Leader included automatically)"))
+        m_layout.addWidget(QLabel("<span style='color:#38bdf8;font-weight:700;'>Select Agents for Squad:</span> (Select Gemini for direct sole execution or combine with specialists)"))
 
         agents_roster = [
+            ("gemini", "Google Gemini — Master Orchestrator & Direct Execution"),
             ("deepseek", "DeepSeek — Creative & Coder"),
             ("chatgpt", "ChatGPT — Copy & Synthesis"),
             ("claude", "Claude — Critique & Review"),
@@ -160,6 +161,8 @@ class TaskDispatchPage(QWidget):
         ]
         for aid, label in agents_roster:
             cb = QCheckBox(label)
+            if aid == "gemini":
+                cb.setChecked(True)
             self.manual_agent_boxes[aid] = cb
             m_layout.addWidget(cb)
 
@@ -177,8 +180,18 @@ class TaskDispatchPage(QWidget):
         self.deploy_btn.setProperty("class", "primary-btn")
         self.deploy_btn.setFixedHeight(42)
         self.deploy_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.deploy_btn.setToolTip("Deploy Mission to Agent Pool (Ctrl+Enter)")
         self.deploy_btn.clicked.connect(self.on_deploy_clicked)
         left_box.addWidget(self.deploy_btn)
+
+        # Page-level shortcuts
+        self.deploy_sc1 = QShortcut(QKeySequence("Ctrl+Return"), self)
+        self.deploy_sc1.setContext(Qt.WidgetWithChildrenShortcut)
+        self.deploy_sc1.activated.connect(self.on_deploy_clicked)
+
+        self.deploy_sc2 = QShortcut(QKeySequence("Ctrl+Enter"), self)
+        self.deploy_sc2.setContext(Qt.WidgetWithChildrenShortcut)
+        self.deploy_sc2.activated.connect(self.on_deploy_clicked)
 
         split_layout.addLayout(left_box, stretch=1)
 
@@ -203,6 +216,11 @@ class TaskDispatchPage(QWidget):
         self.status_bar_lbl.setStyleSheet("font-size: 12px; color: #94a3b8; background: rgba(15, 23, 42, 0.7); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);")
         right_box.addWidget(self.status_bar_lbl)
 
+        # Real-Time Multi-Agent Workflow HUD
+        from gui.widgets.workflow_hud_widget import WorkflowHUDWidget
+        self.workflow_hud = WorkflowHUDWidget()
+        right_box.addWidget(self.workflow_hud)
+
         # Live Terminal View
         self.terminal = TerminalView()
         right_box.addWidget(self.terminal, stretch=1)
@@ -210,13 +228,19 @@ class TaskDispatchPage(QWidget):
         # Monitor Action Buttons
         btn_row = QHBoxLayout()
         self.refresh_btn = QPushButton("🔄 Refresh Telemetry")
+        self.refresh_btn.setToolTip("Refresh Live Terminal Output (F5 / Ctrl+R)")
         self.refresh_btn.clicked.connect(self.refresh_terminal)
         btn_row.addWidget(self.refresh_btn)
 
         self.abort_btn = QPushButton("⏹ Abort Mission")
         self.abort_btn.setProperty("class", "danger-btn")
+        self.abort_btn.setToolTip("Abort Mission (Ctrl+Shift+X)")
         self.abort_btn.clicked.connect(self.on_abort_clicked)
         btn_row.addWidget(self.abort_btn)
+
+        self.abort_sc = QShortcut(QKeySequence("Ctrl+Shift+X"), self)
+        self.abort_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.abort_sc.activated.connect(self.on_abort_clicked)
 
         right_box.addLayout(btn_row)
         split_layout.addLayout(right_box, stretch=1)
@@ -294,13 +318,13 @@ class TaskDispatchPage(QWidget):
         if self.rb_auto.isChecked():
             agents_str = "auto"
         else:
-            selected = ["gemini"]
+            selected = []
             for aid, cb in self.manual_agent_boxes.items():
                 if cb.isChecked():
                     selected.append(aid)
-            if len(selected) == 1:
-                QMessageBox.warning(self, "No Specialist Selected", "Please select at least one specialist agent.")
-                return
+            if not selected:
+                # Default to Gemini if nothing selected in manual mode
+                selected = ["gemini"]
             agents_str = ",".join(selected)
 
         codename = self.codename_edit.text().strip() or f"Mission @ {time.strftime('%H:%M:%S')}"

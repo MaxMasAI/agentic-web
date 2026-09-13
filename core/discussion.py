@@ -43,12 +43,12 @@ async def run_discussion_round(
 
         critiques = {}
 
-        # Step A: Each worker reviews all other workers' outputs
-        for reviewer in workers:
+        # Step A: Each worker reviews all other workers' outputs in parallel
+        async def run_worker_critique(reviewer):
             r_id = reviewer["id"]
             r_tab = tabs.get(r_id)
             if not r_tab:
-                continue
+                return r_id, "", ""
 
             # Compile all other agents' outputs for review
             others_context = ""
@@ -79,19 +79,23 @@ async def run_discussion_round(
                 "IMPORTANT: Respond ONLY in English."
             )
 
-            print(f"\n  [{reviewer['name']}] Writing critique and revision...")
+            print(f"\n  [{reviewer['name']}] Writing critique and revision in parallel...")
             critique = await talk_fn(r_id, r_tab, critique_prompt)
-            critiques[r_id] = critique
-            discussion_log += (
-                f"\n[{reviewer['name']}] CRITIQUE:\n{critique}\n"
-            )
-
+            
             # Extract refined output from the IMPROVED OUTPUT section
             if "IMPROVED OUTPUT:" in critique:
                 improved = critique.split("IMPROVED OUTPUT:")[1].strip()
-                refined_outputs[r_id] = improved
             else:
-                refined_outputs[r_id] = critique
+                improved = critique
+            return r_id, reviewer["name"], critique, improved
+
+        critique_results = await asyncio.gather(*[run_worker_critique(w) for w in workers])
+        for r_id, r_name, critique, improved in critique_results:
+            critiques[r_id] = critique
+            refined_outputs[r_id] = improved
+            discussion_log += (
+                f"\n[{r_name}] CRITIQUE:\n{critique}\n"
+            )
 
         # Step B: Gemini moderates and synthesizes the best of the round
         print(f"\n  [Gemini Leader] Moderating discussion round {round_num}...")

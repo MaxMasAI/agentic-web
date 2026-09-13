@@ -32,6 +32,14 @@ def is_direct_browser_or_media_task(task: str) -> bool:
     if not task:
         return False
     t = task.lower().strip()
+
+    # Exclude system application launch tasks (e.g. task manager, notepad, calc, vscode)
+    try:
+        from services.system_app_launcher import is_system_app_task
+        if is_system_app_task(task):
+            return False
+    except Exception:
+        pass
     
     # Exclude requests asking to write/generate code
     if any(w in t for w in ["write a script", "write code", "how to code", "implement in python", "create a function"]):
@@ -207,11 +215,25 @@ async def execute_youtube_playback(task: str, context) -> str:
     print(f"{YELLOW}[*] Locating top video match for '{query}'...{RESET}")
     video_title_locator = page.locator("ytd-video-renderer a#video-title, ytd-rich-item-renderer a#video-title, a#video-title").first
 
+    # Show Antigravity Web-Agent Cursor managing YouTube full screen
+    try:
+        from browser.agent_cursor import inject_web_agent_cursor, simulate_agent_click, set_cursor_action
+        await inject_web_agent_cursor(page, action_text="🔍 Selecting video...")
+    except Exception:
+        pass
+
     clicked = False
     try:
         await video_title_locator.wait_for(timeout=10000, state="visible")
         video_name = await video_title_locator.get_attribute("title") or query
         print(f"{GREEN}[OK] Top video found: '{video_name}'. Clicking to play...{RESET}")
+        
+        try:
+            from browser.agent_cursor import simulate_agent_click
+            await simulate_agent_click(page, "ytd-video-renderer a#video-title, ytd-rich-item-renderer a#video-title, a#video-title", agent_name="Web-Agent")
+        except Exception:
+            pass
+
         await video_title_locator.click()
         clicked = True
     except Exception as e:
@@ -221,6 +243,11 @@ async def execute_youtube_playback(task: str, context) -> str:
         # Fallback click on any thumbnail
         try:
             thumb = page.locator("ytd-video-renderer ytd-thumbnail, ytd-rich-item-renderer ytd-thumbnail").first
+            try:
+                from browser.agent_cursor import simulate_agent_click
+                await simulate_agent_click(page, "ytd-video-renderer ytd-thumbnail, ytd-rich-item-renderer ytd-thumbnail", agent_name="Web-Agent")
+            except Exception:
+                pass
             await thumb.click(timeout=5000)
             clicked = True
         except Exception:

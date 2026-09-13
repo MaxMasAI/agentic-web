@@ -11,8 +11,8 @@ from PySide6.QtWidgets import (
     QPushButton, QComboBox, QScrollArea, QFrame, QSplitter,
     QListWidget, QListWidgetItem, QCheckBox, QInputDialog, QMessageBox
 )
-from PySide6.QtCore import Qt, QThread, Signal, QPoint
-from PySide6.QtGui import QCursor, QIcon
+from PySide6.QtCore import Qt, QThread, Signal, QPoint, QEvent
+from PySide6.QtGui import QCursor, QIcon, QKeySequence, QShortcut, QKeyEvent
 
 from services.llm_provider import get_available_models, generate_chat_response
 from services.context_storage import (
@@ -73,6 +73,7 @@ class ChatPage(QWidget):
         header_box.addWidget(self.model_combo)
 
         self.btn_refresh_models = QPushButton("🔄 Refresh")
+        self.btn_refresh_models.setToolTip("Refresh Models (F5 / Ctrl+R)")
         self.btn_refresh_models.clicked.connect(self.refresh_models)
         header_box.addWidget(self.btn_refresh_models)
 
@@ -99,6 +100,7 @@ class ChatPage(QWidget):
         self.btn_new_chat = QPushButton("➕ New Conversation")
         self.btn_new_chat.setProperty("class", "primary-btn")
         self.btn_new_chat.setFixedHeight(36)
+        self.btn_new_chat.setToolTip("Start New Conversation (Ctrl+N)")
         self.btn_new_chat.clicked.connect(self.new_conversation)
         left_layout.addWidget(self.btn_new_chat)
 
@@ -145,6 +147,7 @@ class ChatPage(QWidget):
         self.btn_clear_all = QPushButton("🗑️ Clear All History")
         self.btn_clear_all.setProperty("class", "danger-btn")
         self.btn_clear_all.setFixedHeight(30)
+        self.btn_clear_all.setToolTip("Clear All History (Ctrl+Shift+L)")
         self.btn_clear_all.clicked.connect(self.clear_all_history)
         left_layout.addWidget(self.btn_clear_all)
 
@@ -176,15 +179,26 @@ class ChatPage(QWidget):
         input_bar.setSpacing(10)
 
         self.input_edit = QTextEdit()
-        self.input_edit.setPlaceholderText("Type a message or prompt... (Press Enter or Click Send)")
+        self.input_edit.setPlaceholderText("Type a message or prompt... (Ctrl+Enter to Send, Enter for newline)")
         self.input_edit.setFixedHeight(70)
+        self.input_edit.installEventFilter(self)
         input_bar.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("🚀 Send")
         self.send_btn.setProperty("class", "primary-btn")
         self.send_btn.setFixedSize(90, 70)
+        self.send_btn.setToolTip("Send Message (Ctrl+Enter)")
         self.send_btn.clicked.connect(self.send_message)
         input_bar.addWidget(self.send_btn)
+
+        # Page Shortcuts
+        self.new_chat_sc = QShortcut(QKeySequence("Ctrl+N"), self)
+        self.new_chat_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.new_chat_sc.activated.connect(self.new_conversation)
+
+        self.clear_sc = QShortcut(QKeySequence("Ctrl+Shift+L"), self)
+        self.clear_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.clear_sc.activated.connect(self.clear_all_history)
 
         right_layout.addLayout(input_bar)
         self.splitter.addWidget(right_panel)
@@ -192,6 +206,18 @@ class ChatPage(QWidget):
         # Splitter proportions: 260px sidebar, remainder chat
         self.splitter.setSizes([260, 800])
         main_layout.addWidget(self.splitter, stretch=1)
+
+        # Initialize
+        self.refresh_contexts()
+        self.refresh_models()
+
+    def eventFilter(self, obj, event):
+        if obj == self.input_edit and event.type() == QEvent.KeyPress:
+            key_event = event
+            if key_event.key() in (Qt.Key_Return, Qt.Key_Enter) and (key_event.modifiers() & Qt.ControlModifier):
+                self.send_message()
+                return True
+        return super().eventFilter(obj, event)
 
         # Initialize
         self.refresh_contexts()

@@ -623,15 +623,55 @@ class SettingsPage(QWidget):
         panel = QWidget()
         lay = QVBoxLayout(panel)
         lay.setContentsMargins(15, 15, 15, 15)
-        lay.setSpacing(8)
+        lay.setSpacing(10)
 
-        lay.addWidget(create_section_header("📝 Prompts & System Instructions", "Global system prompt templates and automatic appended guidelines."))
+        lay.addWidget(create_section_header("📝 Prompts & Specialized System Instructions", "Select from industry-leading system prompts (Claude, Cursor, OpenAI, Devin, Perplexity, v0, Gemini) or define custom directives."))
 
+        from services.system_prompts_catalog import get_system_prompts_catalog
+        catalog = get_system_prompts_catalog()
+        all_prompts = catalog.list_all()
+
+        # Catalog Preset Picker
+        cat_box = QHBoxLayout()
+        cat_box.setSpacing(10)
+        lbl_preset = QLabel("<b>Specialized System Prompt Preset:</b>")
+        lbl_preset.setStyleSheet("color: #38bdf8; font-size: 12px;")
+        
+        cmb_catalog = QComboBox()
+        for p in all_prompts:
+            cmb_catalog.addItem(f"⚡ {p['name']} ({p.get('category', 'general').upper()})", p["id"])
+        
+        btn_apply_preset = QPushButton("📥 Load into Editor")
+        btn_apply_preset.setStyleSheet("""
+            QPushButton {
+                background: #0284c7;
+                color: white;
+                font-weight: bold;
+                padding: 6px 14px;
+                border-radius: 5px;
+            }
+            QPushButton:hover { background: #0369a1; }
+        """)
+
+        cat_box.addWidget(lbl_preset)
+        cat_box.addWidget(cmb_catalog, stretch=1)
+        cat_box.addWidget(btn_apply_preset)
+        lay.addLayout(cat_box)
+
+        # Prompt Content Editor
         txt_sys = QTextEdit()
-        txt_sys.setFixedHeight(120)
-        txt_sys.setPlaceholderText("Enter custom global system instructions...")
-        txt_sys.setText("You are an expert autonomous AI coding assistant and agentic swarm orchestrator.")
-        lay.addWidget(create_setting_row("Base System Prompt", "Appended to all active agent models across sessions.", txt_sys))
+        txt_sys.setFixedHeight(180)
+        txt_sys.setPlaceholderText("Enter custom global system instructions or load a preset above...")
+        default_claude_prompt = catalog.get_prompt_text("claude_coding_architect", "You are an expert autonomous AI coding assistant and agentic swarm orchestrator.")
+        txt_sys.setText(default_claude_prompt)
+        
+        btn_apply_preset.clicked.connect(lambda: txt_sys.setText(catalog.get_prompt_text(cmb_catalog.currentData())))
+        lay.addWidget(create_setting_row("Active System Prompt", "Base prompt injected into models and agent loops.", txt_sys))
+
+        # Auto-match toggle
+        cb_auto = QCheckBox()
+        cb_auto.setChecked(True)
+        lay.addWidget(create_setting_row("Auto-Match System Prompt by Task Query", "Dynamically routes coding, bug fixing, security, UI design, research, or math tasks to the optimal prompt.", cb_auto))
 
         lay.addStretch()
         return panel

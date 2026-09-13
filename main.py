@@ -10,6 +10,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 if __name__ == "__main__":
+    if "--watch" in sys.argv or "--dev" in sys.argv or "--auto-restart" in sys.argv:
+        import dev
+        filtered_args = [a for a in sys.argv[1:] if a not in ("--watch", "--dev", "--auto-restart")]
+        if not dev.run_watchdog_cli([sys.executable, "main.py"] + filtered_args):
+            dev.run_python_watcher(["main.py"] + filtered_args)
+        sys.exit(0)
+
     if "--gui" in sys.argv:
         import app
         app.main()

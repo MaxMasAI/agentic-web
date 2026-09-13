@@ -49,7 +49,7 @@ class FileExplorerPage(QWidget):
             ("logs", "📜 logs/ (Execution Logs)"),
             ("downloads", "⬇️ downloads/ (Assets)"),
             ("visuals", "🖼️ visuals/ (Screenshots)"),
-            ("tests", "🧪 tests/ (Test Suites)"),
+            ("plugins", "🧩 plugins/ (Extensions)"),
         ]
 
         for folder_key, folder_label in self.folder_configs:
@@ -90,6 +90,7 @@ class FileExplorerPage(QWidget):
             top_bar.addWidget(purge_btn)
 
         refresh_btn = QPushButton("🔄 Refresh")
+        refresh_btn.setToolTip("Refresh Directory (F5 / Ctrl+R)")
         refresh_btn.clicked.connect(lambda _, f=folder_name: self.refresh_folder(f))
         top_bar.addWidget(refresh_btn)
 

@@ -1,3 +1,21 @@
 """
-GUI Widgets Package
+gui/widgets/__init__.py - Reusable GUI Widgets Suite
 """
+
+from gui.widgets.metric_card import MetricCard
+from gui.widgets.pool_monitor import PoolMonitor
+from gui.widgets.terminal_view import TerminalView
+from gui.widgets.lightbox import LightboxDialog
+from gui.widgets.workflow_hud_widget import WorkflowHUDWidget, AgentWorkflowCard
+from gui.widgets.custom_widget_registry import CustomWidgetRegistry, get_custom_widget_registry
+
+__all__ = [
+    "MetricCard",
+    "PoolMonitor",
+    "TerminalView",
+    "LightboxDialog",
+    "WorkflowHUDWidget",
+    "AgentWorkflowCard",
+    "CustomWidgetRegistry",
+    "get_custom_widget_registry"
+]

@@ -129,6 +129,18 @@ SPECIALIST_AGENTS: List[Dict[str, Any]] = [
         "official_url": "https://chat.mistral.ai",
         "is_leader": False,
         "routing_tag": "[SEND_TO: mistral]"
+    },
+    {
+        "id": "web_agent",
+        "name": "Web-Agent",
+        "role": "Full-Screen Autonomous Browser & Screen Overseer",
+        "specialization": (
+            "Full-screen computer use, whole-page visual inspection, multi-window layout coordination, "
+            "direct web navigation, interactive clicking, and overarching screen management."
+        ),
+        "official_url": "https://google.com",
+        "is_leader": False,
+        "routing_tag": "[SEND_TO: web_agent]"
     }
 ]
 

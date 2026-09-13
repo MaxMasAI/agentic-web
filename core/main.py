@@ -30,6 +30,8 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 # Initialize Virtual Terminal processing for Windows command prompt ANSI styling
 os.system("")
 
+import shutil
+
 def find_pid_on_port(port=9222):
     """Finds the specific process ID listening on the remote debugging port."""
     try:
@@ -42,20 +44,27 @@ def find_pid_on_port(port=9222):
         pass
     return None
 
-# Register auto-cleanup of all tracked PIDs on exit
-atexit.register(kill_all_tracked_pids)
+def find_browser_executable() -> str:
+    """Finds installed Google Chrome or Microsoft Edge executable on the system."""
+    candidates = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe"),
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe"),
+    ]
+    for path in candidates:
+        if path and os.path.exists(path):
+            return path
+            
+    which_chrome = shutil.which("chrome") or shutil.which("google-chrome") or shutil.which("msedge")
+    if which_chrome:
+        return which_chrome
 
-def _signal_handler(sig, frame):
-    kill_all_tracked_pids()
-    sys.exit(0)
+    return r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
-try:
-    signal.signal(signal.SIGINT, _signal_handler)
-    signal.signal(signal.SIGTERM, _signal_handler)
-    if hasattr(signal, "SIGBREAK"):
-        signal.signal(signal.SIGBREAK, _signal_handler)
-except Exception:
-    pass
 
 # ANSI Color Codes
 CYAN = "\033[96m"
@@ -117,6 +126,21 @@ async def run_agent_loop(task, selected_agents_override=None):
         except Exception:
             pass
 
+    # ── Direct Native Windows System Application Launcher ──
+    try:
+        from services.system_app_launcher import is_system_app_task, execute_system_app_launch
+        if is_system_app_task(task):
+            deliverable = execute_system_app_launch(task)
+            print(f"\n{GREEN}" + "=" * 60)
+            print(f"{BOLD}       SYSTEM APPLICATION LAUNCHED SUCCESSFULLY       ")
+            print("=" * 60 + f"{RESET}")
+            print(f"\n{deliverable}\n")
+            print(f"{GREEN}" + "=" * 60 + f"{RESET}")
+            reset_all_workers_to_free(all_available_agents)
+            return
+    except Exception as e:
+        print(f"{YELLOW}[*] System launcher check notice: {e}{RESET}")
+
     async with async_playwright() as p:
         # Start Chrome on port 9222 if not running
         chrome_running = False
@@ -133,9 +157,10 @@ async def run_agent_loop(task, selected_agents_override=None):
             pass
 
         if not chrome_running:
-            print(f"{YELLOW}[*] Launching Chrome with remote debugging on port 9222...{RESET}")
+            browser_bin = find_browser_executable()
+            print(f"{YELLOW}[*] Launching browser ({browser_bin}) with remote debugging on port 9222...{RESET}")
             chrome_cmd = [
-                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                browser_bin,
                 "--remote-debugging-port=9222",
                 r"--user-data-dir=C:\ChromeAgentProfile",
                 "--disable-popup-blocking",          # Allow all window.open() popups
@@ -144,9 +169,13 @@ async def run_agent_loop(task, selected_agents_override=None):
                 "--no-first-run",                    # Skip first-run wizard
                 "--disable-default-apps",
             ]
-            proc = subprocess.Popen(chrome_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            register_pid(proc.pid)
-            await asyncio.sleep(5)  # Wait for Chrome to fully launch
+            try:
+                proc = subprocess.Popen(chrome_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                register_pid(proc.pid)
+            except Exception as e:
+                print(f"{RED}[!] Failed to launch browser process: {e}{RESET}")
+            await asyncio.sleep(4)  # Wait for browser to initialize
+
 
         # Attach to the running Chrome instance on port 9222
         browser = await p.chromium.connect_over_cdp("http://127.0.0.1:9222")
@@ -199,13 +228,13 @@ async def run_agent_loop(task, selected_agents_override=None):
             )
             selection_response = await talk_to_agent("gemini", gemini_tab, selection_prompt)
             
-            # Parse IDs from response (capped at 3 executing agents)
+            # Robust regex scanner for known agent IDs
             selected_ids = []
-            for token in selection_response.split(","):
-                clean_token = token.strip().lower()
-                clean_token = re.sub(r"[^a-z0-9_]", "", clean_token) # Remove formatting characters
-                if clean_token and clean_token not in selected_ids:
-                    selected_ids.append(clean_token)
+            known_ids = ["deepseek", "claude", "chatgpt", "perplexity", "copilot", "mistral", "nvidia_ai", "meta_ai", "dalle", "gemini"]
+            for kid in known_ids:
+                if re.search(r"\b" + re.escape(kid) + r"\b", selection_response.lower()):
+                    if kid not in selected_ids:
+                        selected_ids.append(kid)
             
             # Cap at maximum 3 agents
             selected_ids = selected_ids[:3]
@@ -213,30 +242,33 @@ async def run_agent_loop(task, selected_agents_override=None):
             # Resolve to active agent structures
             selected_agents = [agentlist.get_leader()]
             for aid in selected_ids:
-                agent = agentlist.get_agent_by_id(aid)
-                if agent and agent not in selected_agents:
-                    selected_agents.append(agent)
+                if aid != "gemini":
+                    agent = agentlist.get_agent_by_id(aid)
+                    if agent and agent not in selected_agents:
+                        selected_agents.append(agent)
             
-            # If only Gemini was selected for self-execution
-            if len(selected_agents) == 1 and ("gemini" in selected_ids or not selected_ids):
-                print(f"{GREEN}[*] Self-Assignment: Gemini will execute this task directly.{RESET}")
-                # Keep Gemini in selected_agents
-            elif len(selected_agents) == 1:
-                # Fallback if parsing failed
-                if len(task) < 70 and not any(k in task.lower() for k in ["and", "review", "audit", "build", "full", "complete"]):
-                    print(f"{YELLOW}[*] Easy task detected: Assigning single DeepSeek specialist.{RESET}")
+            # If Gemini failed to return any valid agent IDs at all, use task-based heuristic fallback
+            if len(selected_ids) == 0:
+                t_lower = task.lower()
+                if any(w in t_lower for w in ["code", "build", "script", "app", "python", "fix", "bug", "implement", "develop", "plugin", "widget", "gui"]):
+                    print(f"{YELLOW}[*] Software Engineering task: Enlisting DeepSeek (Build) and Claude (Review).{RESET}")
                     selected_agents.append(agentlist.get_agent_by_id("deepseek"))
+                    selected_agents.append(agentlist.get_agent_by_id("claude"))
+                elif any(w in t_lower for w in ["search", "find", "news", "research", "compare", "latest", "who", "what"]):
+                    print(f"{YELLOW}[*] Deep Research task: Enlisting Perplexity and ChatGPT.{RESET}")
+                    selected_agents.append(agentlist.get_agent_by_id("perplexity"))
+                    selected_agents.append(agentlist.get_agent_by_id("chatgpt"))
                 else:
-                    print(f"{YELLOW}[*] Complex task detected: Distributing to DeepSeek and ChatGPT.{RESET}")
+                    print(f"{YELLOW}[*] Multi-Agent Collaborative task: Enlisting DeepSeek and ChatGPT.{RESET}")
                     selected_agents.append(agentlist.get_agent_by_id("deepseek"))
                     selected_agents.append(agentlist.get_agent_by_id("chatgpt"))
         else:
             selected_agents = selected_agents_override
 
         # Print the finalized agent loop
-        print(f"\n{GREEN}[OK] Selected Agent Loop for this task:{RESET}")
+        print(f"\n{GREEN}[OK] Selected Multi-Agent Squad for this task:{RESET}")
         for idx, agent in enumerate(selected_agents, 1):
-            role_tag = "Leader" if agent["is_leader"] else f"Worker {idx-1}"
+            role_tag = "Leader & Orchestrator" if agent["is_leader"] else f"Specialist Worker {idx-1}"
             print(f"  {idx}. {CYAN}{agent['name']} ({role_tag}){RESET}")
 
         # Gemini Voice Announcement: Delegation Strategy
@@ -276,6 +308,15 @@ async def run_agent_loop(task, selected_agents_override=None):
         print(f"\n{MAGENTA}[Gemini Leader] Creating plan and delegating tasks...{RESET}")
         set_agent_state("gemini", "LEADER", f"Decomposing task & dispatching: {task[:35]}...")
         
+        # Pop Gemini window in front with cursor badge
+        try:
+            from browser.agent_cursor import inject_agent_cursor, set_cursor_action
+            await gemini_tab.bring_to_front()
+            await inject_agent_cursor(gemini_tab, agent_name="Gemini")
+            await set_cursor_action(gemini_tab, "⚡ Orchestrating & Planning...")
+        except Exception:
+            pass
+
         # Dynamic Semantic Neural Memory Retrieval
         from utils.enhanced_memory import get_relevant_memories_for_task, batch_add_from_mission
         memory_context = get_relevant_memories_for_task(task, max_items=10)
@@ -307,6 +348,12 @@ async def run_agent_loop(task, selected_agents_override=None):
         await gemini_tab.screenshot(path="visuals/step_gemini_plan.png")
         set_agent_state("gemini", "LEADER", "Plan generated. Delegating subtasks.")
 
+        try:
+            from browser.agent_cursor import set_cursor_action
+            await set_cursor_action(gemini_tab, "✓ Done")
+        except Exception:
+            pass
+
         # Parse planning instructions
         worker_instructions = {}
         for worker in workers:
@@ -331,47 +378,65 @@ async def run_agent_loop(task, selected_agents_override=None):
         dispatch_delay = lat_cfg.get("dispatch_delay_sec", 1.5)
         debate_delay = lat_cfg.get("debate_delay_sec", 2.0)
 
-        # Step 2: Specialist Workers Execution
+        # Step 2: Specialist Workers Execution (Parallel Mode)
         worker_outputs = {}
-        for worker in workers:
-            if dispatch_delay > 0:
-                await asyncio.sleep(dispatch_delay)
-                
+        
+        async def execute_parallel_worker(worker):
             instr = worker_instructions.get(worker["id"], "")
             if not instr:
                 instr = f"Execute your assigned specialized role for: {task}"
                 
-            print(f"\n{CYAN}[{worker['name']}] Performing delegated task...{RESET}")
-            speak_narrator(f"Deploying {worker['name']} for specialized role.")
-            set_agent_state(worker["id"], "BUSY", f"Executing assignment: {instr[:40]}...")
+            print(f"\n{CYAN}[{worker['name']}] Performing delegated task in PARALLEL mode...{RESET}")
+            set_agent_state(worker["id"], "BUSY", f"Executing assignment (Parallel): {instr[:40]}...")
             
-            history_context = ""
-            if worker_outputs:
-                history_context = "Here are the outputs from previous workers to build upon:\n"
-                for w_id, w_out in worker_outputs.items():
-                    history_context += f"Output from {w_id}:\n{w_out}\n\n"
-                    
+            # Pop active worker browser tab in front and set cursor badge
+            worker_tab = tabs[worker["id"]]
+            try:
+                from browser.agent_cursor import inject_agent_cursor, set_cursor_action
+                await inject_agent_cursor(worker_tab, agent_name=worker["name"])
+                await set_cursor_action(worker_tab, "⚡ Working (Parallel)...")
+            except Exception:
+                pass
+
             worker_skills = get_agent_skills_directive(worker["id"])
             worker_prompt = (
-                f"You are {worker['name']} ({worker['role']}), a worker in a collaborative pipeline.\n"
+                f"You are {worker['name']} ({worker['role']}), a specialist worker in a high-speed parallel multi-agent system.\n"
                 f"{worker_skills}"
                 f"Your leader (Gemini) has assigned you the following task:\n\n{instr}\n\n"
-                f"{history_context}"
                 "Please execute your assignment and return your finalized output adhering to your senior engineering skills.\n\n"
                 "IMPORTANT: You MUST write your response entirely in English. "
                 "Do not respond in Chinese, Spanish, or any other language. Respond ONLY in English."
             )
             
-            worker_tab = tabs[worker["id"]]
             worker_result = await talk_to_agent(worker["id"], worker_tab, worker_prompt)
-            worker_outputs[worker["id"]] = worker_result
             set_agent_state(worker["id"], "FREE", f"Completed: Output ready ({len(worker_result)} chars)")
-            await worker_tab.screenshot(path=f"visuals/step_{worker['id']}.png")
+            
+            try:
+                from browser.agent_cursor import set_cursor_action
+                await set_cursor_action(worker_tab, "✓ Done")
+            except Exception:
+                pass
+
+            try:
+                await worker_tab.screenshot(path=f"visuals/step_{worker['id']}.png")
+            except Exception:
+                pass
 
             # Auto-download any images or files generated by this worker
-            n = await try_download_images(worker_tab, task_folder, worker["id"])
-            if n > 0:
-                print(f"{GREEN}[+] {n} file(s) auto-downloaded for {worker['name']} -> {task_folder}{RESET}")
+            try:
+                n = await try_download_images(worker_tab, task_folder, worker["id"])
+                if n > 0:
+                    print(f"{GREEN}[+] {n} file(s) auto-downloaded for {worker['name']} -> {task_folder}{RESET}")
+            except Exception:
+                pass
+
+            return worker["id"], worker_result
+
+        print(f"\n{GREEN}[*] Launching {len(workers)} specialist agent(s) simultaneously in PARALLEL mode...{RESET}")
+        speak_narrator(f"Deploying {len(workers)} agents in parallel execution mode.")
+        parallel_results = await asyncio.gather(*[execute_parallel_worker(w) for w in workers])
+        for w_id, w_res in parallel_results:
+            worker_outputs[w_id] = w_res
 
         # Step 2.5: Multi-Agent Discussion & Debate Round
         discussion_log = ""
@@ -396,7 +461,15 @@ async def run_agent_loop(task, selected_agents_override=None):
             print(f"{GREEN}[OK] Discussion phase complete. Outputs refined.{RESET}")
         else:
             print(f"{YELLOW}[*] Only one worker — skipping discussion phase.{RESET}")
-        print(f"\n{MAGENTA}[Gemini Leader] Reviewing worker outputs...{RESET}")
+        print(f"\n{MAGENTA}[Gemini Leader] Reviewing worker outputs & compiling deliverable...{RESET}")
+        try:
+            from browser.agent_cursor import inject_agent_cursor, set_cursor_action
+            await gemini_tab.bring_to_front()
+            await inject_agent_cursor(gemini_tab, agent_name="Gemini")
+            await set_cursor_action(gemini_tab, "✨ Finalizing Deliverable...")
+        except Exception:
+            pass
+
         review_inputs = ""
         for w_id, w_out in worker_outputs.items():
             review_inputs += f"=== {w_id.upper()} OUTPUT ===\n{w_out}\n\n"
@@ -412,6 +485,12 @@ async def run_agent_loop(task, selected_agents_override=None):
         )
         gemini_review = await talk_to_agent("gemini", gemini_tab, gemini_review_prompt)
         await gemini_tab.screenshot(path="visuals/step_gemini_review.png")
+
+        try:
+            from browser.agent_cursor import set_cursor_action
+            await set_cursor_action(gemini_tab, "✓ Done")
+        except Exception:
+            pass
 
         final_output = ""
         # Dynamic Help / Correction Loop (targets the last worker for packaging)
@@ -468,7 +547,7 @@ async def run_agent_loop(task, selected_agents_override=None):
 
         # Detect repeated task patterns & autonomously synthesize reusable squads
         try:
-            from squad_learner import detect_and_create_repeated_pattern_squads
+            from core.squad_learner import detect_and_create_repeated_pattern_squads
             new_learned = detect_and_create_repeated_pattern_squads(min_repetition_threshold=2)
             if new_learned:
                 print(f"{GREEN}[🧠 SQUAD LEARNER] Autonomously created {len(new_learned)} reusable squad(s) from repeated task patterns!{RESET}")
@@ -501,12 +580,16 @@ def launch_voice_mode(port: int = 8000):
 
     if not server_running:
         print(f"\n{YELLOW}[*] Initializing Gemini Live Voice Backend on port {port}...{RESET}")
-        cmd = [sys.executable, "-m", "uvicorn", "voice.backend.server:app", "--host", "127.0.0.1", "--port", str(port)]
+        if getattr(sys, 'frozen', False):
+            cmd = [sys.executable, "--voice-server"]
+        else:
+            cmd = [sys.executable, "-m", "uvicorn", "voice.backend.server:app", "--host", "127.0.0.1", "--port", str(port)]
         proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         register_pid(proc.pid)
         import time
         time.sleep(2)
         print(f"{GREEN}[OK] Voice Backend running at ws://127.0.0.1:{port}/ws{RESET}")
+
 
     from voice.live_client import run_voice_client
     ws_url = f"ws://127.0.0.1:{port}/ws"

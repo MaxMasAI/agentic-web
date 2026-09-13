@@ -1,0 +1,7 @@
+{
+  "user_access_token": "test_fb_token_123",
+  "default_page_id": "page_101",
+  "page_tokens": {
+    "page_101": "page_tok_101"
+  }
+}

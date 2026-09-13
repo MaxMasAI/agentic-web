@@ -115,17 +115,83 @@ AGENT_SKILLS_MAP: Dict[str, List[Dict[str, str]]] = {
     ]
 }
 
+SUPERPOWERS_SKILLS_MAP: Dict[str, List[Dict[str, str]]] = {
+    "gemini": [
+        {
+            "skill": "superpowers:brainstorming",
+            "phase": "Spec",
+            "rule": "Elicit clear specifications in digestible chunks before jumping into code synthesis."
+        },
+        {
+            "skill": "superpowers:writing-plans",
+            "phase": "Plan",
+            "rule": "Produce implementation plans with atomic tasks, strict TDD red/green proofs, and DRY/YAGNI principles."
+        },
+        {
+            "skill": "superpowers:dispatching-parallel-agents",
+            "phase": "Orchestrate",
+            "rule": "Dispatch independent subagents with fresh context and isolated acceptance boundaries."
+        },
+        {
+            "skill": "superpowers:verification-before-completion",
+            "phase": "Verify",
+            "rule": "Run end-to-end verification and confirm all invariants pass before marking work complete."
+        }
+    ],
+    "deepseek": [
+        {
+            "skill": "superpowers:test-driven-development",
+            "phase": "Build",
+            "rule": "Strict Red/Green TDD: Write failing assertions first, run them to prove failure, then write minimal code to pass."
+        },
+        {
+            "skill": "superpowers:systematic-debugging",
+            "phase": "Debug",
+            "rule": "4-Phase Root-Cause investigation: Read stack trace, formulate single testable hypothesis, isolate minimal reproduction, fix cleanly without defensive guessing."
+        },
+        {
+            "skill": "superpowers:subagent-driven-development",
+            "phase": "Execute",
+            "rule": "Execute assigned task in isolation, verify step-by-step, and request review upon completion."
+        }
+    ],
+    "claude": [
+        {
+            "skill": "superpowers:requesting-code-review",
+            "phase": "Review",
+            "rule": "Review implementation diffs for code clarity, architectural integrity, edge-case coverage, and security boundaries."
+        },
+        {
+            "skill": "superpowers:receiving-code-review",
+            "phase": "Refine",
+            "rule": "Address code review feedback systematically, verifying fixes with passing tests."
+        }
+    ]
+}
+
+
 def get_agent_skills_directive(agent_id: str) -> str:
     """
-    Returns formatted Addy Osmani Engineering Skills prompt block for the designated agent.
+    Returns formatted Engineering Skills and Superpowers prompt block for the designated agent.
     """
-    skills = AGENT_SKILLS_MAP.get(agent_id.lower(), [])
-    if not skills:
+    aid = agent_id.lower()
+    addy_skills = AGENT_SKILLS_MAP.get(aid, [])
+    super_skills = SUPERPOWERS_SKILLS_MAP.get(aid, [])
+    
+    if not addy_skills and not super_skills:
         return ""
     
-    directive = "\n=== APPLIED SENIOR ENGINEERING SKILLS (Addy Osmani Agent-Skills) ===\n"
+    directive = "\n=== APPLIED SENIOR ENGINEERING & SUPERPOWERS SKILLS ===\n"
     directive += "You are required to adhere to the following professional engineering standards:\n"
-    for s in skills:
+    
+    for s in addy_skills:
         directive += f"- [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
-    directive += "====================================================================\n\n"
+        
+    if super_skills:
+        directive += "\n--- Active Superpowers Protocols ---\n"
+        for s in super_skills:
+            directive += f"• [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
+            
+    directive += "=======================================================\n\n"
     return directive
+

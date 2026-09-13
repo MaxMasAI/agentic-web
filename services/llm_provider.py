@@ -144,6 +144,17 @@ def generate_chat_response(
     Unified chat generator supporting Gemini, Ollama, OpenAI, DeepSeek, Claude, and Perplexity.
     Returns: {"role": "assistant", "content": str, "model": str, "tokens": int}
     """
+    # Auto-match specialized system prompt from catalog if none provided
+    if not system_prompt and messages:
+        try:
+            from services.system_prompts_catalog import get_system_prompts_catalog
+            last_msg = messages[-1].get("content", "")
+            if isinstance(last_msg, str) and last_msg.strip():
+                matched = get_system_prompts_catalog().match_best_prompt_for_task(last_msg)
+                system_prompt = matched.get("prompt", "")
+        except Exception:
+            pass
+
     # Apply System Prompt Extra plugin extensions
     try:
         from services.system_prompt_extra import get_system_prompt_extra_service

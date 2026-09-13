@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QFrame, QMessageBox, QTextBrowser
 )
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QKeySequence, QShortcut
 
 try:
     from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -52,7 +52,22 @@ class PlaygroundPage(QWidget):
         self.tabs.addTab(self.create_python_sandbox_tab(), "🐍 Python Execution Sandbox")
         self.tabs.addTab(self.create_extractor_tab(), "📋 Task Code Extractor & Live Renderer")
 
+        # Shortcuts
+        self.exec_sc = QShortcut(QKeySequence("Ctrl+Return"), self)
+        self.exec_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.exec_sc.activated.connect(self._on_shortcut_exec)
+
+        self.save_sc = QShortcut(QKeySequence("Ctrl+S"), self)
+        self.save_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.save_sc.activated.connect(self.export_preview_html)
+
         main_layout.addWidget(self.tabs)
+
+    def _on_shortcut_exec(self):
+        if self.tabs.currentIndex() == 1:
+            self.run_python_code()
+        elif self.tabs.currentIndex() == 0:
+            self.on_dispatch_refactor()
 
     # ──────────────────────────────────────────
     #  Tab 1: Web App & Live HTML/CSS/JS Sandbox
@@ -106,11 +121,13 @@ class PlaygroundPage(QWidget):
 
         btn_row = QHBoxLayout()
         self.export_html_btn = QPushButton("💾 Export to downloads/preview.html")
+        self.export_html_btn.setToolTip("Export Sandboxed Web HTML to downloads/ (Ctrl+S)")
         self.export_html_btn.clicked.connect(self.export_preview_html)
         btn_row.addWidget(self.export_html_btn)
 
         self.refactor_btn = QPushButton("🚀 Dispatch to DeepSeek to Refactor")
         self.refactor_btn.setProperty("class", "primary-btn")
+        self.refactor_btn.setToolTip("Dispatch code to DeepSeek for AI Refactor (Ctrl+Enter)")
         self.refactor_btn.clicked.connect(self.on_dispatch_refactor)
         btn_row.addWidget(self.refactor_btn)
         left_v.addLayout(btn_row)
@@ -157,6 +174,11 @@ class PlaygroundPage(QWidget):
         code = self.html_editor.toPlainText()
         if HAS_WEBENGINE:
             self.web_view.setHtml(code)
+            try:
+                from browser.agent_cursor import ANTIGRAVITY_CURSOR_JS
+                self.web_view.loadFinished.connect(lambda ok: self.web_view.page().runJavaScript(ANTIGRAVITY_CURSOR_JS) if ok else None)
+            except Exception:
+                pass
         else:
             self.web_view.setHtml(code)
 
@@ -249,6 +271,7 @@ class PlaygroundPage(QWidget):
         self.run_py_btn = QPushButton("⚡ Run Python Code Live")
         self.run_py_btn.setProperty("class", "primary-btn")
         self.run_py_btn.setFixedHeight(36)
+        self.run_py_btn.setToolTip("Run Python Code in Subprocess Sandbox (Ctrl+Enter / F5)")
         self.run_py_btn.clicked.connect(self.run_python_code)
         left_v.addWidget(self.run_py_btn)
         split.addLayout(left_v, stretch=1)

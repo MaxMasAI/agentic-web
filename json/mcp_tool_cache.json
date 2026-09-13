@@ -1,0 +1,67 @@
+{
+  "timestamp": 1789304709.1839554,
+  "tools": [
+    {
+      "tool_id": "mcp__filesystem_mcp__read_file",
+      "name": "read_file",
+      "server_id": "filesystem_mcp",
+      "server_name": "Filesystem Local MCP Server",
+      "description": "Reads content from file in local filesystem.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "transport": "stdio"
+    },
+    {
+      "tool_id": "mcp__filesystem_mcp__write_file",
+      "name": "write_file",
+      "server_id": "filesystem_mcp",
+      "server_name": "Filesystem Local MCP Server",
+      "description": "Writes content to file with timestamp prefix on collision.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      },
+      "transport": "stdio"
+    },
+    {
+      "tool_id": "mcp__ego_lite_browser__create_space",
+      "name": "create_space",
+      "server_id": "ego_lite_browser",
+      "server_name": "CitroLabs Ego-Lite Browser",
+      "description": "Creates an isolated browser space session for multi-agent tasks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "space_name": {
+            "type": "string",
+            "description": "Name for the browser space"
+          }
+        },
+        "required": [
+          "space_name"
+        ]
+      },
+      "transport": "stdio"
+    }
+  ]
+}

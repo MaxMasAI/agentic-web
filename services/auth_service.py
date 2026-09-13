@@ -22,12 +22,12 @@ PUBLIC_CLIENT_CONFIG = {
     "google": {
         "name": "Google (Gemini & Vertex AI)",
         "icon": "🌐",
-        "client_id": "32555940559.apps.googleusercontent.com",
-        "client_secret": "Km2ASjzUqSqcQj2-p6wTf2u7",
+        "client_id": "389277660715-24c8jh2v2seg14b1pkni2kgr4o4tts8i.apps.googleusercontent.com",
+        "client_secret": "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",
         "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "userinfo_url": "https://www.googleapis.com/oauth2/v3/userinfo",
-        "scope": "openid email profile https://www.googleapis.com/auth/cloud-platform",
+        "scope": "openid email profile",
     },
     "auth0": {
         "name": "Auth0 Universal Login",
@@ -267,10 +267,22 @@ def start_real_oauth_flow(provider: str, preferred_port: int = 8085, timeout_sec
     port = find_free_port(preferred_port)
     redirect_uri = f"http://127.0.0.1:{port}/callback"
 
-    # Read from .env if provided, or use public PKCE default
+    # Read from .env, json/google_client_secret.json, or public PKCE default
     if provider == "google":
-        client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID") or p_cfg.get("client_id", "")
-        client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET") or p_cfg.get("client_secret", "")
+        client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "")
+        client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
+        if not client_id:
+            g_sec_file = os.path.join(os.path.dirname(AUTH_FILE), "google_client_secret.json")
+            if os.path.exists(g_sec_file):
+                try:
+                    with open(g_sec_file, "r", encoding="utf-8") as f:
+                        g_json = json.load(f).get("installed", {})
+                        client_id = g_json.get("client_id", "")
+                        client_secret = g_json.get("client_secret", "")
+                except Exception:
+                    pass
+        client_id = client_id or p_cfg.get("client_id", "")
+        client_secret = client_secret or p_cfg.get("client_secret", "")
     elif provider == "auth0":
         client_id = os.getenv("AUTH0_CLIENT_ID") or p_cfg.get("client_id", "")
         client_secret = os.getenv("AUTH0_CLIENT_SECRET", "")
@@ -289,7 +301,7 @@ def start_real_oauth_flow(provider: str, preferred_port: int = 8085, timeout_sec
 
     if provider == "google":
         auth_endpoint = p_cfg.get("auth_url", "https://accounts.google.com/o/oauth2/v2/auth")
-        scope = p_cfg.get("scope", "openid email profile https://www.googleapis.com/auth/cloud-platform")
+        scope = p_cfg.get("scope", "openid email profile")
         params = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,

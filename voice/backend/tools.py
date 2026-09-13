@@ -89,11 +89,18 @@ TOOL_DECLARATIONS = [
 def _launch_agent_mission_background(task: str, agents_str: str = ""):
     """Spawns the mission asynchronously via main.py or launcher."""
     try:
-        cmd = [sys.executable, str(ROOT_DIR / "launcher.py"), task]
-        if not (ROOT_DIR / "launcher.py").exists():
+        if getattr(sys, 'frozen', False):
+            cmd = [sys.executable, "--task", task]
+            if agents_str:
+                cmd.extend(["--agents", agents_str])
+        elif (ROOT_DIR / "launcher.py").exists():
+            cmd = [sys.executable, str(ROOT_DIR / "launcher.py"), "--task", task]
+            if agents_str:
+                cmd.extend(["--agents", agents_str])
+        else:
             # Fallback inline python runner
             code = (
-                f"import asyncio, sys; from main import run_agent_loop; "
+                f"import asyncio, sys; from core.main import run_agent_loop; "
                 f"asyncio.run(run_agent_loop({repr(task)}))"
             )
             cmd = [sys.executable, "-c", code]
@@ -108,6 +115,7 @@ def _launch_agent_mission_background(task: str, agents_str: str = ""):
         log.info("Successfully launched background mission: %s", task[:50])
     except Exception as e:
         log.error("Failed to spawn background mission: %s", e)
+
 
 
 def dispatch_tool(name: str, args: dict):

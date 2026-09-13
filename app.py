@@ -2,6 +2,12 @@
 app.py - Main PySide6 Desktop Application Entry Point for Agentic Mission Control Suite
 """
 
+import multiprocessing
+
+# Freeze support must be called immediately for Windows PyInstaller binaries
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
+
 import sys
 import os
 import glob
@@ -9,31 +15,88 @@ import json
 import time
 import subprocess
 import re
-import multiprocessing
-
-# Freeze support for PyInstaller on Windows
-if __name__ == "__main__":
-    multiprocessing.freeze_support()
 
 # Ensure correct base directory and path resolution when running as standalone frozen executable
 if getattr(sys, 'frozen', False):
-    app_dir = os.path.dirname(sys.executable)
-    os.chdir(app_dir)
-    if app_dir not in sys.path:
-        sys.path.insert(0, app_dir)
+    app_data_dir = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AgenticWeb")
+    os.makedirs(app_data_dir, exist_ok=True)
+    os.chdir(app_data_dir)
+    if app_data_dir not in sys.path:
+        sys.path.insert(0, app_data_dir)
     internal_dir = getattr(sys, '_MEIPASS', None)
     if internal_dir and internal_dir not in sys.path:
         sys.path.insert(0, internal_dir)
+        # Seed default configurations & assets from bundled binary into %APPDATA%/AgenticWeb
+        import shutil
+        for subfolder in ["json", "plugins"]:
+            src_path = os.path.join(internal_dir, subfolder)
+            dst_path = os.path.join(app_data_dir, subfolder)
+            if os.path.exists(src_path) and not os.path.exists(dst_path):
+                try:
+                    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                except Exception:
+                    pass
+        for file_name in [".env", "db.sqlite", "windows.xml", "linux.xml", "mac.xml"]:
+            src_file = os.path.join(internal_dir, file_name)
+            dst_file = os.path.join(app_data_dir, file_name)
+            if os.path.exists(src_file) and not os.path.exists(dst_file):
+                try:
+                    shutil.copy2(src_file, dst_file)
+                except Exception:
+                    pass
 
-# Support running pipeline sub-tasks directly from the standalone executable
+
+# 0. Development Live-Reload Watcher
+if "--watch" in sys.argv or "--dev" in sys.argv or "--auto-restart" in sys.argv:
+    import dev
+    filtered_args = [a for a in sys.argv[1:] if a not in ("--watch", "--dev", "--auto-restart")]
+    if not dev.run_watchdog_cli([sys.executable, "app.py"] + filtered_args):
+        dev.run_python_watcher(["app.py"] + filtered_args)
+    sys.exit(0)
+
+# 1. Pipeline Task Execution from CLI or Subprocess
 if "--task" in sys.argv:
     from utils.launcher import main as run_launcher
     run_launcher()
     sys.exit(0)
 
+# 2. Voice Server Execution
+if "--voice-server" in sys.argv:
+    import uvicorn
+    print("\033[96m[*] Starting Gemini Live Voice Server on ws://127.0.0.1:8000/ws...\033[0m")
+    uvicorn.run("voice.backend.server:app", host="127.0.0.1", port=8000)
+    sys.exit(0)
+
+# 3. Voice Mode Interactive Client
+if "--voice" in sys.argv or "-v" in sys.argv:
+    from core.main import launch_voice_mode
+    launch_voice_mode()
+    sys.exit(0)
+
+# 4. Inline Python Execution (-c)
+if "-c" in sys.argv:
+    idx = sys.argv.index("-c")
+    if idx + 1 < len(sys.argv):
+        code_str = sys.argv[idx + 1]
+        try:
+            exec(compile(code_str, "<string>", "exec"), {"__name__": "__main__"})
+        except Exception as e:
+            print(f"Execution error: {e}", file=sys.stderr)
+            sys.exit(1)
+    sys.exit(0)
+
+# 5. Direct Script Execution (e.g. agentic-web.exe script.py)
+if len(sys.argv) > 1 and sys.argv[1].endswith(".py") and os.path.exists(sys.argv[1]):
+    import runpy
+    script_to_run = sys.argv[1]
+    sys.argv = sys.argv[1:]  # shift sys.argv
+    runpy.run_path(script_to_run, run_name="__main__")
+    sys.exit(0)
+
+
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QHBoxLayout,
-    QStackedWidget, QMessageBox
+    QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
+    QLabel, QPushButton, QStackedWidget, QMessageBox, QDialog
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QKeySequence, QShortcut
@@ -58,19 +121,23 @@ from gui.pages.media_studio_page import MediaStudioPage
 from gui.pages.settings_page import SettingsPage
 
 # Creative & Productivity Tools
+from gui.pages.vscode_page import VSCodePage
+from gui.pages.canvas_dev_page import CanvasDevPage
 from gui.pages.playground import PlaygroundPage
 from gui.tools.agent_builder import AgentBuilderPage
 from gui.tools.painter import PainterPage
 from gui.tools.notepad import NotepadPage
 from gui.tools.scheduler_view import SchedulerPage
 
+
 from core.agent_status import init_agent_status
 from core import agentlist
 from utils import pid_tracker
 
 # Ensure core workspace directories exist
-for d in ["tasks", "logs", "downloads", "visuals", "tests", "json"]:
+for d in ["tasks", "logs", "downloads", "visuals", "json", "plugins"]:
     os.makedirs(d, exist_ok=True)
+
 
 if not os.path.exists("json/agent_status.json"):
     init_agent_status(agentlist.list_all_active_agents())
@@ -182,6 +249,8 @@ class MainWindow(QMainWindow):
             "research": ResearchPage(),
             "media_studio": MediaStudioPage(),
             # Creative & Tools
+            "vscode": VSCodePage(),
+            "canvas_dev": CanvasDevPage(),
             "playground": PlaygroundPage(),
             "agent_builder": AgentBuilderPage(),
             "painter": PainterPage(),
@@ -217,11 +286,177 @@ class MainWindow(QMainWindow):
 
         self.pages["scheduler"].trigger_job_requested.connect(self.launch_pipeline)
 
-        # Global Shortcut: Ctrl+B to Toggle Sidebar Auto-Hide / Pin
+        # Global Shortcuts
+        # Ctrl+B: Toggle Sidebar
         self.sidebar_shortcut = QShortcut(QKeySequence("Ctrl+B"), self)
+        self.sidebar_shortcut.setContext(Qt.ApplicationShortcut)
         self.sidebar_shortcut.activated.connect(self.sidebar.toggle_pin)
 
+        # Ctrl+K & Ctrl+Shift+C: Instant Switch to Agent Canvas IDE
+        self.canvas_shortcut_k = QShortcut(QKeySequence("Ctrl+K"), self)
+        self.canvas_shortcut_k.setContext(Qt.ApplicationShortcut)
+        self.canvas_shortcut_k.activated.connect(lambda: self.switch_page("canvas_dev"))
+
+        self.canvas_shortcut_c = QShortcut(QKeySequence("Ctrl+Shift+C"), self)
+        self.canvas_shortcut_c.setContext(Qt.ApplicationShortcut)
+        self.canvas_shortcut_c.activated.connect(lambda: self.switch_page("canvas_dev"))
+
+        # Ctrl+H & F1: Global Hotkey Reference List
+        self.hotkey_shortcut = QShortcut(QKeySequence("Ctrl+H"), self)
+        self.hotkey_shortcut.setContext(Qt.ApplicationShortcut)
+        self.hotkey_shortcut.activated.connect(self.show_hotkeys_dialog)
+
+        self.f1_shortcut = QShortcut(QKeySequence("F1"), self)
+        self.f1_shortcut.setContext(Qt.ApplicationShortcut)
+        self.f1_shortcut.activated.connect(self.show_hotkeys_dialog)
+
+        # F5 & Ctrl+R: Global Refresh
+        self.refresh_shortcut_f5 = QShortcut(QKeySequence("F5"), self)
+        self.refresh_shortcut_f5.setContext(Qt.ApplicationShortcut)
+        self.refresh_shortcut_f5.activated.connect(lambda: self.refresh_all_data(force=True))
+
+        self.refresh_shortcut_r = QShortcut(QKeySequence("Ctrl+R"), self)
+        self.refresh_shortcut_r.setContext(Qt.ApplicationShortcut)
+        self.refresh_shortcut_r.activated.connect(lambda: self.refresh_all_data(force=True))
+
+        # Fast Tab Jump Keys (Character-based mnemonic hotkeys)
+        nav_keys = [
+            ("Alt+H", "home"),
+            ("Alt+D", "launch"),
+            ("Ctrl+K", "canvas_dev"),
+            ("Alt+C", "canvas_dev"),
+            ("Alt+P", "playground"),
+            ("Alt+U", "chat"),
+            ("Ctrl+E", "explorer"),
+            ("Alt+E", "explorer"),
+            ("Alt+S", "subagents"),
+            ("Alt+R", "research"),
+            ("Alt+M", "media_studio"),
+            ("Ctrl+,", "settings"),
+            ("Ctrl+Shift+F", "chat_files"),
+            ("Ctrl+Shift+M", "mcp"),
+            ("Ctrl+Shift+N", "memory"),
+        ]
+        self._nav_shortcuts = []
+        for key_seq, target_page in nav_keys:
+            sc = QShortcut(QKeySequence(key_seq), self)
+            sc.setContext(Qt.ApplicationShortcut)
+            sc.activated.connect(lambda p=target_page: self.switch_page(p))
+            self._nav_shortcuts.append(sc)
+
         main_layout.addWidget(self.stack, stretch=1)
+
+    def show_hotkeys_dialog(self):
+        """Displays master side-by-side 3-column hotkey cheatsheet dialog across the application."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("⌨️ Agentic Web - Master Keyboard Shortcuts (Ctrl+H / F1)")
+        dialog.setMinimumWidth(920)
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: #0b1120;
+                border: 1.5px solid rgba(56, 189, 248, 0.4);
+                border-radius: 12px;
+            }
+            QLabel {
+                color: #f8fafc;
+            }
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #2563eb);
+                color: white;
+                font-weight: 700;
+                border-radius: 6px;
+                padding: 7px 24px;
+                font-size: 12px;
+                border: none;
+            }
+            QPushButton:hover {
+                background: #38bdf8;
+                color: #080b11;
+            }
+        """)
+        d_layout = QVBoxLayout(dialog)
+        d_layout.setContentsMargins(18, 16, 18, 16)
+        d_layout.setSpacing(12)
+
+        hdr = QLabel("<div style='margin-bottom: 2px;'><span style='font-size: 16px; font-weight: 800; color: #38bdf8;'>⌨️ Master Keyboard Shortcuts Cheatsheet</span> &nbsp;<span style='color: #64748b; font-size: 11px;'>(Press <b>Ctrl+H</b> or <b>F1</b> anytime)</span></div>")
+        d_layout.addWidget(hdr)
+
+        content_lbl = QLabel()
+        content_lbl.setText("""
+        <table border="0" cellspacing="10" cellpadding="0" width="100%" style="font-family: 'Segoe UI', sans-serif;">
+        <tr>
+            <!-- Column 1: Global Navigation -->
+            <td valign="top" width="34%" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 10px 12px;">
+                <div style="color: #38bdf8; font-weight: 800; font-size: 12px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px; margin-bottom: 6px;">🌐 GLOBAL NAVIGATION</div>
+                <table border="0" cellpadding="3" cellspacing="0" width="100%" style="font-family: monospace; font-size: 11px;">
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+H / F1</td><td style="color:#cbd5e1;">Master Hotkeys</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+B</td><td style="color:#cbd5e1;">Toggle Sidebar</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">F5 / Ctrl+R</td><td style="color:#cbd5e1;">Global Refresh</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+H</td><td style="color:#cbd5e1;">Mission Control</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+D</td><td style="color:#cbd5e1;">Task Dispatch</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+K / Alt+C</td><td style="color:#cbd5e1;">Agent Canvas IDE</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+P</td><td style="color:#cbd5e1;">Playground Studio</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+U</td><td style="color:#cbd5e1;">Universal AI Chat</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+E / Alt+E</td><td style="color:#cbd5e1;">Folder Explorer</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+S</td><td style="color:#cbd5e1;">Agent Squads</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+R</td><td style="color:#cbd5e1;">Deep Research</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Alt+M</td><td style="color:#cbd5e1;">Media Studio</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+,</td><td style="color:#cbd5e1;">Settings</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+Shift+F</td><td style="color:#cbd5e1;">Chat with Files</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+Shift+M</td><td style="color:#cbd5e1;">MCP Service Hub</td></tr>
+                    <tr><td style="color:#38bdf8; font-weight:bold;">Ctrl+Shift+N</td><td style="color:#cbd5e1;">Neural Memory</td></tr>
+                </table>
+            </td>
+
+            <!-- Column 2: Agent Canvas IDE -->
+            <td valign="top" width="36%" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(167, 139, 250, 0.25); border-radius: 8px; padding: 10px 12px;">
+                <div style="color: #a78bfa; font-weight: 800; font-size: 12px; border-bottom: 1px solid rgba(167, 139, 250, 0.2); padding-bottom: 4px; margin-bottom: 6px;">🌌 AGENT CANVAS IDE</div>
+                <table border="0" cellpadding="3" cellspacing="0" width="100%" style="font-family: monospace; font-size: 11px;">
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+A</td><td style="color:#cbd5e1;">Select All Nodes & Wires</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Delete / Backspace</td><td style="color:#cbd5e1;">Delete Selected</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+T</td><td style="color:#cbd5e1;">Add Terminal Node</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Alt+A / Ctrl+Shift+A</td><td style="color:#cbd5e1;">Add Agent Node</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Alt+D / Ctrl+D</td><td style="color:#cbd5e1;">Add File/Diff Node</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Alt+N</td><td style="color:#cbd5e1;">Add Note Card</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Alt+T / Ctrl+Shift+T</td><td style="color:#cbd5e1;">✨ Tidy Graph (DAG)</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">F5 / Ctrl+Enter</td><td style="color:#cbd5e1;">Run Pipeline</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+S</td><td style="color:#cbd5e1;">Export Session JSON</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+O</td><td style="color:#cbd5e1;">Import Session JSON</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+M</td><td style="color:#cbd5e1;">Load Demo Template</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+0</td><td style="color:#cbd5e1;">Center Viewport (0,0)</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl++ / Ctrl+-</td><td style="color:#cbd5e1;">Zoom In / Zoom Out</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Middle-Click Drag</td><td style="color:#cbd5e1;">Pan Infinite Workspace</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Right-Click Area</td><td style="color:#cbd5e1;">Quick-Add Palette</td></tr>
+                    <tr><td style="color:#a78bfa; font-weight:bold;">Ctrl+L</td><td style="color:#cbd5e1;">Clear Canvas</td></tr>
+                </table>
+            </td>
+
+            <!-- Column 3: Dispatch & Workflows -->
+            <td valign="top" width="30%" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 8px; padding: 10px 12px;">
+                <div style="color: #34d399; font-weight: 800; font-size: 12px; border-bottom: 1px solid rgba(52, 211, 153, 0.2); padding-bottom: 4px; margin-bottom: 6px;">🚀 DISPATCH & WORKFLOWS</div>
+                <table border="0" cellpadding="3" cellspacing="0" width="100%" style="font-family: monospace; font-size: 11px;">
+                    <tr><td style="color:#34d399; font-weight:bold;">Ctrl+Enter</td><td style="color:#cbd5e1;">Deploy / Send / Run</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">Ctrl+N</td><td style="color:#cbd5e1;">New Conversation</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">Ctrl+Shift+L</td><td style="color:#cbd5e1;">Clear Chat History</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">Ctrl+S</td><td style="color:#cbd5e1;">Export HTML Preview</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">Ctrl+Shift+X</td><td style="color:#cbd5e1;">Abort Active Mission</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">F5 / Ctrl+R</td><td style="color:#cbd5e1;">Refresh Directory</td></tr>
+                    <tr><td style="color:#34d399; font-weight:bold;">Esc</td><td style="color:#cbd5e1;">Close Modal / Dialog</td></tr>
+                </table>
+            </td>
+        </tr>
+        </table>
+        """)
+        d_layout.addWidget(content_lbl)
+
+        btn_box = QHBoxLayout()
+        btn_box.addStretch()
+        close_btn = QPushButton("Done (Esc)")
+        close_btn.clicked.connect(dialog.accept)
+        btn_box.addWidget(close_btn)
+        d_layout.addLayout(btn_box)
+
+        dialog.exec()
 
     def init_timers(self):
         self.poll_timer = QTimer(self)
@@ -263,8 +498,9 @@ class MainWindow(QMainWindow):
         if getattr(sys, 'frozen', False):
             # In standalone executable mode, invoke self with --task
             cmd = [sys.executable, "--task", task, "--agents", agents]
-            work_dir = os.path.dirname(sys.executable)
+            work_dir = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AgenticWeb")
         else:
+
             launcher_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launcher.py")
             cmd = [sys.executable, "-u", launcher_script, "--task", task, "--agents", agents]
             work_dir = os.path.dirname(os.path.abspath(__file__))

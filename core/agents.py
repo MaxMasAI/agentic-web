@@ -98,8 +98,10 @@ AGENT_SELECTORS = {
     }
 }
 
+from browser.browser_helpers import wait_until_text_settles, dismiss_sidebar_and_overlays, scroll_chat
+
 async def talk_to_agent(agent_id, page, prompt_text):
-    """Submits a prompt to a specific agent page, waits for output to settle, and records chat ID."""
+    """Submits a prompt to a specific agent page, waits for output to settle, auto-dismisses sidebars, and records chat ID."""
     print(f"\n[{agent_id.upper()}] Submitting prompt...")
     await page.bring_to_front()
 
@@ -109,6 +111,10 @@ async def talk_to_agent(agent_id, page, prompt_text):
     else:
         formatted_prompt = prompt_text
     
+    # Auto-dismiss any pop-up navigation sidebar / drawer (such as Gemini left sidebar)
+    await dismiss_sidebar_and_overlays(page, agent_id)
+    await scroll_chat(page, "bottom")
+
     selectors = AGENT_SELECTORS.get(agent_id, {
         "input": ["textarea", "div[contenteditable='true']"],
         "response": ".markdown, p"
@@ -131,19 +137,55 @@ async def talk_to_agent(agent_id, page, prompt_text):
             continue
 
     if input_box is None:
+        # Dismiss any overlays again in case a modal blocked detection
+        await dismiss_sidebar_and_overlays(page, agent_id)
+        for sel in input_selectors:
+            try:
+                candidate = page.locator(sel).first
+                if await candidate.is_visible():
+                    input_box = candidate
+                    break
+            except Exception:
+                continue
+
+    if input_box is None:
         raise RuntimeError(
             f"[{agent_id.upper()}] Could not find a visible input box. "
             f"Tried: {input_selectors}"
         )
 
+    # Ensure sidebars are closed so clicks and typing land directly on input
+    await dismiss_sidebar_and_overlays(page, agent_id)
+
+    try:
+        from browser.agent_cursor import inject_agent_cursor, simulate_agent_type, set_cursor_action
+        await inject_agent_cursor(page, agent_name=agent_id)
+        await simulate_agent_type(page, sel, formatted_prompt, agent_name=agent_id)
+    except Exception:
+        pass
+
     await input_box.click()
     await input_box.fill(formatted_prompt)
     await input_box.press("Enter")
     
-    await asyncio.sleep(3)
+    try:
+        from browser.agent_cursor import set_cursor_action
+        await set_cursor_action(page, "⚡ Generating response...")
+    except Exception:
+        pass
+
+    await asyncio.sleep(2)
+    await scroll_chat(page, "bottom")
     response_locator = page.locator(selectors["response"]).last
-    output = await wait_until_text_settles(response_locator)
+    output = await wait_until_text_settles(response_locator, page=page)
     print(f"[{agent_id.upper()}] Output received ({len(output)} chars)")
+    await scroll_chat(page, "bottom")
+
+    try:
+        from browser.agent_cursor import set_cursor_action
+        await set_cursor_action(page, "✓ Done")
+    except Exception:
+        pass
 
     # Automatically capture and persist the exact chat session URL/ID
     try:

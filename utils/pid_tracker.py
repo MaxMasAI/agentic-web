@@ -101,26 +101,7 @@ def _win_ctrl_handler(ctrl_type: int) -> bool:
     kill_all_tracked_pids()
     return False
 
-# Register atexit handler
-atexit.register(kill_all_tracked_pids)
-
-# Register POSIX/Standard Python Signals
-try:
-    signal.signal(signal.SIGINT, lambda s, f: (kill_all_tracked_pids(), sys.exit(0)))
-    signal.signal(signal.SIGTERM, lambda s, f: (kill_all_tracked_pids(), sys.exit(0)))
-    if hasattr(signal, "SIGBREAK"):
-        signal.signal(signal.SIGBREAK, lambda s, f: (kill_all_tracked_pids(), sys.exit(0)))
-except Exception:
-    pass
-
-# Register Windows Kernel32 SetConsoleCtrlHandler for CMD window close
-if sys.platform == "win32":
-    try:
-        HandlerRoutine = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_uint)
-        _global_handler = HandlerRoutine(_win_ctrl_handler)
-        ctypes.windll.kernel32.SetConsoleCtrlHandler(_global_handler, True)
-    except Exception:
-        pass
-
+# Register Windows Kernel32 SetConsoleCtrlHandler only when running as standalone script
 if __name__ == "__main__":
     kill_all_tracked_pids()
+

@@ -106,6 +106,8 @@ class Sidebar(QWidget):
             ("media_studio", "🎨", "Image & Video Studio"),
         ]),
         ("🛠️ CREATIVE & TOOLS", [
+            ("vscode", "💻", "VS Code Studio"),
+            ("canvas_dev", "🌌", "Agent Canvas IDE"),
             ("playground", "🎮", "Playground Studio"),
             ("agent_builder", "🧩", "Node Agent Builder"),
             ("painter", "🖌️", "Painter Canvas"),
@@ -139,6 +141,29 @@ class Sidebar(QWidget):
             ("settings_about", "ℹ️", "About"),
         ])
     ]
+
+    HOTKEY_MAP = {
+        "home": "Alt+H",
+        "launch": "Alt+D",
+        "canvas_dev": "Ctrl+K / Alt+C",
+        "playground": "Alt+P",
+        "chat": "Alt+U",
+        "explorer": "Ctrl+E / Alt+E",
+        "subagents": "Alt+S",
+        "research": "Alt+R",
+        "media_studio": "Alt+M",
+        "settings_general": "Ctrl+,",
+        "chat_files": "Ctrl+Shift+F",
+        "mcp": "Ctrl+Shift+M",
+        "memory": "Ctrl+Shift+N",
+    }
+
+    @classmethod
+    def get_tooltip(cls, key: str, icon: str, label: str) -> str:
+        hk = cls.HOTKEY_MAP.get(key)
+        if hk:
+            return f"{icon}  {label}  ({hk})"
+        return f"{icon}  {label}"
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -233,7 +258,7 @@ class Sidebar(QWidget):
                 background: rgba(56, 189, 248, 0.3);
             }
         """)
-        self.logo_btn.setToolTip("Toggle Pin / Auto-Hide Sidebar")
+        self.logo_btn.setToolTip("Toggle Pin / Auto-Hide Sidebar (Ctrl+B)")
         self.logo_btn.clicked.connect(self.toggle_pin)
         top_brand.addWidget(self.logo_btn)
 
@@ -244,7 +269,7 @@ class Sidebar(QWidget):
         self.pin_btn = QPushButton("✨")
         self.pin_btn.setFixedSize(24, 24)
         self.pin_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.pin_btn.setToolTip("Auto-Hide Active (Click to Pin Open)")
+        self.pin_btn.setToolTip("Auto-Hide Active (Click to Pin Open) (Ctrl+B)")
         self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #38bdf8;")
         self.pin_btn.clicked.connect(self.toggle_pin)
         top_brand.addWidget(self.pin_btn)
@@ -274,8 +299,9 @@ class Sidebar(QWidget):
 
         # ── Dropdown Accordion Sections ──
         for section_title, items in self.NAV_SECTIONS:
-            # Settings section starts open or folded
-            section_widget = CollapsibleSection(section_title, start_collapsed=False)
+            # Default close/collapse bottom two sections (SYSTEM and SETTINGS)
+            should_start_collapsed = "SYSTEM" in section_title or "SETTINGS" in section_title
+            section_widget = CollapsibleSection(section_title, start_collapsed=should_start_collapsed)
             self.layout.addWidget(section_widget)
             self.sections.append(section_widget)
 
@@ -286,7 +312,7 @@ class Sidebar(QWidget):
                 btn.setCursor(QCursor(Qt.PointingHandCursor))
                 btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
                 btn.setFixedHeight(32)
-                btn.setToolTip(f"{icon} {label}")
+                btn.setToolTip(self.get_tooltip(key, icon, label))
                 btn.clicked.connect(lambda checked=False, k=key: self.on_button_clicked(k))
                 self.buttons[key] = (btn, icon, label, section_widget)
                 section_widget.add_widget(btn)
@@ -326,12 +352,12 @@ class Sidebar(QWidget):
         self.auto_hide = not self.auto_hide
         if self.auto_hide:
             self.pin_btn.setText("✨")
-            self.pin_btn.setToolTip("Auto-Hide Active (Hover to Expand)")
+            self.pin_btn.setToolTip("Auto-Hide Active (Hover to Expand) (Ctrl+B)")
             self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #38bdf8;")
             self._do_collapse()
         else:
             self.pin_btn.setText("📌")
-            self.pin_btn.setToolTip("Sidebar Pinned Open (Click to Auto-Hide)")
+            self.pin_btn.setToolTip("Sidebar Pinned Open (Click to Auto-Hide) (Ctrl+B)")
             self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #10b981; font-weight: bold;")
             self._do_expand()
 
@@ -362,13 +388,17 @@ class Sidebar(QWidget):
             sec.update_header_text(is_sidebar_compact=collapsed)
             if collapsed:
                 sec.content_widget.setVisible(True)
+            else:
+                sec.content_widget.setVisible(not sec.is_collapsed)
 
         for key, (btn, icon, label, sec) in self.buttons.items():
+            tip = self.get_tooltip(key, icon, label)
             if collapsed:
                 btn.setText(icon)
-                btn.setToolTip(f"{icon}  {label}")
+                btn.setToolTip(tip)
             else:
                 btn.setText(f"  {icon}  {label}")
+                btn.setToolTip(tip)
 
     def on_button_clicked(self, page_key: str):
         if page_key in self.buttons:

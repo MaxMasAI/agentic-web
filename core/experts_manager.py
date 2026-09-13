@@ -140,6 +140,21 @@ class ExpertsManager:
             return True
         return False
 
+    def apply_catalog_prompt_to_expert(self, expert_id: str, prompt_id: str) -> bool:
+        """Assigns a specialized prompt from the system prompts catalog to an expert."""
+        try:
+            from services.system_prompts_catalog import get_system_prompts_catalog
+            prompt_data = get_system_prompts_catalog().get_prompt(prompt_id)
+            if prompt_data and expert_id in self.presets:
+                self.presets[expert_id]["system_prompt"] = prompt_data["prompt"]
+                self.save_presets()
+                if expert_id in self.active_contexts:
+                    self.active_contexts[expert_id].system_prompt = prompt_data["prompt"]
+                return True
+        except Exception:
+            pass
+        return False
+
     def get_or_create_context(self, expert_id: str) -> Optional[ExpertContext]:
         if expert_id not in self.presets:
             return None

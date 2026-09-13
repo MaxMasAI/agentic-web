@@ -17,5 +17,6 @@ pywin32==312
 Requests==2.34.2
 sounddevice==0.5.3
 uvicorn==0.52.4
+watchdog>=4.0.0
 websockets==14.1
 youtube_transcript_api==1.2.4
