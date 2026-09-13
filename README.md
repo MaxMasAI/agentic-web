@@ -1,4 +1,4 @@
-![titles](images/000_web_agent.png)
+![titles](images/000_web_agent.gif)
 # ⚡ Agentic Web: Autonomous Multi-Agent Desktop Operations Platform
 
 > **Organization**: [MaxMasAI](https://github.com/MaxMasAI)  
