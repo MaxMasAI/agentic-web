@@ -328,9 +328,9 @@ class TaskDispatchPage(QWidget):
             agents_str = ",".join(selected)
 
         codename = self.codename_edit.text().strip() or f"Mission @ {time.strftime('%H:%M:%S')}"
-        self.launch_requested.emit(prompt, agents_str, codename)
         self.prompt_edit.clear()
         self.codename_edit.clear()
+        self.launch_requested.emit(prompt, agents_str, codename)
 
     def update_running_processes(self, procs: dict):
         self.running_procs = procs

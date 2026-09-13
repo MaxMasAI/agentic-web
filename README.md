@@ -1,3 +1,4 @@
+![titles](images/000_web_agent.png)
 # ⚡ Agentic Web: Autonomous Multi-Agent Desktop Operations Platform
 
 > **Organization**: [MaxMasAI](https://github.com/MaxMasAI)  
@@ -78,6 +79,54 @@ graph LR
   - `read_file(path)` / `write_file(path, content)`: Updates workspace storage and emits live diffs to connected File nodes.
   - `spawn_node(type, props)`: Dynamically adds dependent sub-agents or utility nodes directly onto the canvas.
 
+
+## 📸 Visual Interface & Platform Showcase
+
+### 🛰️ 1. Mission Control Dashboard
+![Mission Control Dashboard](images/01_Mission_Control_Dashboard.png)
+* **Clarification**: Central telemetry command center providing real-time metrics (`Tasks Completed`, `Memory Items`, `Squad Roster`, `Agent Skills`, `Active Missions`), multi-agent command hierarchy status, and 1-click quick-action dispatchers.
+
+---
+
+### 🚀 2. Task Dispatch Console & Live Telemetry Monitor
+![Task Dispatch Console](images/02_Task_Dispatch_Console.png)
+* **Clarification**: Configure mission parameters, tune inter-agent communication latency (Turbo, Balanced, Paced, or Custom sliders), inspect real-time multi-agent streaming terminal output, and manage active background processes.
+
+---
+
+### 💻 3. Inbuilt VS Code Monaco Studio & Live Preview
+![Inbuilt VS Code Studio](images/09_Inbuilt_VS_Code_Monaco_Studio.png)
+* **Clarification**: Embedded full-featured Monaco Code Studio with multi-tab file management, project directory tree, dual-pane live web & markdown preview, syntax highlighting for 12+ languages, auto-save, and formatting controls.
+
+---
+
+### 🌌 4. Autonomous Infinite Canvas IDE (DAG Workflow Architecture)
+![Infinite Canvas IDE](images/10_Infinite_Agent_Canvas_IDE.png)
+* **Clarification**: Interactive 2D infinite workspace (inspired by October.dev) connecting Terminal CLI nodes, Autonomous Agent workers, and Git-style Diff nodes via directed Bézier context wires for complex multi-agent pipelines.
+
+---
+
+### 🔌 5. Model Context Protocol (MCP) Server Hub
+![MCP Service Hub](images/16_MCP_Server_Hub.png)
+* **Clarification**: Centralized MCP server management interface with live tool parameter execution testing, 9-field JSON schema verification, and dynamic connection to Addy Osmani Senior Engineering Skills.
+
+---
+
+### 🧠 6. Semantic Neural Memory Bank & Knowledge Vault
+![Neural Memory Bank](images/17_Semantic_Neural_Memory.png)
+* **Clarification**: Persistent cross-mission memory bank storing key architectural decisions, design conventions, and prompt refinements with search, categorization, importance weighting, and `RULES.md` export.
+
+---
+
+### 🌐 7. Multi-Agent Browser Automation & Window Focus Controls
+![Browser Automation Controls](images/22_Browser_Automation_Control_Center.png)
+* **Clarification**: Real-time multi-agent browser viewport and session control center featuring live CDP connection indicators, active browser tab switchers with window focus buttons, multi-agent cursor trackers (Gemini, DeepSeek, Claude, Web-Agent, and OS System Cursor), live screenshot capture triggers, and session recording tools.
+
+---
+
+### 🤖 8. Live Collaborative Multi-Agent Workflow & Window Focus HUD
+![Multi-Agent Browser HUD](images/20_Multi_Agent_Browser_HUD_Controls.png)
+* **Clarification**: Real-time collaborative pipeline HUD visualizing all active agent pills, execution status badges (`Working...`, `Done`, `Queued`), smooth horizontal card navigation, and 1-click `👁️ View Tab` window focus controls.
 
 ---
 
@@ -189,6 +238,68 @@ You can easily compile Agentic Web into a standalone, portable Windows executabl
 python STD_EXE.py
 ```
 3. Your portable app will be generated in `dist/agentic-web/`. You can simply double-click `agentic-web.exe` to start the dashboard!
+
+---
+
+## ⚙️ Configuration & Agent Roster Customization
+
+- **`json/agent_status.json` / `json/subagents.json`**: Configure default squad models, fallback chains, temperature profiles, and prompt instructions.
+- **Hierarchy Switcher**: Toggle between **Tree Hierarchy Format** and **Symmetrical Grid Format** directly from the UI header to optimize display for your monitor size.
+- **System App Launcher**: Directly launch native Windows desktop utilities (`notepad`, `task manager`, `calc`, `vscode`, `settings`) without triggering search fallbacks.
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+### 🌐 General & Architecture
+
+* **What is Agent Mission Control?**  
+  It is a desktop operations console and dashboard designed to orchestrate, monitor, and synchronize autonomous multi-model AI workflows (Gemini, DeepSeek, Claude, ChatGPT, and Local LLMs) from a single unified interface.
+
+* **How does the Leader-Worker agent hierarchy work?**  
+  The system designates a primary model (e.g., Google Gemini as Master Orchestrator) to analyze complex prompts, decompose objectives into atomic subtasks, and dispatch them to specialized worker agents (like DeepSeek for deep research/code, Claude for editorial nuance, and ChatGPT for copywriting).
+
+* **Can I run tasks across multiple browser sessions and API calls simultaneously?**  
+  Yes. The application supports real-time multi-agent live pooling, split-pane DOM browser automation (via Chrome CDP on port 9222), and concurrent headless API endpoints, allowing parallel execution across distinct AI providers.
+
+---
+
+### 🔑 Setup & Configuration
+
+* **Do I need API keys or web sessions to run the agents?**  
+  The app supports both direct API credentials and session-based browser automation (e.g., DOM-level agent control and n8n hooks). You can use session-based interaction without requiring paid API tokens when logged into web instances, or configure provider API keys in the Settings tab.
+
+* **How do I customize agent roles, default squads, and permissions?**  
+  Navigate to the **Squad Roster** or **Hierarchy Layout** view. From there, you can configure each model’s operational state (`FREE` / `BUSY`), system prompts, tool execution permissions, and task-delegation rules.
+
+* **Does the application support local, self-hosted LLMs?**  
+  Yes. You can attach local endpoint providers (such as Ollama, LM Studio, or vLLM) alongside cloud-based models in the Specialist Worker Roster for fully offline or air-gapped tasks.
+
+---
+
+### 🔒 Security, Controls & Safety
+
+* **How does the system prevent prompt injection, drift, and hallucination during tool execution?**  
+  The orchestrator employs intermediate confidence-scoring mechanisms and validation barriers before allowing worker agents to commit external actions like database writes, file modifications, terminal command execution, or pull request merges.
+
+* **What should I do if an agent gets stuck in an infinite or "Busy" loop?**  
+  Select the agent card directly from the **Live Pool**, click **Inspect**, and use the **Force Reset State to FREE** trigger to safely release the worker back to the ready pool.
+
+---
+
+## 🔧 Troubleshooting Matrix
+
+| Issue | Root Cause | Recommended Solution |
+|---|---|---|
+| **App window is blank / white screen** | Dev server or UI thread initialization delay | Run with `run.bat` or `python app.py`. Ensure PySide6 and dependencies are installed in `.venv`. |
+| **Agent shows `BUSY` indefinitely** | Network timeout or unhandled exception during browser automation | Open the **Inspector Drawer** on the agent card in Mission Control and click **Force Reset State to FREE**. |
+| **Local endpoint connection refused** | Ollama / vLLM / LM Studio service is not running | Verify the local daemon is active (e.g. `curl http://localhost:11434/api/tags`). |
+| **Chrome CDP connection retry notice** | Remote debugging port 9222 waiting to spin up | The app automatically launches Chrome with `--remote-debugging-port=9222` and retries connection automatically. |
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Please fork the repository, create your feature branch (`git checkout -b feature/agent-telemetry`), commit your changes, and submit a pull request.
 
 ---
 

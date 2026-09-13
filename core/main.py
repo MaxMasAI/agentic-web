@@ -174,17 +174,35 @@ async def run_agent_loop(task, selected_agents_override=None):
                 register_pid(proc.pid)
             except Exception as e:
                 print(f"{RED}[!] Failed to launch browser process: {e}{RESET}")
-            await asyncio.sleep(4)  # Wait for browser to initialize
+            await asyncio.sleep(2)  # Initial wait for browser process to spin up
 
+        # Attach to the running Chrome instance on port 9222 with retry resilience
+        browser = None
+        for cdp_attempt in range(6):
+            try:
+                browser = await p.chromium.connect_over_cdp("http://127.0.0.1:9222")
+                break
+            except Exception as cdp_err:
+                if cdp_attempt < 5:
+                    print(f"{YELLOW}[*] Waiting for browser CDP endpoint on port 9222 (retry {cdp_attempt+1}/5)...{RESET}")
+                    await asyncio.sleep(1.5)
+                else:
+                    raise cdp_err
 
-        # Attach to the running Chrome instance on port 9222
-        browser = await p.chromium.connect_over_cdp("http://127.0.0.1:9222")
-        context = browser.contexts[0]
+        if not browser.contexts:
+            context = await browser.new_context()
+        else:
+            context = browser.contexts[0]
 
         # ── Direct Autonomous Browser Action Handler (Any Website & YouTube Media) ──
         from browser.browser_controller import is_direct_browser_or_media_task, execute_direct_browser_action
         if is_direct_browser_or_media_task(task):
             deliverable = await execute_direct_browser_action(task, context)
+            try:
+                from services.tab_screenshot_service import capture_all_tabs_screenshots
+                await capture_all_tabs_screenshots(context, output_dir="images")
+            except Exception:
+                pass
             print(f"\n{GREEN}" + "=" * 60)
             print(f"{BOLD}          DIRECT BROWSER ACTION COMPLETED          ")
             print("=" * 60 + f"{RESET}")
@@ -555,11 +573,14 @@ async def run_agent_loop(task, selected_agents_override=None):
             print(f"{YELLOW}[*] Squad pattern analyzer notice: {e}{RESET}")
 
         # Stream/display final approved results cleanly
-        print(f"\n{GREEN}" + "=" * 60)
-        print(f"{BOLD}          FINAL COMPLETED DELIVERABLE          ")
-        print("=" * 60 + f"{RESET}")
-        print(f"\n{final_output}\n")
-        print(f"{GREEN}" + "=" * 60 + f"{RESET}")
+        # Capture screenshots of all active tabs with tab names and save to images/
+        try:
+            from services.tab_screenshot_service import capture_all_tabs_screenshots
+            saved_shots = await capture_all_tabs_screenshots(context, output_dir="images")
+            if saved_shots:
+                print(f"{GREEN}[📷 SNAPSHOT] Captured {len(saved_shots)} tab screenshot(s) saved into images/ directory.{RESET}")
+        except Exception as e:
+            print(f"{YELLOW}[*] Tab screenshot snapshot notice: {e}{RESET}")
 
         reset_all_workers_to_free(all_available_agents)
         speak_narrator("Mission complete. Final deliverable ready. I am standing by for your next directive.")

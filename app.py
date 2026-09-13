@@ -337,12 +337,10 @@ class MainWindow(QMainWindow):
             ("Ctrl+Shift+M", "mcp"),
             ("Ctrl+Shift+N", "memory"),
         ]
-        self._nav_shortcuts = []
-        for key_seq, target_page in nav_keys:
-            sc = QShortcut(QKeySequence(key_seq), self)
-            sc.setContext(Qt.ApplicationShortcut)
-            sc.activated.connect(lambda p=target_page: self.switch_page(p))
-            self._nav_shortcuts.append(sc)
+        # Ctrl+Shift+S: Capture High-Res Screenshots of all App Tabs into images/
+        self.screenshot_all_shortcut = QShortcut(QKeySequence("Ctrl+Shift+S"), self)
+        self.screenshot_all_shortcut.setContext(Qt.ApplicationShortcut)
+        self.screenshot_all_shortcut.activated.connect(self.capture_app_tabs_to_images)
 
         main_layout.addWidget(self.stack, stretch=1)
 
@@ -492,39 +490,46 @@ class MainWindow(QMainWindow):
         self.switch_page("media_studio")
 
     def launch_pipeline(self, task: str, agents: str, label: str):
-        task_log_file = os.path.join("logs", f"live_{int(time.time())}.log")
-        log_fp = open(task_log_file, "w", encoding="utf-8", buffering=1)
+        try:
+            os.makedirs("logs", exist_ok=True)
+            task_log_file = os.path.join("logs", f"live_{int(time.time())}.log")
+            log_fp = open(task_log_file, "w", encoding="utf-8", errors="replace", buffering=1)
 
-        if getattr(sys, 'frozen', False):
-            # In standalone executable mode, invoke self with --task
-            cmd = [sys.executable, "--task", task, "--agents", agents]
-            work_dir = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AgenticWeb")
-        else:
+            if getattr(sys, 'frozen', False):
+                # In standalone executable mode, invoke self with --task
+                cmd = [sys.executable, "--task", task, "--agents", agents]
+                work_dir = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AgenticWeb")
+            else:
+                launcher_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launcher.py")
+                cmd = [sys.executable, "-u", launcher_script, "--task", task, "--agents", agents]
+                work_dir = os.path.dirname(os.path.abspath(__file__))
 
-            launcher_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launcher.py")
-            cmd = [sys.executable, "-u", launcher_script, "--task", task, "--agents", agents]
-            work_dir = os.path.dirname(os.path.abspath(__file__))
+            proc = subprocess.Popen(
+                cmd,
+                stdout=log_fp,
+                stderr=subprocess.STDOUT,
+                cwd=work_dir
+            )
 
-        proc = subprocess.Popen(
-            cmd,
-            stdout=log_fp,
-            stderr=subprocess.STDOUT,
-            cwd=work_dir
-        )
+            self.running_procs[label] = {
+                "proc": proc,
+                "log_file": task_log_file,
+                "log_fp": log_fp,
+                "task": task,
+                "agents": agents,
+                "status": "running",
+                "started": time.strftime("%H:%M:%S"),
+            }
 
-        self.running_procs[label] = {
-            "proc": proc,
-            "log_file": task_log_file,
-            "log_fp": log_fp,
-            "task": task,
-            "agents": agents,
-            "status": "running",
-            "started": time.strftime("%H:%M:%S"),
-        }
-
-        self.pages["launch"].update_running_processes(self.running_procs)
-        self.sidebar.update_active_missions(self.running_procs)
-        self.switch_page("launch")
+            try:
+                self.pages["launch"].update_running_processes(self.running_procs)
+                self.sidebar.update_active_missions(self.running_procs)
+                self.switch_page("launch")
+            except Exception as e:
+                print(f"[!] Error updating UI after pipeline launch: {e}", file=sys.stderr)
+        except Exception as e:
+            print(f"[!] Failed to launch task pipeline: {e}", file=sys.stderr)
+            QMessageBox.critical(self, "Mission Launch Error", f"Unable to launch pipeline task:\n{e}")
 
     def abort_mission(self, label: str):
         if label in self.running_procs:
@@ -605,14 +610,28 @@ class MainWindow(QMainWindow):
         self.sidebar.update_stats(len(tasks), len(memories), get_skills_count())
         self.sidebar.update_active_missions(self.running_procs)
 
+    def capture_app_tabs_to_images(self):
+        """Captures high-res screenshots of all 19 application tabs into images/ folder."""
+        try:
+            from utils.capture_app_tabs import capture_all_app_tabs
+            res = capture_all_app_tabs()
+            QMessageBox.information(
+                self,
+                "📸 App Screenshots Saved",
+                f"Successfully captured {len(res)} high-resolution application screenshots!\n\n"
+                f"Saved into: images/\n(All tabs labeled and ready for showcase)"
+            )
+        except Exception as e:
+            QMessageBox.warning(self, "Capture Error", f"Could not capture all tabs: {e}")
+
     def closeEvent(self, event):
-        for label, info in self.running_procs.items():
+        for info in self.running_procs.values():
             proc = info.get("proc")
             if proc and proc.pid:
                 try:
                     subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 except Exception:
-                    pass
+                    proc.terminate()
             if "log_fp" in info and info["log_fp"] and not info["log_fp"].closed:
                 try:
                     info["log_fp"].close()

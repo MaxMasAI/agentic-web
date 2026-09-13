@@ -218,7 +218,7 @@ class PoolMonitor(QWidget):
         self.m_leader.setText(f"<div style='font-size:18px;font-weight:800;'>{leader_count}</div><div style='font-size:10px;'>👑 Master Leader (Gemini)</div>")
         self.m_total.setText(f"<div style='font-size:18px;font-weight:800;'>{total_count}</div><div style='font-size:10px;'>🤖 Total Active Roster</div>")
 
-        # Clear pool layout
+        # Clear pool layout safely
         while self.pool_layout.count():
             item = self.pool_layout.takeAt(0)
             w = item.widget()
@@ -344,10 +344,13 @@ class PoolMonitor(QWidget):
         self.pool_layout.addLayout(grid)
 
     def submit_direct_task(self):
+        if not hasattr(self, 'direct_input') or not self.direct_input:
+            return
         txt = self.direct_input.text().strip()
         if txt:
-            self.direct_task_submitted.emit(txt)
+            # Clear text before emitting to prevent re-entrant C++ object destruction errors
             self.direct_input.clear()
+            self.direct_task_submitted.emit(txt)
 
     def inspect_agent(self, agent_id: str):
         self.inspected_agent_id = agent_id

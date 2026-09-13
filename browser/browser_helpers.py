@@ -429,3 +429,13 @@ async def wait_until_text_settles(locator, page=None, check_interval=None, max_c
     return last_text.strip()
 
 
+async def capture_all_tabs_screenshots(context=None, pages=None, output_dir: str = "images", include_timestamp: bool = False):
+    """
+    Captures screenshots of all open browser tabs/pages, naming each file with the tab's name,
+    and saving them in the 'images/' folder.
+    """
+    from services.tab_screenshot_service import capture_all_tabs_screenshots as _capture
+    return await _capture(context=context, pages=pages, output_dir=output_dir, include_timestamp=include_timestamp)
+
+
+
