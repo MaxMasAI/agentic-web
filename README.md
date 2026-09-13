@@ -9,6 +9,17 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 
 ---
 
+## 🎬 Live Demonstration Video
+
+<div align="center">
+  <video src="images/demo.mp4" width="100%" controls="controls" poster="images/000_web_agent.png">
+    Your browser does not support the video tag.
+  </video>
+  <p><i>🎥 <b>Watch the Full Multi-Agent Workflow & Desktop Operations Demo:</b> <a href="images/demo.mp4"><code>images/demo.mp4</code></a></i></p>
+</div>
+
+---
+
 ## 🌟 Key Architecture & Capabilities
 
 ### 👑 1. Multi-Agent Command Hierarchy (10 Active Models)

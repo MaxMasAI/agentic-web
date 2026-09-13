@@ -27,9 +27,9 @@
     },
     "claude": {
       "agent_id": "claude",
-      "chat_url": "https://claude.ai/new",
+      "chat_url": "https://claude.ai/chat/2d506919-dcbc-4bd1-8c28-9aec1e1566b1",
       "thread_title": "Collaborative AI review framework assignment",
-      "last_updated": "2026-09-13 20:48:30"
+      "last_updated": "2026-09-13 21:01:58"
     }
   }
 }
