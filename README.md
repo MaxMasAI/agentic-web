@@ -87,7 +87,7 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 * **🚀 CitroLabs Ego-Lite Parallel Browser**: Isolated Chromium execution spaces for high-speed multi-agent web navigation and data harvesting.
 * **🧪 Interactive Tool Execution Console**: Live interactive UI forms for testing MCP tool calls, inspecting schemas, and verifying JSON responses.
 
-### 🌌 5. Autonomous Infinite Canvas IDE (October.dev Architecture)
+### 🌌 5. Autonomous Infinite Canvas IDE (DAG Workflow Architecture)
 * **🗺️ 2D Infinite Graph Workspace**: Visual DAG-based node canvas for designing, connecting, and orchestrating complex multi-agent software pipelines.
 * **💻 Embedded Terminal / CLI Nodes**: Live command-line nodes with real-time streaming output, ANSI color support, and exit code monitors.
 * **🤖 Autonomous Agent Nodes**: Interactive LLM worker nodes displaying objective prompts, live tool outputs, and step-by-step reasoning.
@@ -213,7 +213,7 @@ graph TD
 
 ---
 
-## 🌌 4. Autonomous Infinite Canvas IDE (October.dev Architecture)
+## 🌌 4. Autonomous Infinite Canvas IDE (DAG Workflow Architecture)
 
 An interactive 2D infinite workspace for autonomous multi-agent development workflows:
 
@@ -264,7 +264,7 @@ graph LR
 
 ### 🌌 4. Autonomous Infinite Canvas IDE (DAG Workflow Architecture)
 ![Infinite Canvas IDE](images/10_Infinite_Agent_Canvas_IDE.png)
-* **Clarification**: Interactive 2D infinite workspace (inspired by October.dev) connecting Terminal CLI nodes, Autonomous Agent workers, and Git-style Diff nodes via directed Bézier context wires for complex multi-agent pipelines.
+* **Clarification**: Interactive 2D infinite workspace connecting Terminal CLI nodes, Autonomous Agent workers, and Git-style Diff nodes via directed Bézier context wires for complex multi-agent pipelines.
 
 ---
 
@@ -296,32 +296,16 @@ graph LR
 ![Multi-Model Token Manager](images/24_tokens.png)
 * **Clarification**: Comprehensive token telemetry dashboard displaying cumulative lifetime usage metrics ('till today'), provider-specific free daily quotas (Gemini 1B, DeepSeek 5M, Claude, ChatGPT, Groq 14.4k RPD, OpenRouter Free), 7-day consumption trend bar charts, model distribution donut graphs, live midnight UTC quota reset countdowns, and granular transaction ledgers with 1-click CSV export.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/⚡%20TOTAL%20FREE%20DAILY%20TOKENS-1%2C019%2C100%2C000%2B%20(1B%2B)%20%2F%20DAY-9333EA?style=for-the-badge&logo=sparkles&logoColor=white" alt="Special Total Free Daily Tokens (1B+)" />
-  <img src="https://img.shields.io/badge/📊%20TOTAL%20LIFETIME%20USAGE-TRACKED%20TILL%20TODAY-0284c7?style=for-the-badge&logo=speedtest&logoColor=white" alt="Total Usage Tracked Till Today" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Google%20Gemini%202.0%20Flash-1%2C000%2C000%2C000%20Tokens%2Fday-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini Free Tokens" />
-  <img src="https://img.shields.io/badge/DeepSeek--V3-5%2C000%2C000%20Tokens%2Fday-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" alt="DeepSeek Free Tokens" />
-  <img src="https://img.shields.io/badge/OpenRouter%20Free-10%2C000%2C000%20Tokens%2Fday-6366F1?style=flat-square&logo=openrouteservice&logoColor=white" alt="OpenRouter Free Tokens" />
-  <img src="https://img.shields.io/badge/Groq%20Llama--3.3-14%2C400%20RPD%20%7C%20500k-F55036?style=flat-square&logo=fastly&logoColor=white" alt="Groq Free Tokens" />
-  <img src="https://img.shields.io/badge/OpenAI%20GPT--4o--mini-2%2C500%2C000%20Tokens-10A37F?style=flat-square&logo=openai&logoColor=white" alt="GPT-4o mini Tokens" />
-  <img src="https://img.shields.io/badge/Anthropic%20Claude%203.5-100%2C000%20Tokens-D97706?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Tokens" />
-  <img src="https://img.shields.io/badge/HuggingFace%20Inference-1%2C000%2C000%20Tokens%2Fday-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="HF Tokens" />
-  <img src="https://img.shields.io/badge/Perplexity%20Sonar-500%2C000%20Tokens%2Fday-20B2AA?style=flat-square&logo=perplexity&logoColor=white" alt="Perplexity Tokens" />
-</p>
-
 | Provider & Model | Free Daily Quota / Limit | Reset Schedule | Telemetry & Auto-Routing |
 |---|---|---|---|
-| **Google Gemini 2.0 Flash** | **1,000,000,000 tokens / day** | 00:00 UTC | Automatic token bucket rate limiting & ledgering |
-| **DeepSeek-V3 / R1** | **5,000,000 tokens / day** | 00:00 UTC | SQLite WAL transaction audit trail |
-| **OpenRouter Free Tier** | **10,000,000 tokens / day** | 00:00 UTC | Model share donut visualization |
-| **Groq (Llama-3.3-70B)** | **14,400 RPD / 500,000 tokens** | 00:00 UTC | High-speed burst rate limiter |
-| **OpenAI GPT-4o-mini** | **2,500,000 tokens / day** | 00:00 UTC | Circuit-breaker failover matrix |
-| **Anthropic Claude 3.5 Sonnet** | **100,000 tokens / day** | 00:00 UTC | 7-day historical usage trend chart |
-| **HuggingFace Inference API** | **1,000,000 tokens / day** | 00:00 UTC | Token quota percentage progress bars |
-| **Perplexity Sonar Web Search** | **500,000 tokens / day** | 00:00 UTC | Live search verification token tracker |
+| <img src="https://img.shields.io/badge/Google%20Gemini%202.0%20Flash-1%2C000%2C000%2C000%20Tokens%2Fday-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini Free Tokens" /><br>**Google Gemini 2.0 Flash** | **1,000,000,000 tokens / day** | 00:00 UTC | Automatic token bucket rate limiting & ledgering |
+| <img src="https://img.shields.io/badge/DeepSeek--V3-5%2C000%2C000%20Tokens%2Fday-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" alt="DeepSeek Free Tokens" /><br>**DeepSeek-V3 / R1** | **5,000,000 tokens / day** | 00:00 UTC | SQLite WAL transaction audit trail |
+| <img src="https://img.shields.io/badge/OpenRouter%20Free-10%2C000%2C000%20Tokens%2Fday-6366F1?style=flat-square&logo=openrouteservice&logoColor=white" alt="OpenRouter Free Tokens" /><br>**OpenRouter Free Tier** | **10,000,000 tokens / day** | 00:00 UTC | Model share donut visualization |
+| <img src="https://img.shields.io/badge/Groq%20Llama--3.3-14%2C400%20RPD%20%7C%20500k-F55036?style=flat-square&logo=fastly&logoColor=white" alt="Groq Free Tokens" /><br>**Groq (Llama-3.3-70B)** | **14,400 RPD / 500,000 tokens** | 00:00 UTC | High-speed burst rate limiter |
+| <img src="https://img.shields.io/badge/OpenAI%20GPT--4o--mini-2%2C500%2C000%20Tokens-10A37F?style=flat-square&logo=openai&logoColor=white" alt="GPT-4o mini Tokens" /><br>**OpenAI GPT-4o-mini** | **2,500,000 tokens / day** | 00:00 UTC | Circuit-breaker failover matrix |
+| <img src="https://img.shields.io/badge/Anthropic%20Claude%203.5-100%2C000%20Tokens-D97706?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Tokens" /><br>**Anthropic Claude 3.5 Sonnet** | **100,000 tokens / day** | 00:00 UTC | 7-day historical usage trend chart |
+| <img src="https://img.shields.io/badge/HuggingFace%20Inference-1%2C000%2C000%20Tokens%2Fday-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="HF Tokens" /><br>**HuggingFace Inference API** | **1,000,000 tokens / day** | 00:00 UTC | Token quota percentage progress bars |
+| <img src="https://img.shields.io/badge/Perplexity%20Sonar-500%2C000%20Tokens%2Fday-20B2AA?style=flat-square&logo=perplexity&logoColor=white" alt="Perplexity Tokens" /><br>**Perplexity Sonar Web Search** | **500,000 tokens / day** | 00:00 UTC | Live search verification token tracker |
 
 ---
 
