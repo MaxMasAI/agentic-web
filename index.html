@@ -1,0 +1,3229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic Web — Complete Technical Manual & Architecture Documentation</title>
+  <meta name="description" content="Comprehensive engineering documentation, system architecture, API reference, multi-agent command hierarchy, MCP skills, token manager, and developer guide for Agentic Web." />
+
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-base: #060911;
+      --bg-surface: #0a0f1d;
+      --bg-card: rgba(13, 20, 36, 0.75);
+      --bg-card-hover: rgba(22, 33, 58, 0.85);
+      --bg-input: #040711;
+      --border-subtle: rgba(56, 189, 248, 0.12);
+      --border-accent: rgba(56, 189, 248, 0.35);
+      --border-glow: rgba(139, 92, 246, 0.4);
+      --accent-blue: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --glow-blue: 0 0 30px rgba(56, 189, 248, 0.22);
+      --glow-purple: 0 0 30px rgba(139, 92, 246, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      position: relative;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 90% 25%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 55%);
+      background-attachment: fixed;
+    }
+
+    /* ── Top Announcement & Navigation ── */
+    .top-banner {
+      background: linear-gradient(90deg, #1e1b4b, #0f172a, #042f2e);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 6px 16px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+    .top-banner span { color: var(--accent-blue); font-weight: 700; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(6, 9, 17, 0.88);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-heading);
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .logo span {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover { color: var(--accent-blue); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .btn-github {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-github:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* ── Layout & Auto-Hiding Sidebar ── */
+    .docs-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 24px 60px 48px;
+      position: relative;
+    }
+
+    aside.sidebar {
+      position: fixed;
+      top: 80px;
+      left: 0;
+      width: 330px;
+      max-width: 88vw;
+      height: calc(100vh - 95px);
+      z-index: 995;
+      background: rgba(6, 10, 24, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-accent);
+      border-left: none;
+      border-radius: 0 16px 16px 0;
+      box-shadow: 10px 0 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.15);
+      transform: translateX(calc(-100% + 38px));
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
+      display: flex;
+      flex-direction: row;
+    }
+
+    aside.sidebar:hover,
+    aside.sidebar:focus-within,
+    aside.sidebar.is-open {
+      transform: translateX(0);
+      box-shadow: 20px 0 50px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.35);
+    }
+
+    .sidebar-inner {
+      flex: 1;
+      min-width: 0;
+      padding: 16px 14px 24px 18px;
+      overflow-y: auto;
+      height: 100%;
+    }
+    .sidebar-inner::-webkit-scrollbar { width: 4px; }
+    .sidebar-inner::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 4px; }
+
+    /* Floating Tab Handle on the Edge */
+    .sidebar-tab-handle {
+      width: 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(13, 20, 36, 0.95), rgba(8, 14, 28, 0.95));
+      border-left: 1px solid rgba(56, 189, 248, 0.2);
+      cursor: pointer;
+      user-select: none;
+      padding: 12px 0;
+      transition: background 0.2s;
+    }
+    .sidebar-tab-handle:hover {
+      background: rgba(22, 33, 58, 0.98);
+    }
+    .sidebar-tab-handle .tab-icon {
+      font-size: 16px;
+      animation: pulse-icon 2.5s infinite;
+    }
+    @keyframes pulse-icon {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .sidebar-tab-handle .tab-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 1.5px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      text-transform: uppercase;
+    }
+
+    .sidebar-header {
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sidebar-title {
+      font-family: var(--font-heading);
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+    }
+
+    /* Search inside top of sidebar */
+    .sidebar-search-box {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .sidebar-search-input {
+      width: 100%;
+      background: #030712;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-sm);
+      padding: 8px 28px 8px 32px;
+      color: #f8fafc;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .sidebar-search-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+    .sidebar-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .search-clear-btn:hover { color: #f8fafc; }
+
+    .toc-group { margin-bottom: 22px; }
+    .toc-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+    }
+    .toc-links { list-style: none; }
+    .toc-links li { margin-bottom: 6px; }
+    .toc-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      display: block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .toc-links a:hover, .toc-links a.active {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    /* ── Main Content Area ── */
+    main.content { min-width: 0; }
+
+    /* ── Hero Section ── */
+    .hero {
+      padding: 40px 0 50px;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(90deg, rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.15));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      padding: 6px 18px;
+      border-radius: 30px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #c084fc;
+      margin-bottom: 20px;
+      box-shadow: var(--glow-purple);
+    }
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 860px;
+      margin: 0 auto 30px;
+      font-weight: 400;
+    }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #030712;
+      padding: 11px 24px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(56, 189, 248, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-accent);
+      color: var(--text-main);
+      padding: 11px 22px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s;
+    }
+    .btn-secondary:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* ── Hero Side-by-Side Showcase Grid ── */
+    .hero-duo-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: stretch;
+      max-width: 1360px;
+      margin: 32px auto 40px;
+      text-align: left;
+    }
+
+    /* ── Live Terminal Console ── */
+    .terminal-container {
+      background: #030712;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), var(--glow-blue);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      margin-bottom: 0;
+    }
+    .terminal-header {
+      background: #0b1120;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+      gap: 8px;
+    }
+    .terminal-dots { display: flex; gap: 6px; flex-shrink: 0; }
+    .terminal-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-red { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8); }
+    .dot-yellow { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.8); }
+    .dot-green { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.8); }
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+    }
+    .terminal-body {
+      padding: 16px 18px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #f1f5f9;
+      text-shadow: 0 0 2px rgba(255, 255, 255, 0.35);
+      flex: 1;
+      min-height: 240px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    .terminal-body div {
+      margin-bottom: 5px;
+      transition: all 0.2s ease;
+    }
+    .terminal-body div:hover {
+      background: rgba(56, 189, 248, 0.08);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
+    .terminal-body::-webkit-scrollbar { width: 4px; }
+    .terminal-body::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.35); border-radius: 4px; }
+    .t-leader {
+      color: #38bdf8;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 0 22px rgba(56, 189, 248, 0.5);
+    }
+    .t-deepseek {
+      color: #60a5fa;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(96, 165, 250, 0.9), 0 0 22px rgba(96, 165, 250, 0.5);
+    }
+    .t-claude {
+      color: #fbbf24;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.9), 0 0 22px rgba(245, 158, 11, 0.5);
+    }
+    .t-success {
+      color: #34d399;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(52, 211, 153, 0.9), 0 0 22px rgba(16, 185, 129, 0.5);
+    }
+    .t-meta {
+      color: #38bdf8;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+    }
+    .t-perplexity {
+      color: #2dd4bf;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(45, 212, 191, 0.9);
+    }
+    .t-nvidia {
+      color: #a3e635;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(163, 230, 53, 0.9);
+    }
+    .t-dim {
+      color: #94a3b8;
+      font-weight: 600;
+      text-shadow: 0 0 6px rgba(148, 163, 184, 0.4);
+    }
+
+    /* ── Live Demo Hero Showcase ── */
+    .hero-demo-frame {
+      position: relative;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-accent);
+      background: #020617;
+      box-shadow: 0 0 45px rgba(56, 189, 248, 0.22), 0 20px 50px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+    }
+    .hero-demo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #090e1f;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .hero-demo-img-box {
+      position: relative;
+      background: #02040a;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      cursor: pointer;
+    }
+    .hero-demo-img {
+      width: 100%;
+      height: 100%;
+      max-height: 350px;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .hero-demo-img:hover {
+      transform: scale(1.02);
+    }
+    .hero-demo-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #38bdf8;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    /* ── Glowing Numbers & Metric Highlights ── */
+    .glow-num, .glow-number {
+      display: inline-block;
+      font-weight: 800;
+      color: #38bdf8;
+      text-shadow: 
+        0 0 10px rgba(56, 189, 248, 0.8),
+        0 0 22px rgba(56, 189, 248, 0.5),
+        0 0 35px rgba(139, 92, 246, 0.35);
+      animation: number-glow-pulse 3s ease-in-out infinite alternate;
+    }
+
+    .glow-purple {
+      display: inline-block;
+      font-weight: 800;
+      color: #c084fc;
+      text-shadow: 
+        0 0 10px rgba(192, 132, 252, 0.9),
+        0 0 24px rgba(168, 85, 247, 0.65),
+        0 0 38px rgba(139, 92, 246, 0.45);
+      animation: purple-glow-pulse 3s ease-in-out infinite alternate;
+    }
+
+    .glow-emerald {
+      display: inline-block;
+      font-weight: 800;
+      color: #34d399;
+      text-shadow: 
+        0 0 10px rgba(52, 211, 153, 0.9),
+        0 0 24px rgba(16, 185, 129, 0.6),
+        0 0 36px rgba(5, 150, 105, 0.4);
+      animation: emerald-glow-pulse 3s ease-in-out infinite alternate;
+    }
+
+    .glow-amber {
+      display: inline-block;
+      font-weight: 800;
+      color: #fbbf24;
+      text-shadow: 
+        0 0 10px rgba(251, 191, 36, 0.9),
+        0 0 24px rgba(245, 158, 11, 0.6),
+        0 0 36px rgba(217, 119, 6, 0.4);
+      animation: amber-glow-pulse 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes number-glow-pulse {
+      0% {
+        text-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 0 18px rgba(56, 189, 248, 0.35);
+        filter: brightness(1);
+      }
+      100% {
+        text-shadow: 0 0 16px rgba(56, 189, 248, 1), 0 0 32px rgba(56, 189, 248, 0.8), 0 0 45px rgba(139, 92, 246, 0.6);
+        filter: brightness(1.2);
+      }
+    }
+
+    @keyframes purple-glow-pulse {
+      0% {
+        text-shadow: 0 0 8px rgba(192, 132, 252, 0.6), 0 0 18px rgba(168, 85, 247, 0.35);
+      }
+      100% {
+        text-shadow: 0 0 16px rgba(192, 132, 252, 1), 0 0 32px rgba(168, 85, 247, 0.8), 0 0 45px rgba(139, 92, 246, 0.6);
+      }
+    }
+
+    @keyframes emerald-glow-pulse {
+      0% {
+        text-shadow: 0 0 8px rgba(52, 211, 153, 0.6), 0 0 18px rgba(16, 185, 129, 0.35);
+      }
+      100% {
+        text-shadow: 0 0 16px rgba(52, 211, 153, 1), 0 0 32px rgba(16, 185, 129, 0.75);
+      }
+    }
+
+    @keyframes amber-glow-pulse {
+      0% {
+        text-shadow: 0 0 8px rgba(251, 191, 36, 0.6), 0 0 18px rgba(245, 158, 11, 0.35);
+      }
+      100% {
+        text-shadow: 0 0 16px rgba(251, 191, 36, 1), 0 0 32px rgba(245, 158, 11, 0.75);
+      }
+    }
+
+    /* ── KPI Stats Bar ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 50px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px 20px;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+      opacity: 0.6;
+    }
+    .kpi-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.3);
+    }
+    .kpi-num {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+      transition: all 0.3s ease;
+    }
+    .kpi-card:hover .kpi-num {
+      transform: scale(1.05);
+    }
+    .kpi-label { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+
+    /* ── Detailed Content Sections ── */
+    .doc-section {
+      padding: 40px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+      display: inline-block;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.8), 0 0 22px rgba(56, 189, 248, 0.4);
+    }
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      color: #f8fafc;
+      text-shadow: 0 0 24px rgba(56, 189, 248, 0.3), 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+    .section-lead {
+      color: #cbd5e1;
+      font-size: 15px;
+      margin-bottom: 26px;
+      line-height: 1.6;
+      text-shadow: 0 0 2px rgba(255, 255, 255, 0.2);
+    }
+
+    /* ── Architectural 5-Tier Layer Box ── */
+    .arch-tiers {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--accent-blue);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.25s;
+    }
+    .tier-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+    }
+    .tier-badge {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+    }
+    .tier-content h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #f8fafc;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+    }
+    .tier-content p {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* ── Multi-Agent Interactive Cards ── */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .agent-card {
+      background: rgba(13, 20, 36, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--accent-blue);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+    .agent-card:hover {
+      background: rgba(22, 33, 58, 0.85);
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+    .agent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .agent-name {
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #f8fafc;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .agent-status {
+      font-size: 10px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      text-shadow: 0 0 6px rgba(52, 211, 153, 0.8);
+    }
+    .agent-role {
+      font-size: 11.5px;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+    .agent-desc { font-size: 12px; color: #cbd5e1; line-height: 1.5; }
+
+    /* ── Token Table & Badges ── */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+    th {
+      background: rgba(22, 33, 58, 0.6);
+      color: #38bdf8;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+    tr:hover td { background: rgba(56, 189, 248, 0.04); }
+    .token-badge-img { vertical-align: middle; height: 20px; margin-bottom: 4px; }
+
+    /* ── Skills Grid (Addy Osmani 24 Skills) ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .skill-card {
+      background: rgba(13, 20, 36, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      transition: all 0.2s;
+    }
+    .skill-card:hover {
+      border-color: var(--accent-purple);
+      background: rgba(22, 33, 58, 0.8);
+    }
+    .skill-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c084fc;
+      margin-bottom: 4px;
+    }
+    .skill-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* ── Interactive Code Tabs ── */
+    .code-tabs-wrapper {
+      background: #030712;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    .code-tab-header {
+      display: flex;
+      background: #0b1120;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+    }
+    .code-tab-btn {
+      padding: 11px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .code-tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .code-content {
+      padding: 18px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #f8fafc;
+      position: relative;
+    }
+    .btn-copy {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-copy:hover {
+      background: #38bdf8;
+      color: #030712;
+    }
+
+    /* ── Single-Line Left-to-Right Animated Badges Ticker Below Top Bar ── */
+    .badge-marquee-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 8px 0;
+      background: rgba(8, 13, 26, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 4%, #000 96%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 4%, #000 96%, transparent 100%);
+      display: flex;
+      z-index: 990;
+    }
+
+    .badge-marquee-track {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      animation: marquee-left-to-right 95s linear infinite;
+    }
+
+    .badge-marquee-wrapper:hover .badge-marquee-track {
+      animation-play-state: paused;
+    }
+
+    .badge-marquee-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .badge-marquee-group a {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .badge-marquee-group a img {
+      height: 23px;
+      vertical-align: middle;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .badge-marquee-group a:hover {
+      transform: translateY(-2px) scale(1.05);
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+    }
+
+    @keyframes marquee-left-to-right {
+      0% {
+        transform: translateX(-50%);
+      }
+      100% {
+        transform: translateX(0%);
+      }
+    }
+
+    /* ── Interactive Schema Live Tester ── */
+    .schema-tester {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .schema-editor {
+      width: 100%;
+      height: 160px;
+      background: #030712;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 12px;
+      outline: none;
+      resize: vertical;
+    }
+    .schema-feedback {
+      margin-top: 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: #34d399;
+    }
+
+    /* ── Screen Views & Interactive Gallery ── */
+    .gallery-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0 24px;
+    }
+    .gallery-filter-btn {
+      background: rgba(13, 20, 36, 0.7);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .gallery-filter-btn.active, .gallery-filter-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+      margin-top: 14px;
+    }
+    .gallery-card {
+      background: rgba(13, 20, 36, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .gallery-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-blue);
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.18);
+    }
+    .gallery-img-box {
+      position: relative;
+      width: 100%;
+      height: 195px;
+      background: #040714;
+      overflow: hidden;
+    }
+    .gallery-img-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #090e1f 0%, #1e293b 50%, #090e1f 100%);
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.5s infinite;
+      z-index: 1;
+    }
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .gallery-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.35s ease;
+      position: relative;
+      z-index: 2;
+    }
+    .gallery-img.loaded {
+      opacity: 1;
+    }
+    .gallery-card:hover .gallery-img {
+      transform: scale(1.04);
+    }
+    .gallery-overlay-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(3, 7, 18, 0.88);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .gallery-info {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+    .gallery-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .gallery-card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* ── Fullscreen Lightbox Screen Viewer Modal ── */
+    .lightbox-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.95);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .lightbox-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    .lightbox-content-box {
+      max-width: 1240px;
+      width: 100%;
+      background: #090e1f;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 94vh;
+      animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    @keyframes modal-pop {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .lightbox-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #050914;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .lightbox-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lightbox-close-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .lightbox-close-btn:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+    .lightbox-body {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #02040a;
+      overflow: hidden;
+      padding: 12px;
+      min-height: 320px;
+      max-height: calc(94vh - 120px);
+    }
+    .lightbox-image {
+      max-width: 100%;
+      max-height: calc(94vh - 140px);
+      object-fit: contain;
+      border-radius: 4px;
+      transition: opacity 0.3s;
+    }
+    .lightbox-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(8, 14, 29, 0.85);
+      border: 1px solid var(--border-accent);
+      color: #f8fafc;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .lightbox-nav-btn:hover {
+      background: #38bdf8;
+      color: #030712;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+    }
+    .lightbox-prev-btn { left: 16px; }
+    .lightbox-next-btn { right: 16px; }
+    .lightbox-footer {
+      padding: 10px 20px;
+      background: #050914;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: #040711;
+      border-top: 1px solid var(--border-subtle);
+      padding: 36px 0 20px;
+      margin-top: 60px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent-blue); }
+
+    /* ── Autonomous Multi-Agent Moving Cursor Overlay ── */
+    #agentCursorsContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1800;
+      overflow: hidden;
+    }
+
+    .agent-live-cursor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      user-select: none;
+      will-change: transform;
+      font-family: var(--font-body);
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.75));
+      opacity: 0;
+      animation: cursor-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes cursor-enter {
+      to { opacity: 1; }
+    }
+
+    .agent-cursor-pointer {
+      width: 24px;
+      height: 24px;
+      transform-origin: 0 0;
+      filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.85));
+      animation: cursor-hover-bob 2.8s ease-in-out infinite alternate;
+    }
+    @keyframes cursor-hover-bob {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(2px, 2.5px) rotate(-1.5deg); }
+    }
+
+    .agent-cursor-badge {
+      position: absolute;
+      left: 16px;
+      top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      border-radius: 9px;
+      font-size: 11.5px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #ffffff;
+      white-space: nowrap;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .agent-cursor-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: cursor-dot-pulse 1.3s infinite alternate;
+    }
+    @keyframes cursor-dot-pulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      100% { transform: scale(1.35); opacity: 1; }
+    }
+
+    .agent-cursor-action {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2.5px 7px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f8fafc;
+      margin-left: 2px;
+      font-family: var(--font-mono);
+      letter-spacing: 0px;
+    }
+
+    .agent-click-ripple {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid;
+      transform: translate(-50%, -50%) scale(0.2);
+      pointer-events: none;
+      z-index: 1799;
+      animation: agent-ripple-expand 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+    @keyframes agent-ripple-expand {
+      0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+    }
+
+    .cursor-toggle-float {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1200;
+      background: rgba(8, 14, 28, 0.92);
+      border: 1px solid var(--border-accent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 7px 16px;
+      border-radius: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #38bdf8;
+      cursor: pointer;
+      box-shadow: 0 4px 22px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.25);
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+    .cursor-toggle-float:hover {
+      background: rgba(22, 33, 58, 0.98);
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(56, 189, 248, 0.45);
+    }
+
+    /* ── Responsive Queries ── */
+    @media (max-width: 1024px) {
+      .docs-layout { padding-left: 20px; padding-right: 20px; }
+      aside.sidebar { width: 300px; }
+      .tier-card { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .hero-title { font-size: 34px; }
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Announcement -->
+  <div class="top-banner">
+    ⚡ <b>Agentic Web v2.4</b> &mdash; <span class="glow-num">1.019B+ Free Daily Tokens</span> &bull; <span class="glow-purple">10+</span> Synchronized AI Models &bull; Live Chrome CDP &bull; Addy Osmani Senior Skills
+  </div>
+
+  <!-- Main Sticky Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">
+        ⚡ <span>Agentic Web</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#screens">Screenshots</a></li>
+        <li><a href="#models">AI Models</a></li>
+        <li><a href="#tokens">1B+ Tokens</a></li>
+        <li><a href="#skills">MCP Skills</a></li>
+        <li><a href="#canvas">Canvas IDE</a></li>
+        <li><a href="#api">Schema & API</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="status-pill">
+          <span class="pulse-dot"></span> 10 Models Active
+        </div>
+        <a href="https://github.com/MaxMasAI/agentic-web" target="_blank" class="btn-github">
+          ⭐ on GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Single-Line Left-to-Right Animated Badges Ticker Below Top Navigation Bar -->
+  <div class="badge-marquee-wrapper" title="Scrolls continuously from left to right · Hover to pause">
+    <div class="badge-marquee-track">
+      <!-- Group 1 -->
+      <div class="badge-marquee-group">
+        <a href="https://github.com/MaxMasAI/agentic-web/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/MaxMasAI/agentic-web?style=for-the-badge&color=eab308&logo=github" alt="GitHub Stars" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/network/members" target="_blank"><img src="https://img.shields.io/github/forks/MaxMasAI/agentic-web?style=for-the-badge&color=8b5cf6&logo=github" alt="GitHub Forks" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/watchers" target="_blank"><img src="https://img.shields.io/github/watchers/MaxMasAI/agentic-web?style=for-the-badge&color=38bdf8&logo=github" alt="GitHub Watchers" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/⚡%20Total%20Free%20Tokens-1.019B%2B%20%2F%20Day-9333EA?style=for-the-badge&logo=sparkles&logoColor=white" alt="Total Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/📊%20Total%20Tokens-Till%20Today%20Tracked-0284c7?style=for-the-badge&logo=speedtest&logoColor=white" alt="Total Tokens Tracked" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/issues" target="_blank"><img src="https://img.shields.io/github/issues/MaxMasAI/agentic-web?style=for-the-badge&color=ef4444&logo=github" alt="GitHub Issues" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/pulls" target="_blank"><img src="https://img.shields.io/github/issues-pr/MaxMasAI/agentic-web?style=for-the-badge&color=10b981&logo=github" alt="GitHub PRs" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/🌟%20TOTAL%20DAILY%20POOL-1%2C019%2C100%2C000%20(1B%2B)%20Tokens-8b5cf6?style=flat-square&logo=sparkles&logoColor=white" alt="Total Daily Pool (1B+)" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Gemini%202.0%20Flash-1B%20Free%20Tokens%2Fday-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/DeepSeek--V3-5M%20Free%20Tokens%2Fday-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" alt="DeepSeek Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Groq%20Llama--3.3-14.4k%20RPD%20%7C%20500k-F55036?style=flat-square&logo=fastly&logoColor=white" alt="Groq Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/OpenRouter-10M%20Free%20Tokens%2Fday-6366F1?style=flat-square&logo=openrouteservice&logoColor=white" alt="OpenRouter Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/GPT--4o--mini-2.5M%20Free%20Tokens-10A37F?style=flat-square&logo=openai&logoColor=white" alt="GPT-4o mini Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Claude%203.5-100k%20Tokens-D97706?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Quota%20Reset-00%3A00%20UTC%20Daily-22c55e?style=flat-square&logo=clockify&logoColor=white" alt="UTC Daily Reset" /></a>
+        <a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python Versions" /></a>
+        <a href="https://pypi.org/project/PySide6/" target="_blank"><img src="https://img.shields.io/badge/UI-PySide6%20%7C%20Qt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PySide6 UI" /></a>
+        <a href="https://ai.google.dev/" target="_blank"><img src="https://img.shields.io/badge/AI-Gemini%202.0%20Flash-4285F4?style=flat-square&logo=google&logoColor=white" alt="Google Gemini" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Tokens-Free%20Daily%20Quotas%20%7C%201B%2B-a855f7?style=flat-square&logo=sparkles&logoColor=white" alt="Daily Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Analytics-Token%20Manager-06b6d4?style=flat-square&logo=speedtest&logoColor=white" alt="Token Manager" /></a>
+        <a href="https://fastapi.tiangolo.com/" target="_blank"><img src="https://img.shields.io/badge/FastAPI-%3E%3D0.110.0-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+        <a href="https://playwright.dev/python/" target="_blank"><img src="https://img.shields.io/badge/Playwright-%3E%3D1.40.0-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" /></a>
+        <a href="https://modelcontextprotocol.io/" target="_blank"><img src="https://img.shields.io/badge/Protocol-MCP%20Ready-f97316?style=flat-square" alt="MCP Ready" /></a>
+        <a href="#fancyzones"><img src="https://img.shields.io/badge/Layout-FancyZones%20Tiling-0078D4?style=flat-square&logo=windows&logoColor=white" alt="FancyZones" /></a>
+        <a href="#architecture"><img src="https://img.shields.io/badge/State-SQLite%20WAL-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite WAL" /></a>
+        <a href="https://github.com/psf/black" target="_blank"><img src="https://img.shields.io/badge/Code%20Style-Black-000000.svg?style=flat-square" alt="Code Style: Black" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web" target="_blank"><img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue?style=flat-square" alt="Platforms" /></a>
+        <a href="https://github.com/MaxMasAI" target="_blank"><img src="https://img.shields.io/badge/Organization-MaxMasAI-0284c7?style=flat-square&logo=github&logoColor=white" alt="Organization: MaxMasAI" /></a>
+        <a href="https://github.com/Sahilkumardhala" target="_blank"><img src="https://img.shields.io/badge/Owner%20%26%20Creator-Sahil%20Kumar%20Dhala-8b5cf6?style=flat-square&logo=github&logoColor=white" alt="Owner & Creator: Sahil Kumar Dhala" /></a>
+        <a href="index.html"><img src="https://img.shields.io/badge/📖%20Interactive%20Docs-index.html-06b6d4?style=flat-square&logo=html5&logoColor=white" alt="Interactive Documentation" /></a>
+        <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square&logo=opensourceinitiative&logoColor=white" alt="License: MIT" /></a>
+        <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-Welcome-22c55e?style=flat-square&logo=github&logoColor=white" alt="Contributions Welcome" /></a>
+        <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square&logo=git&logoColor=white" alt="PRs Welcome" /></a>
+      </div>
+
+      <!-- Group 2 (Duplicate for Seamless Infinite Loop) -->
+      <div class="badge-marquee-group" aria-hidden="true">
+        <a href="https://github.com/MaxMasAI/agentic-web/stargazers" target="_blank"><img src="https://img.shields.io/github/stars/MaxMasAI/agentic-web?style=for-the-badge&color=eab308&logo=github" alt="GitHub Stars" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/network/members" target="_blank"><img src="https://img.shields.io/github/forks/MaxMasAI/agentic-web?style=for-the-badge&color=8b5cf6&logo=github" alt="GitHub Forks" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/watchers" target="_blank"><img src="https://img.shields.io/github/watchers/MaxMasAI/agentic-web?style=for-the-badge&color=38bdf8&logo=github" alt="GitHub Watchers" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/⚡%20Total%20Free%20Tokens-1.019B%2B%20%2F%20Day-9333EA?style=for-the-badge&logo=sparkles&logoColor=white" alt="Total Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/📊%20Total%20Tokens-Till%20Today%20Tracked-0284c7?style=for-the-badge&logo=speedtest&logoColor=white" alt="Total Tokens Tracked" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/issues" target="_blank"><img src="https://img.shields.io/github/issues/MaxMasAI/agentic-web?style=for-the-badge&color=ef4444&logo=github" alt="GitHub Issues" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web/pulls" target="_blank"><img src="https://img.shields.io/github/issues-pr/MaxMasAI/agentic-web?style=for-the-badge&color=10b981&logo=github" alt="GitHub PRs" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/🌟%20TOTAL%20DAILY%20POOL-1%2C019%2C100%2C000%20(1B%2B)%20Tokens-8b5cf6?style=flat-square&logo=sparkles&logoColor=white" alt="Total Daily Pool (1B+)" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Gemini%202.0%20Flash-1B%20Free%20Tokens%2Fday-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/DeepSeek--V3-5M%20Free%20Tokens%2Fday-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" alt="DeepSeek Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Groq%20Llama--3.3-14.4k%20RPD%20%7C%20500k-F55036?style=flat-square&logo=fastly&logoColor=white" alt="Groq Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/OpenRouter-10M%20Free%20Tokens%2Fday-6366F1?style=flat-square&logo=openrouteservice&logoColor=white" alt="OpenRouter Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/GPT--4o--mini-2.5M%20Free%20Tokens-10A37F?style=flat-square&logo=openai&logoColor=white" alt="GPT-4o mini Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Claude%203.5-100k%20Tokens-D97706?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Quota%20Reset-00%3A00%20UTC%20Daily-22c55e?style=flat-square&logo=clockify&logoColor=white" alt="UTC Daily Reset" /></a>
+        <a href="https://www.python.org/downloads/" target="_blank"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python Versions" /></a>
+        <a href="https://pypi.org/project/PySide6/" target="_blank"><img src="https://img.shields.io/badge/UI-PySide6%20%7C%20Qt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PySide6 UI" /></a>
+        <a href="https://ai.google.dev/" target="_blank"><img src="https://img.shields.io/badge/AI-Gemini%202.0%20Flash-4285F4?style=flat-square&logo=google&logoColor=white" alt="Google Gemini" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Tokens-Free%20Daily%20Quotas%20%7C%201B%2B-a855f7?style=flat-square&logo=sparkles&logoColor=white" alt="Daily Free Tokens" /></a>
+        <a href="#tokens"><img src="https://img.shields.io/badge/Analytics-Token%20Manager-06b6d4?style=flat-square&logo=speedtest&logoColor=white" alt="Token Manager" /></a>
+        <a href="https://fastapi.tiangolo.com/" target="_blank"><img src="https://img.shields.io/badge/FastAPI-%3E%3D0.110.0-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+        <a href="https://playwright.dev/python/" target="_blank"><img src="https://img.shields.io/badge/Playwright-%3E%3D1.40.0-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" /></a>
+        <a href="https://modelcontextprotocol.io/" target="_blank"><img src="https://img.shields.io/badge/Protocol-MCP%20Ready-f97316?style=flat-square" alt="MCP Ready" /></a>
+        <a href="#fancyzones"><img src="https://img.shields.io/badge/Layout-FancyZones%20Tiling-0078D4?style=flat-square&logo=windows&logoColor=white" alt="FancyZones" /></a>
+        <a href="#architecture"><img src="https://img.shields.io/badge/State-SQLite%20WAL-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite WAL" /></a>
+        <a href="https://github.com/psf/black" target="_blank"><img src="https://img.shields.io/badge/Code%20Style-Black-000000.svg?style=flat-square" alt="Code Style: Black" /></a>
+        <a href="https://github.com/MaxMasAI/agentic-web" target="_blank"><img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue?style=flat-square" alt="Platforms" /></a>
+        <a href="https://github.com/MaxMasAI" target="_blank"><img src="https://img.shields.io/badge/Organization-MaxMasAI-0284c7?style=flat-square&logo=github&logoColor=white" alt="Organization: MaxMasAI" /></a>
+        <a href="https://github.com/Sahilkumardhala" target="_blank"><img src="https://img.shields.io/badge/Owner%20%26%20Creator-Sahil%20Kumar%20Dhala-8b5cf6?style=flat-square&logo=github&logoColor=white" alt="Owner & Creator: Sahil Kumar Dhala" /></a>
+        <a href="index.html"><img src="https://img.shields.io/badge/📖%20Interactive%20Docs-index.html-06b6d4?style=flat-square&logo=html5&logoColor=white" alt="Interactive Documentation" /></a>
+        <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square&logo=opensourceinitiative&logoColor=white" alt="License: MIT" /></a>
+        <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-Welcome-22c55e?style=flat-square&logo=github&logoColor=white" alt="Contributions Welcome" /></a>
+        <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square&logo=git&logoColor=white" alt="PRs Welcome" /></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docs Layout: Sidebar Navigation + Main Content -->
+  <div class="docs-layout">
+    
+    <!-- Auto-Hiding Table of Contents Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <span class="sidebar-title">📚 Documentation TOC</span>
+        </div>
+
+        <!-- Searchbar placed inside top of sidebar -->
+        <div class="sidebar-search-box">
+          <span class="sidebar-search-icon">🔍</span>
+          <input type="text" class="sidebar-search-input" id="docSearch" placeholder="Search docs, models, skills..." onkeyup="filterDocs()" />
+          <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" style="display: none;">✖</button>
+        </div>
+        <div class="toc-group">
+          <div class="toc-title">1. System Overview</div>
+          <ul class="toc-links">
+            <li><a href="#hero" onclick="closeSidebarOnNav()">Hero &amp; Live Execution</a></li>
+            <li><a href="#kpi" onclick="closeSidebarOnNav()">KPI Highlights</a></li>
+            <li><a href="#architecture" onclick="closeSidebarOnNav()">5-Tier Architecture</a></li>
+            <li><a href="#screens" onclick="closeSidebarOnNav()">🖼️ UI Screen Views (27)</a></li>
+          </ul>
+        </div>
+
+        <div class="toc-group">
+          <div class="toc-title">2. Multi-Agent Engine</div>
+          <ul class="toc-links">
+            <li><a href="#models" onclick="closeSidebarOnNav()">10-Model Command Roster</a></li>
+            <li><a href="#leader-swap" onclick="closeSidebarOnNav()">Dynamic Leader Swap</a></li>
+            <li><a href="#cursors" onclick="closeSidebarOnNav()">Collaborative Cursors</a></li>
+          </ul>
+        </div>
+
+        <div class="toc-group">
+          <div class="toc-title">3. Token Telemetry</div>
+          <ul class="toc-links">
+            <li><a href="#tokens" onclick="closeSidebarOnNav()">1.019B+ Quota Matrix</a></li>
+            <li><a href="#rate-limiter" onclick="closeSidebarOnNav()">Rate Limiter &amp; Gateway</a></li>
+            <li><a href="#ledger" onclick="closeSidebarOnNav()">SQLite WAL Ledger</a></li>
+          </ul>
+        </div>
+
+        <div class="toc-group">
+          <div class="toc-title">4. MCP &amp; Skills</div>
+          <ul class="toc-links">
+            <li><a href="#skills" onclick="closeSidebarOnNav()">24 Addy Osmani Skills</a></li>
+            <li><a href="#mcp-schema" onclick="closeSidebarOnNav()">9-Field JSON Schema</a></li>
+            <li><a href="#browser-cdp" onclick="closeSidebarOnNav()">Ego-Lite Chrome CDP</a></li>
+          </ul>
+        </div>
+
+        <div class="toc-group">
+          <div class="toc-title">5. System &amp; OS Control</div>
+          <ul class="toc-links">
+            <li><a href="#voice" onclick="closeSidebarOnNav()">🎙️ Gemini Voice Bridge</a></li>
+            <li><a href="#fancyzones" onclick="closeSidebarOnNav()">📐 FancyZones Tiling</a></li>
+            <li><a href="#crash-reporter" onclick="closeSidebarOnNav()">🐙 GitHub Issue Dispatcher</a></li>
+            <li><a href="#shortcuts" onclick="closeSidebarOnNav()">⌨️ Keyboard Shortcuts</a></li>
+          </ul>
+        </div>
+
+        <div class="toc-group">
+          <div class="toc-title">6. Workspace &amp; IDE</div>
+          <ul class="toc-links">
+            <li><a href="#canvas" onclick="closeSidebarOnNav()">Infinite Canvas DAG IDE</a></li>
+            <li><a href="#api" onclick="closeSidebarOnNav()">Custom Agent Schema</a></li>
+            <li><a href="#quickstart" onclick="closeSidebarOnNav()">Quick Start Guide</a></li>
+            <li><a href="#troubleshooting" onclick="closeSidebarOnNav()">Troubleshooting</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Handle tab that sticks out on the edge when auto-hidden -->
+      <div class="sidebar-tab-handle" onclick="toggleSidebarPin()" title="Hover to view Table of Contents &amp; Search">
+        <span class="tab-icon">📚</span>
+        <span class="tab-text">TOC &bull; Search</span>
+      </div>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="content">
+
+      <!-- Hero Section -->
+      <section class="hero" id="hero">
+        <div class="hero-tag">
+          ⚡ <span class="glow-purple">1,019,100,000+ (1B+)</span> FREE DAILY TOKENS &bull; AUTONOMOUS MULTI-AGENT OS
+        </div>
+        <h1 class="hero-title">
+          Autonomous Multi-Agent<br />
+          <span class="gradient-text">Desktop Operations Platform</span>
+        </h1>
+        <p class="hero-subtitle">
+          An enterprise-grade autonomous operating system and native PySide6 desktop suite designed for synchronized AI orchestration, senior engineering skill synthesis, dynamic MCP execution, and live voice control.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#quickstart" class="btn-primary">
+            🚀 Quick Start & Install
+          </a>
+          <a href="#architecture" class="btn-secondary">
+            🏗️ 5-Tier Architecture
+          </a>
+          <a href="#models" class="btn-secondary">
+            👑 AI Squad Roster
+          </a>
+        </div>
+
+        <!-- Side-by-Side Live Showcase: Terminal Telemetry Stream + Live Web Agent Execution GIF -->
+        <div class="hero-duo-showcase">
+          <!-- Left: Live Simulated Terminal -->
+          <div class="terminal-container">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+              <span class="terminal-title">agentic-web :: multi-agent telemetry stream [CDP 9222 Active &bull; SQLite WAL]</span>
+              <!-- <span class="t-dim">UTC Live</span> -->
+            </div>
+            <div class="terminal-body" id="liveTerminal">
+              <div><span class="t-dim">[14:40:02]</span> <span class="t-leader">👑 [Master Leader] Gemini 2.0:</span> Analyzing user mission: "Develop responsive SaaS dashboard with authentication &amp; live charts"</div>
+              <div><span class="t-dim">[14:40:03]</span> <span class="t-leader">👑 [Master Leader] Gemini 2.0:</span> Mission decomposed into 4 parallel atomic subtasks. Dispatching to specialists...</div>
+              <div><span class="t-dim">[14:40:04]</span> <span class="t-deepseek">🔬 [Specialist] DeepSeek-V3:</span> Synthesizing high-performance vanilla CSS grid layout with glassmorphic cards...</div>
+              <div><span class="t-dim">[14:40:05]</span> <span class="t-claude">🎭 [Specialist] Claude 3.5:</span> Executing Senior Engineering Security Audit: 0 vulnerabilities found. Spec verified.</div>
+              <div><span class="t-dim">[14:40:06]</span> <span class="t-success">✨ [Deliverable]:</span> Live preview rendered in Monaco Studio. State committed to db.sqlite. Ready for next command.</div>
+            </div>
+          </div>
+
+          <!-- Right: Live Animated Web Agent Execution Showcase -->
+          <div class="hero-demo-frame">
+            <div class="hero-demo-header">
+              <span>🔴 <b>LIVE EXECUTION</b> &bull; Autonomous Web Browser</span>
+              <span style="color: #38bdf8;">Port 9222 Active &bull; </span>
+            </div>
+            <div class="hero-demo-img-box" onclick="openLightbox(0)">
+              <img src="images/000_web_agent.gif" class="hero-demo-img" alt="Live Multi-Agent Web Agent Execution Demo" loading="lazy" />
+              <div class="hero-demo-overlay">
+                <span class="pulse-dot"></span> ⚡ Animated Web Agent
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI Highlight Grid -->
+      <section class="kpi-grid" id="kpi">
+        <div class="kpi-card">
+          <div class="kpi-num glow-num">1.019B+</div>
+          <div class="kpi-label">Free Daily Tokens Tracked</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num glow-purple">10+ Models</div>
+          <div class="kpi-label">Synchronized in Parallel</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num glow-emerald">24 Skills</div>
+          <div class="kpi-label">Addy Osmani Senior Engineering</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num glow-amber">00:00 UTC</div>
+          <div class="kpi-label">Automatic Daily Quota Reset</div>
+        </div>
+      </section>
+
+      <!-- Section 1: 5-Tier Architecture -->
+      <section class="doc-section" id="architecture">
+        <span class="section-tag">System Architecture</span>
+        <h2 class="section-title">5-Tier Enterprise Operating Architecture</h2>
+        <p class="section-lead">
+          Agentic Web is built on a non-blocking, decoupled 5-tier architecture ensuring fluid UI responsiveness (60 FPS), robust multi-agent background execution, military-grade security sandboxing, and resilient failover.
+        </p>
+
+        <div class="arch-tiers">
+          <div class="tier-card">
+            <div class="tier-badge">Tier 1: Non-Blocking UI</div>
+            <div class="tier-content">
+              <h4>PySide6 Desktop & Monaco Studio Layer</h4>
+              <p>Native Qt6 GUI with zero UI-thread blocking. Thread-safe Qt Signals (`token_emitted`, `status_changed`, `task_finished`) push live telemetry directly into Mission Control, Task Dispatch, Canvas IDE, and Token Manager.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">Tier 2: Async Workers</div>
+            <div class="tier-content">
+              <h4>Multi-Threaded QThread & QThreadPool Cluster</h4>
+              <p>Dedicated worker threads managing LLM token streaming, voice processing (ASGI FastAPI + WebSocket bridge on port 8000), and Playwright Chrome DevTools Protocol (CDP on port 9222).</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">Tier 3: Security Barrier</div>
+            <div class="tier-content">
+              <h4>Security Guard & Dual-Mode Sandboxing</h4>
+              <p>Deep regex command inspection intercepting hazardous OS operations (`rm -rf /`, `del /f`, fork bombs, reverse shells) with Docker container isolation and local restricted subprocess sandboxes.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">Tier 4: Resilient Gateway</div>
+            <div class="tier-content">
+              <h4>Token Bucket Rate Limiting & Circuit Breaker</h4>
+              <p>Granular RPM/TPM token-bucket governors, exponential backoff with full jitter for HTTP 429/5xx, and a 3-state Circuit Breaker (`CLOSED`, `OPEN`, `HALF_OPEN`) with automated model failover.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">Tier 5: Persistence</div>
+            <div class="tier-content">
+              <h4>ACID SQLite WAL Database (`db.sqlite`)</h4>
+              <p>High-concurrency SQLite Write-Ahead Logging (WAL) state store managing the PID process registry, task history, neural memory embeddings, and token ledgers with atomic guarantees.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Interactive Screen Views & UI Gallery -->
+      <section class="doc-section" id="screens">
+        <span class="section-tag">Visual Walkthrough</span>
+        <h2 class="section-title">Interactive UI Screen Views & Application Gallery</h2>
+        <p        <!-- Filter Bar -->
+        <div class="gallery-filter-bar">
+          <button class="gallery-filter-btn active" onclick="filterGallery('all', this)">All Screens (27)</button>
+          <button class="gallery-filter-btn" onclick="filterGallery('browser', this)">Web Agent &amp; CDP</button>
+          <button class="gallery-filter-btn" onclick="filterGallery('squads', this)">Mission Control &amp; Squads</button>
+          <button class="gallery-filter-btn" onclick="filterGallery('ide', this)">IDE &amp; Canvas DAG</button>
+          <button class="gallery-filter-btn" onclick="filterGallery('memory', this)">Memory &amp; MCP Hub</button>
+          <button class="gallery-filter-btn" onclick="filterGallery('analytics', this)">Telemetry &amp; Settings</button>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="gallery-grid" id="galleryGrid">
+          <!-- Card 0: 000_web_agent.gif (Live Execution) -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(0)">
+            <div class="gallery-img-box">
+              <img src="images/000_web_agent.gif" class="gallery-img" alt="Live Multi-Agent Web Agent Execution (GIF)" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">⚡ Animated Demo</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Live Web Agent Execution <span style="font-size:11px;color:#38bdf8;">#000 GIF</span></div>
+                <div class="gallery-card-desc">Real-time animated Chrome DevTools Protocol (CDP) autonomous browser task automation stream.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 1: 000_web_agent.png -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(1)">
+            <div class="gallery-img-box">
+              <img src="images/000_web_agent.png" class="gallery-img" alt="Autonomous Web Agent Interface" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Autonomous Web Agent HUD <span style="font-size:11px;color:#38bdf8;">#000 PNG</span></div>
+                <div class="gallery-card-desc">Browser automation HUD overlay with synchronized live agent cursors and step execution.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: 00_Agentic_Web_Full_Overview.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(2)">
+            <div class="gallery-img-box">
+              <img src="images/00_Agentic_Web_Full_Overview.png" class="gallery-img" alt="Agentic Web Full Overview" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Full Platform Overview <span style="font-size:11px;color:#38bdf8;">#00</span></div>
+                <div class="gallery-card-desc">Unified multi-agent operating interface with active leader telemetry and system status.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: 01_Mission_Control_Dashboard.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(3)">
+            <div class="gallery-img-box">
+              <img src="images/01_Mission_Control_Dashboard.png" class="gallery-img" alt="Mission Control Dashboard" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Mission Control Dashboard <span style="font-size:11px;color:#38bdf8;">#01</span></div>
+                <div class="gallery-card-desc">Real-time AI squad orchestration, agent state grid, and parallel task execution monitoring.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: 02_Task_Dispatch_Console.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(4)">
+            <div class="gallery-img-box">
+              <img src="images/02_Task_Dispatch_Console.png" class="gallery-img" alt="Task Dispatch Console" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Task Dispatch Console <span style="font-size:11px;color:#38bdf8;">#02</span></div>
+                <div class="gallery-card-desc">Prompt input, agent assignment, automated task routing, and asynchronous worker execution.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: 03_Multi_Agent_Squads.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(5)">
+            <div class="gallery-img-box">
+              <img src="images/03_Multi_Agent_Squads.png" class="gallery-img" alt="Multi-Agent Squads" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Multi-Agent Squad Matrix <span style="font-size:11px;color:#38bdf8;">#03</span></div>
+                <div class="gallery-card-desc">Parallel specialist agent assignment with role definitions and real-time activity indicators.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6: 04_Mission_History_Archives.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(6)">
+            <div class="gallery-img-box">
+              <img src="images/04_Mission_History_Archives.png" class="gallery-img" alt="Mission History Archives" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Mission History Archives <span style="font-size:11px;color:#38bdf8;">#04</span></div>
+                <div class="gallery-card-desc">Persisted execution logs, prompt-response history, and token usage audit trails in SQLite WAL.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 7: 05_Multi_Model_AI_Chat.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(7)">
+            <div class="gallery-img-box">
+              <img src="images/05_Multi_Model_AI_Chat.png" class="gallery-img" alt="Multi-Model AI Chat" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Multi-Model AI Chat <span style="font-size:11px;color:#38bdf8;">#05</span></div>
+                <div class="gallery-card-desc">Synchronized conversational workspace allowing side-by-side model query benchmarking.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 8: 06_Document_Knowledge_Chat.png -->
+          <div class="gallery-card" data-category="memory" onclick="openLightbox(8)">
+            <div class="gallery-img-box">
+              <img src="images/06_Document_Knowledge_Chat.png" class="gallery-img" alt="Document Knowledge Chat" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Document Knowledge Chat <span style="font-size:11px;color:#38bdf8;">#06</span></div>
+                <div class="gallery-card-desc">Vector semantic document retrieval and localized context-augmented generation.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 9: 07_Deep_Research_Studio.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(9)">
+            <div class="gallery-img-box">
+              <img src="images/07_Deep_Research_Studio.png" class="gallery-img" alt="Deep Research Studio" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Deep Research Studio <span style="font-size:11px;color:#38bdf8;">#07</span></div>
+                <div class="gallery-card-desc">Autonomous recursive web search, source citation verification, and report synthesis studio.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 10: 08_Media_Studio.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(10)">
+            <div class="gallery-img-box">
+              <img src="images/08_Media_Studio.png" class="gallery-img" alt="Media Studio" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Media & Asset Studio <span style="font-size:11px;color:#38bdf8;">#08</span></div>
+                <div class="gallery-card-desc">Visual asset generation, image synthesis, and multi-modal creative workspace.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 11: 09_Inbuilt_VS_Code_Monaco_Studio.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(11)">
+            <div class="gallery-img-box">
+              <img src="images/09_Inbuilt_VS_Code_Monaco_Studio.png" class="gallery-img" alt="Monaco Code Studio" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Inbuilt Monaco Studio <span style="font-size:11px;color:#38bdf8;">#09</span></div>
+                <div class="gallery-card-desc">Native VS Code Monaco editor with syntax highlighting, IntelliSense, and live preview rendering.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 12: 10_Infinite_Agent_Canvas_IDE.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(12)">
+            <div class="gallery-img-box">
+              <img src="images/10_Infinite_Agent_Canvas_IDE.png" class="gallery-img" alt="Infinite Agent Canvas IDE" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Infinite Agent Canvas IDE <span style="font-size:11px;color:#38bdf8;">#10</span></div>
+                <div class="gallery-card-desc">Visual node graph canvas with custom wires, dependency routing, and parallel task DAGs.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 13: 11_Agent_Playground_Arena.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(13)">
+            <div class="gallery-img-box">
+              <img src="images/11_Agent_Playground_Arena.png" class="gallery-img" alt="Agent Playground Arena" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Agent Playground Arena <span style="font-size:11px;color:#38bdf8;">#11</span></div>
+                <div class="gallery-card-desc">Interactive testing arena for prompt engineering, schema verification, and latency benchmarks.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 14: 12_Custom_Agent_Builder.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(14)">
+            <div class="gallery-img-box">
+              <img src="images/12_Custom_Agent_Builder.png" class="gallery-img" alt="Custom Agent Builder" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Custom Agent Builder <span style="font-size:11px;color:#38bdf8;">#12</span></div>
+                <div class="gallery-card-desc">Modal dialog for custom models, Ollama endpoints, and Master Leader promotion.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 15: 13_AI_Painter_Studio.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(15)">
+            <div class="gallery-img-box">
+              <img src="images/13_AI_Painter_Studio.png" class="gallery-img" alt="AI Painter Studio" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">AI Painter Studio <span style="font-size:11px;color:#38bdf8;">#13</span></div>
+                <div class="gallery-card-desc">Canvas sketching and generative AI artwork synthesis environment.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 16: 14_Scratchpad_Notepad.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(16)">
+            <div class="gallery-img-box">
+              <img src="images/14_Scratchpad_Notepad.png" class="gallery-img" alt="Scratchpad Notepad" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Scratchpad Notepad <span style="font-size:11px;color:#38bdf8;">#14</span></div>
+                <div class="gallery-card-desc">Persistent floating note-taking drawer and live scratch text editor.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 17: 15_Automated_Job_Scheduler.png -->
+          <div class="gallery-card" data-category="squads" onclick="openLightbox(17)">
+            <div class="gallery-img-box">
+              <img src="images/15_Automated_Job_Scheduler.png" class="gallery-img" alt="Automated Job Scheduler" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Automated Job Scheduler <span style="font-size:11px;color:#38bdf8;">#15</span></div>
+                <div class="gallery-card-desc">Background cron task manager and recurring multi-agent workflow automation.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 18: 16_MCP_Server_Hub.png -->
+          <div class="gallery-card" data-category="memory" onclick="openLightbox(18)">
+            <div class="gallery-img-box">
+              <img src="images/16_MCP_Server_Hub.png" class="gallery-img" alt="MCP Server Hub" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">MCP Server Hub <span style="font-size:11px;color:#38bdf8;">#16</span></div>
+                <div class="gallery-card-desc">Model Context Protocol tool registry with Senior Engineering Addy Osmani skills.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 19: 17_Semantic_Neural_Memory.png -->
+          <div class="gallery-card" data-category="memory" onclick="openLightbox(19)">
+            <div class="gallery-img-box">
+              <img src="images/17_Semantic_Neural_Memory.png" class="gallery-img" alt="Semantic Neural Memory" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Semantic Neural Memory <span style="font-size:11px;color:#38bdf8;">#17</span></div>
+                <div class="gallery-card-desc">Long-term memory store with sqlite-vec embeddings and session recall.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 20: 18_Project_File_Explorer.png -->
+          <div class="gallery-card" data-category="ide" onclick="openLightbox(20)">
+            <div class="gallery-img-box">
+              <img src="images/18_Project_File_Explorer.png" class="gallery-img" alt="Project File Explorer" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Project File Explorer <span style="font-size:11px;color:#38bdf8;">#18</span></div>
+                <div class="gallery-card-desc">Workspace directory tree navigation, code inspection, and file editing.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 21: 19_System_Settings.png -->
+          <div class="gallery-card" data-category="analytics" onclick="openLightbox(21)">
+            <div class="gallery-img-box">
+              <img src="images/19_System_Settings.png" class="gallery-img" alt="System Settings" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">System Settings & Keys <span style="font-size:11px;color:#38bdf8;">#19</span></div>
+                <div class="gallery-card-desc">API key configuration, model endpoint management, and UI theme preferences.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 22: 20_Multi_Agent_Browser_HUD_Controls.png -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(22)">
+            <div class="gallery-img-box">
+              <img src="images/20_Multi_Agent_Browser_HUD_Controls.png" class="gallery-img" alt="Browser HUD Controls" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Browser HUD Controls <span style="font-size:11px;color:#38bdf8;">#20</span></div>
+                <div class="gallery-card-desc">Live in-browser CDP control overlay with agent cursor tracking and action chips.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 23: 21_Live_Agent_Pool_Browser_Monitor.png -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(23)">
+            <div class="gallery-img-box">
+              <img src="images/21_Live_Agent_Pool_Browser_Monitor.png" class="gallery-img" alt="Agent Pool Browser Monitor" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Agent Pool Browser Monitor <span style="font-size:11px;color:#38bdf8;">#21</span></div>
+                <div class="gallery-card-desc">Visual worker pool monitoring with live Chrome CDP remote debugging on port 9222.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 24: 22_Browser_Automation_Control_Center.png -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(24)">
+            <div class="gallery-img-box">
+              <img src="images/22_Browser_Automation_Control_Center.png" class="gallery-img" alt="Browser Automation Center" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Browser Automation Center <span style="font-size:11px;color:#38bdf8;">#22</span></div>
+                <div class="gallery-card-desc">Playwright headless/headful automation dashboard with DOM tree inspector.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 25: 23_web_agent.png -->
+          <div class="gallery-card" data-category="browser" onclick="openLightbox(25)">
+            <div class="gallery-img-box">
+              <img src="images/23_web_agent.png" class="gallery-img" alt="Multi-Agent Web Operations HUD" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Multi-Agent Web Operations HUD <span style="font-size:11px;color:#38bdf8;">#23</span></div>
+                <div class="gallery-card-desc">Multi-agent browser automation console with real-time DOM element targeting and task tracing.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 26: 24_tokens.png -->
+          <div class="gallery-card" data-category="analytics" onclick="openLightbox(26)">
+            <div class="gallery-img-box">
+              <img src="images/24_tokens.png" class="gallery-img" alt="Token Telemetry & Analytics" loading="lazy" onload="this.classList.add('loaded')" />
+              <div class="gallery-overlay-badge">🔍 Click to View</div>
+            </div>
+            <div class="gallery-info">
+              <div>
+                <div class="gallery-card-title">Token Telemetry & Analytics <span style="font-size:11px;color:#38bdf8;">#24</span></div>
+                <div class="gallery-card-desc">Real-time token manager with 1.019B+ daily pool tracker and rate limiter dashboard.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: AI Command Hierarchy & Dynamic Leadership -->
+      <section class="doc-section" id="models">
+        <span class="section-tag">Multi-Agent Intelligence</span>
+        <h2 class="section-title">Multi-Agent Command Hierarchy (10 Active Models)</h2>
+        <p class="section-lead">
+          The platform operates on a synchronized command hierarchy where a Master Orchestrator directs atomic subtasks across specialized domain workers.
+        </p>
+
+        <div class="agents-grid">
+          <div class="agent-card" style="border-left-color: #7c3aed;">
+            <div class="agent-header">
+              <span class="agent-name">👑 Google Gemini 2.0 Flash</span>
+              <span class="agent-status">LEADER</span>
+            </div>
+            <div class="agent-role">Master Orchestrator & Leadership Lead</div>
+            <p class="agent-desc">Decomposes objectives, coordinates subtasks across specialists, conducts design quality audits, and validates deliverables.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #2563eb;">
+            <div class="agent-header">
+              <span class="agent-name">🔬 DeepSeek-V3 / R1</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Creative Ideator & Deep Researcher</div>
+            <p class="agent-desc">Deep technical reasoning, test-driven code implementation, complex algorithms, and rapid architectural ideation.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #059669;">
+            <div class="agent-header">
+              <span class="agent-name">✍️ OpenAI ChatGPT (GPT-4o)</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Campaign Synthesizer & Copywriting</div>
+            <p class="agent-desc">Final copy production, campaign packaging, client deliverables, marketing strategy, and formatted documentation.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #d97706;">
+            <div class="agent-header">
+              <span class="agent-name">🎭 Anthropic Claude 3.5</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Editorial & Security Auditor</div>
+            <p class="agent-desc">Editorial nuance, defensive security auditing, accessibility compliance checks, and refactoring refinement.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #0284c7;">
+            <div class="agent-header">
+              <span class="agent-name">🌐 Meta AI</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Social Trends & Virality Specialist</div>
+            <p class="agent-desc">Audience hook generation, platform engagement optimization, content formatting, and viral trend analysis.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #ec4899;">
+            <div class="agent-header">
+              <span class="agent-name">🎨 OpenAI DALL-E 3</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Visual Studio & Graphic Asset Designer</div>
+            <p class="agent-desc">Visual prompt composition, branding graphics, asset rendering, and aesthetic style translation.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #0d9488;">
+            <div class="agent-header">
+              <span class="agent-name">🔍 Perplexity AI</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Live Fact-Checker & Citations</div>
+            <p class="agent-desc">Live web searching, source verification, comparative data auditing, and academic reference gathering.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #0078d4;">
+            <div class="agent-header">
+              <span class="agent-name">📎 Microsoft Copilot</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Enterprise & Office Specialist</div>
+            <p class="agent-desc">Enterprise workflow coordination, formatting guidelines, office documentation, and spreadsheet formulas.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #65a30d;">
+            <div class="agent-header">
+              <span class="agent-name">⚡ Nvidia NIM AI</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">GPU Compute & Optimization Advisor</div>
+            <p class="agent-desc">Technical scaling, performance profiling recommendations, API compute efficiency, and math calculations.</p>
+          </div>
+
+          <div class="agent-card" style="border-left-color: #ea580c;">
+            <div class="agent-header">
+              <span class="agent-name">🌍 Mistral Le Chat</span>
+              <span class="agent-status">FREE</span>
+            </div>
+            <div class="agent-role">Multilingual & Open-Weights Specialist</div>
+            <p class="agent-desc">Fluent European multilingual translation, lightweight utility script coding, and cost-effective task delegation.</p>
+          </div>
+        </div>
+
+        <!-- Dynamic Leader Switch Callout -->
+        <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-md); padding: 18px 22px; margin-top: 24px;" id="leader-swap">
+          <h4 style="color: #c084fc; font-size: 15px; margin-bottom: 6px;">👑 Dynamic Master Leader Switching Logic</h4>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+            If any custom agent is registered with <code style="color: #38bdf8; font-family: var(--font-mono);">"is_leader": true</code>, the platform dynamically promotes that model to <code style="color: #38bdf8; font-family: var(--font-mono);">LEAD_AGENT</code>. Google Gemini is automatically placed into <code style="color: #38bdf8; font-family: var(--font-mono);">SPECIALIST_AGENTS</code> (acting as a multimodal evaluator). When the custom leader is deleted or reset, Gemini automatically returns as default Master Orchestrator without data corruption.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 3: Token Manager & 1.019B+ Quota Table -->
+      <section class="doc-section" id="tokens">
+        <span class="section-tag">Token Economics & Quotas</span>
+        <h2 class="section-title">Multi-Model Free Daily Quota Matrix (1.019B+ Tokens)</h2>
+        <p class="section-lead">
+          Real-time tracking of cumulative lifetime consumption ('Till Today') and daily free allowances across all leading AI providers.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Provider & Model</th>
+                <th>Free Daily Quota / Limit</th>
+                <th>Reset Schedule</th>
+                <th>Telemetry & Auto-Routing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/Google%20Gemini%202.0%20Flash-1%2C000%2C000%2C000%20Tokens%2Fday-4285F4?style=flat-square&logo=google&logoColor=white" class="token-badge-img" alt="Gemini" /><br />
+                  <b>Google Gemini 2.0 Flash</b>
+                </td>
+                <td><b class="glow-num">1,000,000,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>Automatic token bucket rate limiting &amp; ledgering</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/DeepSeek--V3-5%2C000%2C000%20Tokens%2Fday-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" class="token-badge-img" alt="DeepSeek" /><br />
+                  <b>DeepSeek-V3 / R1</b>
+                </td>
+                <td><b class="glow-num">5,000,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>SQLite WAL transaction audit trail</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/OpenRouter%20Free-10%2C000%2C000%20Tokens%2Fday-6366F1?style=flat-square&logo=openrouteservice&logoColor=white" class="token-badge-img" alt="OpenRouter" /><br />
+                  <b>OpenRouter Free Tier</b>
+                </td>
+                <td><b class="glow-purple">10,000,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>Model share donut visualization</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/Groq%20Llama--3.3-14%2C400%20RPD%20%7C%20500k-F55036?style=flat-square&logo=fastly&logoColor=white" class="token-badge-img" alt="Groq" /><br />
+                  <b>Groq (Llama-3.3-70B)</b>
+                </td>
+                <td><b class="glow-num">14,400 RPD</b> / <b class="glow-num">500,000</b> <span style="color:#94a3b8;">tokens</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>High-speed burst rate limiter</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/OpenAI%20GPT--4o--mini-2%2C500%2C000%20Tokens-10A37F?style=flat-square&logo=openai&logoColor=white" class="token-badge-img" alt="GPT-4o mini" /><br />
+                  <b>OpenAI GPT-4o-mini</b>
+                </td>
+                <td><b class="glow-emerald">2,500,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>Circuit-breaker failover matrix</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/Anthropic%20Claude%203.5-100%2C000%20Tokens-D97706?style=flat-square&logo=anthropic&logoColor=white" class="token-badge-img" alt="Claude" /><br />
+                  <b>Anthropic Claude 3.5 Sonnet</b>
+                </td>
+                <td><b class="glow-amber">100,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>7-day historical usage trend chart</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/HuggingFace%20Inference-1%2C000%2C000%20Tokens%2Fday-FFD21E?style=flat-square&logo=huggingface&logoColor=black" class="token-badge-img" alt="HuggingFace" /><br />
+                  <b>HuggingFace Inference API</b>
+                </td>
+                <td><b class="glow-amber">1,000,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>Token quota percentage progress bars</td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="https://img.shields.io/badge/Perplexity%20Sonar-500%2C000%20Tokens%2Fday-20B2AA?style=flat-square&logo=perplexity&logoColor=white" class="token-badge-img" alt="Perplexity" /><br />
+                  <b>Perplexity Sonar Web Search</b>
+                </td>
+                <td><b class="glow-emerald">500,000</b> <span style="color:#94a3b8;">tokens / day</span></td>
+                <td><span class="glow-amber">00:00 UTC</span></td>
+                <td>Live search verification token tracker</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 4: Senior Engineering Skills (Addy Osmani - All 24 Skills) -->
+      <section class="doc-section" id="skills">
+        <span class="section-tag">Engineering Quality</span>
+        <h2 class="section-title">24 Addy Osmani Senior Engineering Skills (Full Inventory)</h2>
+        <p class="section-lead">
+          Integrated directly from <code style="color: #38bdf8; font-family: var(--font-mono);">https://github.com/addyosmani/agent-skills.git</code> and dynamically injected into agent execution prompts based on their assigned task roles.
+        </p>
+
+        <div class="skills-grid">
+          <div class="skill-card"><div class="skill-name">📐 Spec-Driven Development</div><div class="skill-desc">Formalized technical specifications, acceptance criteria, and architecture blueprints before coding.</div></div>
+          <div class="skill-card"><div class="skill-name">🧪 Test-Driven Development (TDD)</div><div class="skill-desc">Red-Green-Refactor testing cycle with unit tests, mocking, and coverage boundary enforcement.</div></div>
+          <div class="skill-card"><div class="skill-name">🏛️ Architectural Review</div><div class="skill-desc">System boundary auditing, coupling reduction, SOLID principles, and clean dependency inversion.</div></div>
+          <div class="skill-card"><div class="skill-name">✨ Code Simplification</div><div class="skill-desc">Removal of dead code, cognitive complexity reduction, and zero-redundancy refactoring.</div></div>
+          <div class="skill-card"><div class="skill-name">🛡️ Security & Zero-Trust Audit</div><div class="skill-desc">Command sanitization, credential leak protection, SQL injection prevention, and XSS filtering.</div></div>
+          <div class="skill-card"><div class="skill-name">♿ Accessibility (A11y) Compliance</div><div class="skill-desc">WCAG 2.1 AAA compliance, ARIA attributes, semantic HTML elements, and keyboard navigation.</div></div>
+          <div class="skill-card"><div class="skill-name">🏎️ Web Vitals Optimization</div><div class="skill-desc">Sub-second First Contentful Paint (FCP), Cumulative Layout Shift (CLS), and DOM tree optimization.</div></div>
+          <div class="skill-card"><div class="skill-name">🔄 Defensive Error Handling</div><div class="skill-desc">Graceful fallback chains, retry backoffs, circuit breakers, and unhandled exception interception.</div></div>
+          <div class="skill-card"><div class="skill-name">📦 Modular Package Design</div><div class="skill-desc">High-cohesion library structuring, clear public APIs, and isolated internal private utilities.</div></div>
+          <div class="skill-card"><div class="skill-name">⚡ Async Concurrency Profiling</div><div class="skill-desc">Thread-safe queue dispatching, lock contention elimination, and non-blocking event loops.</div></div>
+          <div class="skill-card"><div class="skill-name">🗄️ Database Normalization & WAL</div><div class="skill-desc">Atomic ACID transactions, Write-Ahead Logging (WAL) concurrency, and indexing strategies.</div></div>
+          <div class="skill-card"><div class="skill-name">🎨 Design System Tokens</div><div class="skill-desc">Consistent HSL color palettes, typography scales, glassmorphism tokens, and micro-animations.</div></div>
+          <div class="skill-card"><div class="skill-name">🔍 Prompt Engineering Optimization</div><div class="skill-desc">Few-shot priming, chain-of-thought grounding, repetition penalties, and structured JSON output.</div></div>
+          <div class="skill-card"><div class="skill-name">🌐 API Contract Verification</div><div class="skill-desc">Schema validation with Pydantic/Zod, status code consistency, and idempotent endpoint design.</div></div>
+          <div class="skill-card"><div class="skill-name">🧹 Dead Code Elimination</div><div class="skill-desc">Automated unused import pruning, obsolete branch deletion, and tree-shaking optimizations.</div></div>
+          <div class="skill-card"><div class="skill-name">📊 Telemetry & Observability</div><div class="skill-desc">Live throughput meters, error frequency counters, latency distributions, and trace correlation.</div></div>
+          <div class="skill-card"><div class="skill-name">🐳 Containerization & CI/CD</div><div class="skill-desc">Multi-stage Docker builds, layer caching, minimal attack surface images, and CI automation.</div></div>
+          <div class="skill-card"><div class="skill-name">📝 Documentation & Docstrings</div><div class="skill-desc">Living documentation, accurate docstrings, Mermaid workflow graphs, and developer guides.</div></div>
+          <div class="skill-card"><div class="skill-name">🔒 Credential & Secret Scrubbing</div><div class="skill-desc">Automated API token redaction, regex credential scanning, and environment isolation.</div></div>
+          <div class="skill-card"><div class="skill-name">🧩 Plugin & MCP Extensibility</div><div class="skill-desc">Standardized tool registration protocols, dynamic schema reflection, and sandbox execution.</div></div>
+          <div class="skill-card"><div class="skill-name">💻 Desktop OS Integration</div><div class="skill-desc">Native Win32 window snapping, DPI scaling, multi-monitor geometry, and tray notifications.</div></div>
+          <div class="skill-card"><div class="skill-name">🎙️ Real-Time Audio Streaming</div><div class="skill-desc">Low-latency PCM chunking, WebSocket duplex bridges, and voice command dispatching.</div></div>
+          <div class="skill-card"><div class="skill-name">🌐 Headless Browser Automation</div><div class="skill-desc">Chrome DevTools Protocol (CDP) DOM interaction, cookie session reuse, and viewport snapshots.</div></div>
+          <div class="skill-card"><div class="skill-name">🔁 Self-Healing Execution Loops</div><div class="skill-desc">Automated reflection on error outputs, syntax auto-repair, and fallback model routing.</div></div>
+        </div>
+      </section>
+
+      <!-- Section 5: Voice Bridge & Hardware Control -->
+      <section class="doc-section" id="voice">
+        <span class="section-tag">Voice & System Control</span>
+        <h2 class="section-title">🎙️ Gemini Live Voice Bridge & Native System Launcher</h2>
+        <p class="section-lead">
+          Real-time duplex voice streaming bridge powered by Google Gemini 2.0 Live WebSocket protocol and low-latency system application launching.
+        </p>
+
+        <div class="arch-tiers">
+          <div class="tier-card">
+            <div class="tier-badge">🎙️ Voice Daemon Server</div>
+            <div class="tier-content">
+              <h4>FastAPI ASGI & WebSocket Streaming (`voice/voice_daemon.py`)</h4>
+              <p>Runs as a lightweight background daemon on port 8000 handling duplex audio input/output via <code>sounddevice</code> and <code>numpy</code> with seamless Gemini 2.0 Live API synchronization.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">⚡ Native App Launcher</div>
+            <div class="tier-content">
+              <h4>Zero-Latency Windows System Utility Dispatcher</h4>
+              <p>Directly launches native desktop utilities without triggering search fallbacks: <code>notepad</code>, <code>taskmgr</code> (Task Manager), <code>calc</code> (Calculator), <code>code</code> (VS Code), <code>explorer</code> (File Explorer), and <code>settings</code>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: FancyZones Tiling Engine -->
+      <section class="doc-section" id="fancyzones">
+        <span class="section-tag">Desktop Window Management</span>
+        <h2 class="section-title">📐 Microsoft PowerToys FancyZones 3-Column Tiling Engine</h2>
+        <p class="section-lead">
+          Automated zero-overlap desktop tiling architecture powered by Win32 native APIs and Chrome CDP viewport synchronization.
+        </p>
+
+        <div class="arch-tiers">
+          <div class="tier-card">
+            <div class="tier-badge">📐 DPI & WorkArea Geometry</div>
+            <div class="tier-content">
+              <h4>Physical Screen Coordinate Resolution (`system/fancyzones_manager.py`)</h4>
+              <p>Queries physical desktop workarea via <code>SystemParametersInfoW(SPI_GETWORKAREA)</code>, dynamically extracting 3 equal zero-overlap columns with 16px margins regardless of Windows display scaling.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">🔄 Dual-Layer Snapping</div>
+            <div class="tier-content">
+              <h4>Win32 SetWindowPos + Playwright CDP Window Synchronization</h4>
+              <p>Simultaneously snaps the PySide6 Mission Control console to Zone 1, VS Code Studio to Zone 2, and the Playwright Chrome browser to Zone 3 via <code>Browser.setWindowBounds</code> on port 9222.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: Autonomous GitHub Issue & Crash Dispatcher -->
+      <section class="doc-section" id="crash-reporter">
+        <span class="section-tag">Diagnostics & Telemetry</span>
+        <h2 class="section-title">🐙 Autonomous GitHub Issue & Crash Dispatcher</h2>
+        <p class="section-lead">
+          Intelligent exception interception engine connected directly to <code style="color: #38bdf8; font-family: var(--font-mono);">https://github.com/MaxMasAI/agentic-web/issues</code>.
+        </p>
+
+        <div class="arch-tiers">
+          <div class="tier-card">
+            <div class="tier-badge">🛡️ Secret & Token Sanitizer</div>
+            <div class="tier-content">
+              <h4>Regex Credential Redaction Barrier</h4>
+              <p>Scans stack traces and exception context, scrubbing all sensitive API keys (Google API keys, OpenAI keys, DeepSeek tokens, Bearer headers, passwords) before any network transmission.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">🔍 Traceback Fingerprinting</div>
+            <div class="tier-content">
+              <h4>SHA-256 Crash Deduplication Engine</h4>
+              <p>Computes normalized stack trace hash digests to check if an issue is already open on GitHub, automatically appending a recurrence timeline comment instead of creating duplicate issues.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 8: Keyboard Shortcuts & Cheatsheet -->
+      <section class="doc-section" id="shortcuts">
+        <span class="section-tag">Productivity</span>
+        <h2 class="section-title">⌨️ Complete Keyboard Shortcuts Cheatsheet</h2>
+        <p class="section-lead">Master desktop navigation across Agentic Web with zero mouse movement:</p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Shortcut</th>
+                <th>Destination / Action</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + M</kbd></td><td><b>🛰️ Mission Control</b></td><td>Jump to central telemetry metrics, leader status, and quick dispatcher.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + D</kbd></td><td><b>🚀 Task Dispatch</b></td><td>Open task execution console, latency sliders, and live terminal logs.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + C</kbd></td><td><b>🌌 Infinite Canvas IDE</b></td><td>Open 2D DAG graph workspace with Terminal, Agent, and Diff nodes.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + T</kbd></td><td><b>💎 Token Manager</b></td><td>Inspect 1.019B+ daily free tokens, 7-day trend charts, and quota countdowns.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + S</kbd></td><td><b>🤖 Agent Squads</b></td><td>Configure autonomous AI squads, presets, and repeated pattern auto-learner.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + V</kbd></td><td><b>💻 Monaco VS Code Studio</b></td><td>Full-featured Monaco code editor with split-screen HTML/CSS/JS live preview.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + H</kbd></td><td><b>🔌 MCP Service Hub</b></td><td>Test MCP tools live, inspect 9-field schemas, and view server registry.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + N</kbd></td><td><b>🧠 Neural Memory Vault</b></td><td>Search cross-mission context, rate importance, and export to RULES.md.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#38bdf8;font-family:var(--font-mono);font-weight:700;">Alt + O</kbd></td><td><b>⚙️ Settings & Agents</b></td><td>Manage custom agent schemas, PowerToys layout, and sandbox modes.</td></tr>
+              <tr><td><kbd style="background:#1e293b;padding:3px 8px;border-radius:4px;color:#34d399;font-family:var(--font-mono);font-weight:700;">Ctrl + S</kbd></td><td><b>⚡ Save & Auto-Reload</b></td><td>Saves code and triggers intelligent debounce restart via <code>dev.py</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 9: Infinite Canvas IDE -->
+      <section class="doc-section" id="canvas">
+        <span class="section-tag">Visual Workflow IDE</span>
+        <h2 class="section-title">Autonomous Infinite Canvas IDE (DAG Architecture)</h2>
+        <p class="section-lead">
+          An interactive 2D infinite workspace for designing, orchestrating, and observing autonomous multi-agent pipelines through connected DAG graph nodes.
+        </p>
+
+        <div class="arch-tiers">
+          <div class="tier-card">
+            <div class="tier-badge">🖥️ Terminal CLI Node</div>
+            <div class="tier-content">
+              <h4>Live Shell Execution Node</h4>
+              <p>Embedded command-line node executing build tools, git operations, and test suites with live stdout streaming, ANSI colors, and exit code indicators.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">🤖 Agent Worker Node</div>
+            <div class="tier-content">
+              <h4>Autonomous Reasoning Worker</h4>
+              <p>LLM worker node displaying prompt objectives, dynamic status badges (`IDLE`, `PLANNING`, `EXECUTING`, `ERROR`), and step-by-step tool calls.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">📄 File Diff Node</div>
+            <div class="tier-content">
+              <h4>Git-Style Unified Diff Viewer</h4>
+              <p>Side-by-side and unified diff viewer highlighting additions in green (`+`) and deletions in red (`-`) with 1-click file saving triggers.</p>
+            </div>
+          </div>
+
+          <div class="tier-card">
+            <div class="tier-badge">⚡ Context Wires</div>
+            <div class="tier-content">
+              <h4>Directed Bézier Data Bridges</h4>
+              <p>Visual context pipelines connecting terminal stream buffers, memory context, and diff emitters seamlessly across agents.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 10: Custom Agent Registration Schema & API Reference -->
+      <section class="doc-section" id="api">
+        <span class="section-tag">Developer Reference</span>
+        <h2 class="section-title">Custom Agent Schema & API Specification</h2>
+        <p class="section-lead">
+          Register new custom AI models directly via Settings or by providing JSON, Python dictionary, or key-value text in the GUI.
+        </p>
+
+        <div class="schema-tester">
+          <h4 style="color: #38bdf8; font-size: 14px; margin-bottom: 10px;">🧪 Interactive Schema Live Validator:</h4>
+          <textarea class="schema-editor" id="schemaInput" onkeyup="validateLiveSchema()">{
+  "id": "qwen_coder",
+  "name": "Qwen 2.5 Coder",
+  "role": "Polyglot Software Architect & Senior Engineer",
+  "specialization": "Full-stack code generation, refactoring, algorithms, and test automation.",
+  "official_url": "https://chat.qwenlm.ai",
+  "is_leader": false,
+  "routing_tag": "[SEND_TO: qwen_coder]"
+}</textarea>
+          <div class="schema-feedback" id="schemaFeedback">✅ Schema is valid and ready for registration.</div>
+        </div>
+      </section>
+
+      <!-- Section 11: Quick Start & Deployment Hub -->
+      <section class="doc-section" id="quickstart">
+        <span class="section-tag">Deployment & Installation</span>
+        <h2 class="section-title">Quick Start & Launch Guide</h2>
+        <p class="section-lead">
+          Choose your preferred environment to launch Agentic Web in under 60 seconds:
+        </p>
+
+        <div class="code-tabs-wrapper">
+          <div class="code-tab-header">
+            <button class="code-tab-btn active" onclick="switchCodeTab('tab-win')">Windows (1-Click)</button>
+            <button class="code-tab-btn" onclick="switchCodeTab('tab-dev')">Live Auto-Reload (dev.bat)</button>
+            <button class="code-tab-btn" onclick="switchCodeTab('tab-unix')">macOS / Linux</button>
+            <button class="code-tab-btn" onclick="switchCodeTab('tab-docker')">Docker Compose</button>
+            <button class="code-tab-btn" onclick="switchCodeTab('tab-exe')">Standalone EXE</button>
+          </div>
+
+          <div class="code-content" id="tabCodeArea">
+            <button class="btn-copy" onclick="copySnippet()">📋 Copy</button>
+            <pre><code id="codeBlock"># Clone and run on Windows:
+git clone https://github.com/MaxMasAI/agentic-web.git
+cd agentic-web
+
+# Automatic 1-Click Environment Setup:
+install.bat
+
+# Launch Full Suite (Voice Server + PySide6 Desktop GUI):
+run.bat</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 12: Troubleshooting Matrix -->
+      <section class="doc-section" id="troubleshooting">
+        <span class="section-tag">Diagnostics</span>
+        <h2 class="section-title">Troubleshooting & Diagnostics Matrix</h2>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Symptom / Issue</th>
+                <th>Root Cause</th>
+                <th>Recommended Resolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>App window is blank / white screen</b></td>
+                <td>Dev server or UI thread initialization delay</td>
+                <td>Run with <code style="color:#38bdf8;">run.bat</code> or <code style="color:#38bdf8;">python app.py</code>. Verify PySide6 is installed in <code style="color:#38bdf8;">.venv</code>.</td>
+              </tr>
+              <tr>
+                <td><b>Agent shows BUSY indefinitely</b></td>
+                <td>Network timeout or unhandled exception during browser automation</td>
+                <td>Open <b>Inspector Drawer</b> on the agent card in Mission Control and click <b>Force Reset State to FREE</b>.</td>
+              </tr>
+              <tr>
+                <td><b>Local endpoint connection refused</b></td>
+                <td>Ollama / vLLM / LM Studio service is not running</td>
+                <td>Verify local daemon is running (<code style="color:#38bdf8;">curl http://localhost:11434/api/tags</code>).</td>
+              </tr>
+              <tr>
+                <td><b>Chrome CDP port 9222 connection retry</b></td>
+                <td>Remote debugging port 9222 waiting to spin up</td>
+                <td>The app automatically launches Chrome with <code style="color:#38bdf8;">--remote-debugging-port=9222</code> and retries connection automatically.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+      <div class="footer-links">
+        <a href="https://github.com/MaxMasAI/agentic-web" target="_blank">GitHub Repository</a>
+        <a href="https://github.com/MaxMasAI/agentic-web/issues" target="_blank">Issues & Bug Reports</a>
+        <a href="DOCUMENTATION.md">Architecture Manual</a>
+        <a href="CONTRIBUTING.md">Contribution Guidelines</a>
+        <a href="RULES.md">Agent Rules & Conventions</a>
+      </div>
+      <p>
+        ⚡ <b>Agentic Web</b> &mdash; Built with pride by <b>MaxMasAI</b> &bull; Founder &amp; Creator: <b>Sahil Kumar Dhala</b>
+      </p>
+      <p style="margin-top: 6px;">
+        Released under the open-source <a href="LICENSE" style="color: #38bdf8; text-decoration: none;">MIT License</a>.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Fullscreen Screen Viewer Lightbox Modal -->
+  <div class="lightbox-modal" id="imageModal" onclick="handleModalBackdropClick(event)">
+    <div class="lightbox-content-box">
+      <div class="lightbox-header">
+        <div class="lightbox-title">
+          <span>🖼️ Screen View:</span>
+          <span id="lightboxTitleText" style="color: #f8fafc;">Screen Title</span>
+          <span id="lightboxTagText" style="font-size: 11px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">#01</span>
+        </div>
+        <button class="lightbox-close-btn" onclick="closeLightbox()" title="Close Screen View (Esc)">✖</button>
+      </div>
+      <div class="lightbox-body">
+        <button class="lightbox-nav-btn lightbox-prev-btn" onclick="navLightbox(-1)" title="Previous Screen (Left Arrow)">◀</button>
+        <img id="lightboxImage" class="lightbox-image" src="" alt="Screen Preview" />
+        <button class="lightbox-nav-btn lightbox-next-btn" onclick="navLightbox(1)" title="Next Screen (Right Arrow)">▶</button>
+      </div>
+      <div class="lightbox-footer">
+        <span id="lightboxDescText">Detailed screen description</span>
+        <span id="lightboxCounterText" style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">1 / 24</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    const CODE_SNIPPETS = {
+      'tab-win': `# Clone and run on Windows:\ngit clone https://github.com/MaxMasAI/agentic-web.git\ncd agentic-web\n\n# Automatic 1-Click Setup:\ninstall.bat\n\n# Launch Full Suite (Voice Server + Desktop GUI):\nrun.bat`,
+      'tab-dev': `# ⚡ Live Auto-Reload Dev Engine (Restarts on Ctrl+S):\ndev.bat\n\n# Or launch with custom debounce settling delay:\npython dev.py --delay 1.5`,
+      'tab-unix': `# Clone and run on macOS / Linux:\ngit clone https://github.com/MaxMasAI/agentic-web.git\ncd agentic-web\n\n# Create isolated virtual environment:\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt\n\n# Launch Desktop GUI:\npython3 app.py`,
+      'tab-docker': `# Run containerized execution sandbox via Docker:\ndocker compose up --build`,
+      'tab-exe': `# Build single-file standalone Windows .exe without Python dependencies:\npython STD_EXE.py\n\n# Binary output saved to:\n# dist/agentic-web/agentic-web.exe`
+    };
+
+    function switchCodeTab(tabKey) {
+      document.querySelectorAll('.code-tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('codeBlock').innerText = CODE_SNIPPETS[tabKey];
+    }
+
+    function copySnippet() {
+      const code = document.getElementById('codeBlock').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.btn-copy');
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => { btn.innerText = '📋 Copy'; }, 2000);
+      });
+    }
+
+    function validateLiveSchema() {
+      const val = document.getElementById('schemaInput').value.trim();
+      const feedback = document.getElementById('schemaFeedback');
+      try {
+        const parsed = JSON.parse(val);
+        if (!parsed.id || !parsed.name || !parsed.role) {
+          feedback.innerText = "⚠️ Missing required fields: 'id', 'name', or 'role'.";
+          feedback.style.color = "#fbbf24";
+        } else {
+          feedback.innerText = `✅ Valid Schema: ${parsed.name} (${parsed.id}) · ${parsed.is_leader ? '👑 Master Leader' : '🤖 Specialist'}`;
+          feedback.style.color = "#34d399";
+        }
+      } catch (e) {
+        feedback.innerText = "❌ JSON Syntax Error: " + e.message;
+        feedback.style.color = "#ef4444";
+      }
+    }
+
+    /* ── Gallery & Lightbox Screen Viewer Logic ── */
+    const GALLERY_ITEMS = [
+      { src: 'images/000_web_agent.gif', title: 'Live Web Agent Execution', tag: '#000 Live Demo', desc: 'Real-time animated Chrome DevTools Protocol (CDP) autonomous browser task automation stream.' },
+      { src: 'images/000_web_agent.png', title: 'Autonomous Web Agent HUD', tag: '#000 Web Agent', desc: 'Browser automation HUD overlay with synchronized live agent cursors and step execution.' },
+      { src: 'images/00_Agentic_Web_Full_Overview.png', title: 'Full Platform Overview', tag: '#00 Overview', desc: 'Unified multi-agent operating interface with active leader telemetry and system status.' },
+      { src: 'images/01_Mission_Control_Dashboard.png', title: 'Mission Control Dashboard', tag: '#01 Mission Control', desc: 'Real-time AI squad orchestration, agent state grid, and parallel task execution monitoring.' },
+      { src: 'images/02_Task_Dispatch_Console.png', title: 'Task Dispatch Console', tag: '#02 Task Dispatch', desc: 'Prompt input, agent assignment, automated task routing, and asynchronous worker execution.' },
+      { src: 'images/03_Multi_Agent_Squads.png', title: 'Multi-Agent Squad Matrix', tag: '#03 Squads', desc: 'Parallel specialist agent assignment with role definitions and real-time activity indicators.' },
+      { src: 'images/04_Mission_History_Archives.png', title: 'Mission History Archives', tag: '#04 Archives', desc: 'Persisted execution logs, prompt-response history, and token usage audit trails in SQLite WAL.' },
+      { src: 'images/05_Multi_Model_AI_Chat.png', title: 'Multi-Model AI Chat', tag: '#05 Chat', desc: 'Synchronized conversational workspace allowing side-by-side model query benchmarking.' },
+      { src: 'images/06_Document_Knowledge_Chat.png', title: 'Document Knowledge Chat', tag: '#06 Knowledge', desc: 'Vector semantic document retrieval and localized context-augmented generation.' },
+      { src: 'images/07_Deep_Research_Studio.png', title: 'Deep Research Studio', tag: '#07 Research', desc: 'Autonomous recursive web search, source citation verification, and report synthesis studio.' },
+      { src: 'images/08_Media_Studio.png', title: 'Media & Asset Studio', tag: '#08 Media', desc: 'Visual asset generation, image synthesis, and multi-modal creative workspace.' },
+      { src: 'images/09_Inbuilt_VS_Code_Monaco_Studio.png', title: 'Inbuilt Monaco Studio', tag: '#09 Monaco IDE', desc: 'Native VS Code Monaco editor with syntax highlighting, IntelliSense, and live preview rendering.' },
+      { src: 'images/10_Infinite_Agent_Canvas_IDE.png', title: 'Infinite Agent Canvas IDE', tag: '#10 Canvas DAG', desc: 'Visual node graph canvas with custom wires, dependency routing, and parallel task DAGs.' },
+      { src: 'images/11_Agent_Playground_Arena.png', title: 'Agent Playground Arena', tag: '#11 Playground', desc: 'Interactive testing arena for prompt engineering, schema verification, and latency benchmarks.' },
+      { src: 'images/12_Custom_Agent_Builder.png', title: 'Custom Agent Builder', tag: '#12 Builder', desc: 'Modal dialog for custom models, Ollama endpoints, and Master Leader promotion.' },
+      { src: 'images/13_AI_Painter_Studio.png', title: 'AI Painter Studio', tag: '#13 Painter', desc: 'Canvas sketching and generative AI artwork synthesis environment.' },
+      { src: 'images/14_Scratchpad_Notepad.png', title: 'Scratchpad Notepad', tag: '#14 Scratchpad', desc: 'Persistent floating note-taking drawer and live scratch text editor.' },
+      { src: 'images/15_Automated_Job_Scheduler.png', title: 'Automated Job Scheduler', tag: '#15 Scheduler', desc: 'Background cron task manager and recurring multi-agent workflow automation.' },
+      { src: 'images/16_MCP_Server_Hub.png', title: 'MCP Server Hub', tag: '#16 MCP Tools', desc: 'Model Context Protocol tool registry with Senior Engineering Addy Osmani skills.' },
+      { src: 'images/17_Semantic_Neural_Memory.png', title: 'Semantic Neural Memory', tag: '#17 Vector Memory', desc: 'Long-term memory store with sqlite-vec embeddings and session recall.' },
+      { src: 'images/18_Project_File_Explorer.png', title: 'Project File Explorer', tag: '#18 Explorer', desc: 'Workspace directory tree navigation, code inspection, and file editing.' },
+      { src: 'images/19_System_Settings.png', title: 'System Settings & Keys', tag: '#19 Settings', desc: 'API key configuration, model endpoint management, and UI theme preferences.' },
+      { src: 'images/20_Multi_Agent_Browser_HUD_Controls.png', title: 'Browser HUD Controls', tag: '#20 Browser HUD', desc: 'Live in-browser CDP control overlay with agent cursor tracking and action chips.' },
+      { src: 'images/21_Live_Agent_Pool_Browser_Monitor.png', title: 'Agent Pool Browser Monitor', tag: '#21 Pool Monitor', desc: 'Visual worker pool monitoring with live Chrome CDP remote debugging on port 9222.' },
+      { src: 'images/22_Browser_Automation_Control_Center.png', title: 'Browser Automation Center', tag: '#22 Automation', desc: 'Playwright headless/headful automation dashboard with DOM tree inspector.' },
+      { src: 'images/23_web_agent.png', title: 'Multi-Agent Web Operations HUD', tag: '#23 Web Agent', desc: 'Multi-agent browser automation console with real-time DOM element targeting and task tracing.' },
+      { src: 'images/24_tokens.png', title: 'Token Telemetry & Analytics', tag: '#24 1B+ Tokens', desc: 'Real-time token manager with 1.019B+ daily pool tracker and rate limiter dashboard.' }
+    ];
+
+    let currentLightboxIndex = 0;
+
+    function openLightbox(index) {
+      currentLightboxIndex = index;
+      const item = GALLERY_ITEMS[index];
+      if (!item) return;
+      const modal = document.getElementById('imageModal');
+      const img = document.getElementById('lightboxImage');
+      img.src = item.src;
+      document.getElementById('lightboxTitleText').innerText = item.title;
+      document.getElementById('lightboxTagText').innerText = item.tag;
+      document.getElementById('lightboxDescText').innerText = item.desc;
+      document.getElementById('lightboxCounterText').innerText = `${index + 1} / ${GALLERY_ITEMS.length}`;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      const modal = document.getElementById('imageModal');
+      if (modal) modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function navLightbox(direction) {
+      currentLightboxIndex = (currentLightboxIndex + direction + GALLERY_ITEMS.length) % GALLERY_ITEMS.length;
+      openLightbox(currentLightboxIndex);
+    }
+
+    function handleModalBackdropClick(e) {
+      if (e.target.id === 'imageModal') {
+        closeLightbox();
+      }
+    }
+
+    function filterGallery(category, btn) {
+      document.querySelectorAll('.gallery-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.querySelectorAll('.gallery-card').forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    /* ── Auto-Hide Sidebar Helpers ── */
+    function closeSidebarOnNav() {
+      const sb = document.getElementById('sidebar');
+      if (sb) {
+        sb.classList.remove('is-open');
+        if (document.activeElement) document.activeElement.blur();
+      }
+    }
+
+    function toggleSidebarPin() {
+      const sb = document.getElementById('sidebar');
+      if (sb) sb.classList.toggle('is-open');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('docSearch');
+      input.value = '';
+      document.getElementById('searchClearBtn').style.display = 'none';
+      filterDocs();
+    }
+
+    function filterDocs() {
+      const input = document.getElementById('docSearch');
+      const q = input.value.toLowerCase().trim();
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+      // If user is searching, expand sidebar so results are clearly visible
+      const sb = document.getElementById('sidebar');
+      if (sb && q) sb.classList.add('is-open');
+
+      // Filter main document sections & cards
+      document.querySelectorAll('.doc-section, .agent-card, .skill-card, .tier-card, .gallery-card').forEach(el => {
+        const txt = el.innerText.toLowerCase();
+        el.style.display = txt.includes(q) ? '' : 'none';
+      });
+
+      // Filter sidebar TOC links
+      document.querySelectorAll('.toc-links li').forEach(li => {
+        const txt = li.innerText.toLowerCase();
+        li.style.display = txt.includes(q) ? '' : 'none';
+      });
+    }
+
+    // Keyboard shortcuts: Lightbox navigation (Arrows, Esc), Search focus (Ctrl+K, '/')
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('imageModal');
+      const isModalActive = modal && modal.classList.contains('active');
+
+      if (isModalActive) {
+        if (e.key === 'Escape') {
+          closeLightbox();
+        } else if (e.key === 'ArrowLeft') {
+          navLightbox(-1);
+        } else if (e.key === 'ArrowRight') {
+          navLightbox(1);
+        }
+        return;
+      }
+
+      if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+        e.preventDefault();
+        const searchInput = document.getElementById('docSearch');
+        if (searchInput) searchInput.focus();
+      } else if (e.key === 'Escape') {
+        const searchInput = document.getElementById('docSearch');
+        if (document.activeElement === searchInput) {
+          if (searchInput.value) {
+            clearSearch();
+          } else {
+            searchInput.blur();
+          }
+        }
+      }
+    });
+
+    // Dynamic Terminal Feed Simulation
+    const feed = [
+      '<span class="t-meta">🌐 [Specialist] Meta AI:</span> Analyzing engagement metrics and viral keywords...',
+      '<span class="t-perplexity">🔍 [Specialist] Perplexity AI:</span> Verified real-time API latency benchmarks across 4 clouds.',
+      '<span class="t-nvidia">⚡ [Specialist] Nvidia NIM:</span> GPU tensor compute speed benchmarked at 142 tok/s.',
+      '<span class="t-leader">👑 [Master Leader] Gemini 2.0:</span> Quality audit passed. Aggregating final deployment package.'
+    ];
+
+    let feedIndex = 0;
+    setInterval(() => {
+      if (feedIndex < feed.length) {
+        const div = document.createElement('div');
+        div.innerHTML = `<span class="t-dim">[${new Date().toTimeString().split(' ')[0]}]</span> ${feed[feedIndex]}`;
+        const terminal = document.getElementById('liveTerminal');
+        if (terminal) {
+          terminal.appendChild(div);
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+        feedIndex++;
+      }
+    }, 3500);
+
+    /* ── Live Autonomous Multi-Agent Moving Cursors Engine ── */
+    const ACTIVE_AGENT_CURSORS = [
+      {
+        id: 'gemini',
+        name: '👑 Google Gemini 2.0',
+        role: 'Master Leader',
+        color: '#8b5cf6',
+        gradient: 'linear-gradient(135deg, #7c3aed, #4c1d95)',
+        dotColor: '#c084fc',
+        actions: ['👑 Master Squad Leader', '⚡ Dispatching Subtasks', '✨ Reviewing Quality', '🎯 Architecture Planning', '🛡️ Validating Spec'],
+        currentX: 180,
+        currentY: 340,
+        targetX: 180,
+        targetY: 340,
+        speed: 0.038
+      },
+      {
+        id: 'deepseek',
+        name: '🔬 DeepSeek-V3 / R1',
+        role: 'Reasoning Specialist',
+        color: '#2563eb',
+        gradient: 'linear-gradient(135deg, #2563eb, #1e3a8a)',
+        dotColor: '#60a5fa',
+        actions: ['🔬 Deep Reasoning', '🧪 Writing Unit Tests', '📐 Synthesizing CSS Grid', '⚡ Optimizing Latency', '🧠 Logic Decomposition'],
+        currentX: 450,
+        currentY: 420,
+        targetX: 450,
+        targetY: 420,
+        speed: 0.044
+      },
+      {
+        id: 'claude',
+        name: '🎭 Claude 3.5 Sonnet',
+        role: 'Security & Editorial',
+        color: '#d97706',
+        gradient: 'linear-gradient(135deg, #d97706, #78350f)',
+        dotColor: '#fbbf24',
+        actions: ['🛡️ Security Audit 0-Day', '🎭 Editorial Refinement', '♿ A11y Compliance', '🧹 Code Simplification', '📦 Modular Design Review'],
+        currentX: 720,
+        currentY: 600,
+        targetX: 720,
+        targetY: 600,
+        speed: 0.04
+      },
+      {
+        id: 'chatgpt',
+        name: '✍️ ChatGPT-4o',
+        role: 'Documentation & Copy',
+        color: '#059669',
+        gradient: 'linear-gradient(135deg, #059669, #064e3b)',
+        dotColor: '#34d399',
+        actions: ['✍️ Drafting Release Notes', '📄 Packaging Deliverables', '📊 Formatting Markdown', '🎨 Style Consistency', '🌐 API Documentation'],
+        currentX: 300,
+        currentY: 850,
+        targetX: 300,
+        targetY: 850,
+        speed: 0.042
+      },
+      {
+        id: 'web_agent',
+        name: '🖥️ Web-Agent (CDP)',
+        role: 'Browser Automation',
+        color: '#06b6d4',
+        gradient: 'linear-gradient(135deg, #06b6d4, #164e63)',
+        dotColor: '#22d3ee',
+        actions: ['🖥️ Chrome CDP Port 9222', '🖱️ Inspecting DOM Tree', '📸 Capturing Viewport', '⚡ Executing Playwright', '🔍 Target Element #000'],
+        currentX: 850,
+        currentY: 350,
+        targetX: 850,
+        targetY: 350,
+        speed: 0.048
+      },
+      {
+        id: 'groq',
+        name: '⚡ Groq Llama-3.3',
+        role: 'Ultra-Fast Inference',
+        color: '#e11d48',
+        gradient: 'linear-gradient(135deg, #e11d48, #881337)',
+        dotColor: '#fb7185',
+        actions: ['⚡ 142 tok/s Inference', '⏱️ Zero Latency Buffer', '🚀 Streaming Response', '📊 Rate Limit Token Check', '🔥 High-Throughput Batch'],
+        currentX: 520,
+        currentY: 920,
+        targetX: 520,
+        targetY: 920,
+        speed: 0.052
+      }
+    ];
+
+    let cursorsEnabled = true;
+    const cursorElements = [];
+
+    const LANDMARK_ACTIONS = {
+      '#hero': ['👑 Telemetry Stream', '⚡ 1.019B Daily Pool', '🚀 Orchestrating AI Squad', '✨ Live Mission Dispatch'],
+      '#kpi': ['📊 1.019B+ Token Audit', '⏱️ 00:00 UTC Reset Check', '📈 10+ Models Synchronized', '🎯 Senior Skills: 24'],
+      '#architecture': ['🏗️ 5-Tier Architecture', '🛡️ Tier-3 Sandbox Inspection', '💾 SQLite WAL Store', '🔒 OS Security Guard'],
+      '#screens': ['🖼️ Reviewing Screen #000 GIF', '🔍 Zooming Monaco IDE #09', '🎨 Inspecting Canvas DAG #10', '⚡ Browser HUD #20'],
+      '#models': ['👑 Dynamic Leader Swap', '🔬 DeepSeek-V3 Reasoning', '🎭 Claude Security Audit', '⚡ Groq 142 tok/s'],
+      '#tokens': ['📊 Auditing 1,019,100,000 Quota', '⏱️ Syncing UTC 00:00 Reset', '🛡️ Checking Rate Limiter', '💳 Free Daily Quota Matrix'],
+      '#skills': ['🛠️ Executing Addy Osmani Skill', '📜 MCP 9-Field Schema', '🧹 Clean Architecture Audit', '⚡ Refactoring Performance'],
+      '#voice': ['🎙️ Streaming Gemini 2.0 Voice', '🔊 WebSocket Bridge 8000', '⚡ Sub-100ms Voice Telemetry', '🎤 Audio In/Out Sync'],
+      '#fancyzones': ['📐 Tiling Window Layout', '🪟 Docking PySide6 Canvas', '🖥️ Multi-Monitor Snapping', '📐 4-Zone Matrix'],
+      '#canvas': ['🎨 Connecting DAG Node', '⚡ Live Monaco Syntax Check', '📦 Persisting Node State', '🔗 Edge Dependency Link'],
+      '#quickstart': ['🚀 Validating pip install -e .', '⚙️ Verifying PySide6 UI', '✨ Running agentic-web', '📋 Testing Setup Spec']
+    };
+
+    function initAgentCursors() {
+      let container = document.getElementById('agentCursorsContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'agentCursorsContainer';
+        document.body.appendChild(container);
+      }
+
+      // Floating Toggle Pill
+      const toggleBtn = document.createElement('div');
+      toggleBtn.className = 'cursor-toggle-float';
+      toggleBtn.id = 'cursorToggleBtn';
+      toggleBtn.innerHTML = `<span class="pulse-dot" style="background:#34d399;box-shadow:0 0 10px #34d399;"></span> 🤖 <span id="cursorToggleLabel">6 Live Agents Active</span>`;
+      toggleBtn.onclick = toggleAgentCursors;
+      document.body.appendChild(toggleBtn);
+
+      // Build DOM elements for each agent
+      ACTIVE_AGENT_CURSORS.forEach((agent) => {
+        const el = document.createElement('div');
+        el.className = 'agent-live-cursor';
+        el.id = `agent-cursor-${agent.id}`;
+        
+        el.innerHTML = `
+          <svg class="agent-cursor-pointer" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 2L20 10.5L12.5 13L9 21L4 2Z" fill="${agent.color}" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+          <div class="agent-cursor-badge" style="background: ${agent.gradient}; border-color: ${agent.dotColor};">
+            <span class="agent-cursor-dot" style="background: ${agent.dotColor}; box-shadow: 0 0 10px ${agent.dotColor};"></span>
+            <span>${agent.name}</span>
+            <span class="agent-cursor-action" id="action-${agent.id}">${agent.actions[0]}</span>
+          </div>
+        `;
+        container.appendChild(el);
+        cursorElements.push({ agent, el });
+      });
+
+      // Initial targets & loop
+      assignNewAgentTargets();
+      requestAnimationFrame(updateAgentCursors);
+      setInterval(assignNewAgentTargets, 3200);
+    }
+
+    function toggleAgentCursors() {
+      cursorsEnabled = !cursorsEnabled;
+      const container = document.getElementById('agentCursorsContainer');
+      const label = document.getElementById('cursorToggleLabel');
+      if (container) container.style.display = cursorsEnabled ? 'block' : 'none';
+      if (label) label.innerText = cursorsEnabled ? '6 Live Agents Active' : 'Agent Cursors Paused';
+    }
+
+    function assignNewAgentTargets() {
+      if (!cursorsEnabled) return;
+
+      const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      const docWidth = window.innerWidth;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const viewHeight = window.innerHeight;
+      
+      const landmarkKeys = Object.keys(LANDMARK_ACTIONS);
+
+      ACTIVE_AGENT_CURSORS.forEach((agent, idx) => {
+        // 50% of agents prioritize wandering in the current user viewport, 50% explore the whole website
+        const targetViewport = idx % 2 === 0;
+
+        if (targetViewport && Math.random() < 0.8) {
+          // Wander within or near visible screen area
+          agent.targetX = Math.random() * (docWidth - 320) + 40;
+          agent.targetY = Math.max(80, Math.min(docHeight - 120, scrollY + Math.random() * (viewHeight * 0.85) + 40));
+          
+          const actEl = document.getElementById(`action-${agent.id}`);
+          if (actEl) {
+            actEl.innerText = agent.actions[Math.floor(Math.random() * agent.actions.length)];
+          }
+        } else {
+          // Wander across whole website sections
+          const randKey = landmarkKeys[Math.floor(Math.random() * landmarkKeys.length)];
+          const targetEl = document.querySelector(randKey);
+          
+          if (targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            const elTop = rect.top + scrollY;
+            agent.targetX = Math.max(30, Math.min(docWidth - 300, rect.left + Math.random() * Math.max(100, rect.width * 0.8)));
+            agent.targetY = Math.max(80, Math.min(docHeight - 120, elTop + Math.random() * Math.max(80, rect.height * 0.8)));
+            
+            const actEl = document.getElementById(`action-${agent.id}`);
+            if (actEl) {
+              const actionsList = LANDMARK_ACTIONS[randKey] || agent.actions;
+              actEl.innerText = actionsList[Math.floor(Math.random() * actionsList.length)];
+            }
+          } else {
+            agent.targetX = Math.random() * (docWidth - 320) + 40;
+            agent.targetY = Math.random() * (docHeight - 240) + 120;
+          }
+        }
+
+        // Periodic click ripples on arrival
+        if (Math.random() < 0.5) {
+          setTimeout(() => {
+            if (cursorsEnabled) spawnCursorRipple(agent.currentX, agent.currentY, agent.dotColor);
+          }, Math.random() * 1200 + 400);
+        }
+      });
+    }
+
+    function spawnCursorRipple(x, y, color) {
+      const rip = document.createElement('div');
+      rip.className = 'agent-click-ripple';
+      rip.style.left = `${x}px`;
+      rip.style.top = `${y}px`;
+      rip.style.borderColor = color;
+      rip.style.boxShadow = `0 0 16px ${color}, inset 0 0 8px ${color}`;
+      document.body.appendChild(rip);
+      setTimeout(() => rip.remove(), 650);
+    }
+
+    function updateAgentCursors() {
+      if (cursorsEnabled) {
+        cursorElements.forEach(({ agent, el }) => {
+          agent.currentX += (agent.targetX - agent.currentX) * agent.speed;
+          agent.currentY += (agent.targetY - agent.currentY) * agent.speed;
+
+          el.style.transform = `translate3d(${agent.currentX}px, ${agent.currentY}px, 0)`;
+        });
+      }
+      requestAnimationFrame(updateAgentCursors);
+    }
+
+    // Launch moving agent cursors on document ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAgentCursors);
+    } else {
+      initAgentCursors();
+    }
+  </script>
+</body>
+</html>

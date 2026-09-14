@@ -40,6 +40,7 @@
 <p align="center">
   <a href="https://github.com/MaxMasAI"><img src="https://img.shields.io/badge/Organization-MaxMasAI-0284c7?style=flat-square&logo=github&logoColor=white" alt="Organization: MaxMasAI" /></a>
   <a href="https://github.com/Sahilkumardhala"><img src="https://img.shields.io/badge/Owner%20%26%20Creator-Sahil%20Kumar%20Dhala-8b5cf6?style=flat-square&logo=github&logoColor=white" alt="Owner & Creator: Sahil Kumar Dhala" /></a>
+  <a href="index.html"><img src="https://img.shields.io/badge/📖%20Interactive%20Docs-index.html-06b6d4?style=flat-square&logo=html5&logoColor=white" alt="Interactive Documentation" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square&logo=opensourceinitiative&logoColor=white" alt="License: MIT" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-Welcome-22c55e?style=flat-square&logo=github&logoColor=white" alt="Contributions Welcome" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square&logo=git&logoColor=white" alt="PRs Welcome" /></a>
