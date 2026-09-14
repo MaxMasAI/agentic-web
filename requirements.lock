@@ -1,0 +1,27 @@
+# agentic-web pinned deterministic lockfile
+# Generated for production deployment and reproducible CI/CD environments
+
+fastapi==0.141.1
+google-genai==1.75.0
+httpx==0.28.1
+huggingface_hub==0.36.0
+numpy==2.5.2
+Pillow==12.3.0
+playwright==1.58.0
+protobuf==7.36.1
+PyInstaller==6.22.2
+pypdf==6.17.0
+pyside6==6.10.1
+pyside6_addons==6.10.1
+pyside6_essentials==6.10.1
+pytest==9.1.1
+python-dotenv==1.2.3
+pywin32==312
+Requests==2.34.2
+sounddevice==0.5.3
+uvicorn==0.52.4
+watchdog==4.0.0
+websockets==14.1
+youtube_transcript_api==1.2.4
+pyyaml==6.0.2
+psutil==6.0.0

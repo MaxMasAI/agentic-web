@@ -24,5 +24,18 @@ class TestBrowserHelpers(unittest.TestCase):
                 self.assertGreaterEqual(win_left, 0)
                 self.assertLess(win_left + col_w, screen_w + total_cols)
 
+    def test_fancyzones_bounds_calculation(self):
+        """Verify FancyZones 3-column calculation with 16px spacing."""
+        from system.fancyzones_manager import calculate_3_columns_layout, calculate_zone_bounds
+        zones = calculate_3_columns_layout(1920, 1080, spacing=16)
+        self.assertEqual(len(zones), 3)
+        self.assertEqual(zones[0].x, 16)
+        self.assertEqual(zones[0].y, 16)
+        self.assertEqual(zones[1].x, 16 + zones[0].width + 16)
+        self.assertEqual(zones[2].x, zones[1].x + zones[1].width + 16)
+
+        b = calculate_zone_bounds(0, 3, 1920, 1080, spacing=16)
+        self.assertEqual(b, zones[0].bounds)
+
 if __name__ == "__main__":
     unittest.main()

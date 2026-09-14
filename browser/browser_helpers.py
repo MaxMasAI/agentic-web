@@ -58,17 +58,28 @@ def is_matching_agent_page(page_url: str, url_keyword: str, direct_url: str = ""
     return False
 
 
-async def _get_screen_size(context):
+async def _get_screen_size(context=None):
+    """Obtains the physical work area size of the primary monitor."""
     try:
-        page = context.pages[0]
-        r = await page.evaluate("() => ({w: window.screen.availWidth, h: window.screen.availHeight})")
-        return r["w"], r["h"]
+        from system.fancyzones_manager import get_screen_resolution_and_workarea
+        _, _, w, h = get_screen_resolution_and_workarea()
+        if w > 0 and h > 0:
+            return w, h
     except Exception:
-        return 1920, 1080
+        pass
+    if context and context.pages:
+        try:
+            page = context.pages[0]
+            r = await page.evaluate("() => ({w: window.screen.availWidth, h: window.screen.availHeight})")
+            return r["w"], r["h"]
+        except Exception:
+            pass
+    return 1920, 1032
 
 
-async def set_window_bounds(page, left, top, width, height):
-    """Move and resize a Chrome window precisely via CDP."""
+async def set_window_bounds(page, left, top, width, height, agent_id: str = ""):
+    """Move and resize a Chrome window precisely via CDP and native Win32 SetWindowPos."""
+    # 1. CDP setWindowBounds
     try:
         client = await page.context.new_cdp_session(page)
         r = await client.send("Browser.getWindowForTarget")
@@ -80,7 +91,15 @@ async def set_window_bounds(page, left, top, width, height):
         })
         await client.detach()
     except Exception as e:
-        print(f"{YELLOW}  [window] setWindowBounds skipped: {e}{RESET}")
+        pass
+
+    # 2. Native Win32 SetWindowPos for 100% reliable physical pixel alignment
+    try:
+        from system.fancyzones_manager import snap_window_by_title_keyword
+        if agent_id:
+            snap_window_by_title_keyword(agent_id, left, top, width, height)
+    except Exception:
+        pass
 
 
 async def _get_window_id(context, page):
@@ -162,12 +181,34 @@ async def get_or_open_tab(context, url_keyword, direct_url,
     if target_url != direct_url:
         print(f"{GREEN}  [Chat Tracker] Opening persisted Chat ID for '{url_keyword}' -> {target_url}{RESET}")
 
-    # ── Tile geometry ──────────────────────────────────────────────────────
+    # ── FancyZones Geometry Calculation ──────────────────────────────────────
     screen_w, screen_h = await _get_screen_size(context)
     if col_index is not None and total_cols is not None and total_cols > 0:
-        col_w = screen_w // total_cols
-        win_left, win_top     = col_w * col_index, 0
-        win_width, win_height = col_w, screen_h
+        try:
+            from system.fancyzones_manager import calculate_zone_bounds
+            from services.app_config import config
+            fz_layout = config.get("fancyzones.layout", "auto")
+            fz_spacing = int(config.get("fancyzones.spacing", 16))
+            fz_enabled = bool(config.get("fancyzones.enabled", True))
+            if fz_enabled:
+                win_left, win_top, win_width, win_height = calculate_zone_bounds(
+                    agent_index=col_index,
+                    total_agents=total_cols,
+                    screen_w=screen_w,
+                    screen_h=screen_h,
+                    layout_name=fz_layout,
+                    spacing=fz_spacing,
+                    show_spacing=True,
+                    taskbar_margin=40
+                )
+            else:
+                col_w = screen_w // total_cols
+                win_left, win_top     = col_w * col_index, 0
+                win_width, win_height = col_w, screen_h
+        except Exception:
+            col_w = screen_w // total_cols
+            win_left, win_top     = col_w * col_index, 0
+            win_width, win_height = col_w, screen_h
     else:
         win_left, win_top     = 0, 0
         win_width, win_height = screen_w, screen_h
@@ -429,13 +470,59 @@ async def wait_until_text_settles(locator, page=None, check_interval=None, max_c
     return last_text.strip()
 
 
-async def capture_all_tabs_screenshots(context=None, pages=None, output_dir: str = "images", include_timestamp: bool = False):
+async def snap_all_agents_to_fancyzones(context, agents_list=None, layout_name: str = "auto", spacing: int = 16):
     """
-    Captures screenshots of all open browser tabs/pages, naming each file with the tab's name,
-    and saving them in the 'images/' folder.
+    Arranges and snaps all active browser windows into their FancyZones layout.
     """
-    from services.tab_screenshot_service import capture_all_tabs_screenshots as _capture
-    return await _capture(context=context, pages=pages, output_dir=output_dir, include_timestamp=include_timestamp)
+    if not context or not context.pages:
+        return
+    
+    screen_w, screen_h = await _get_screen_size(context)
+    from system.fancyzones_manager import calculate_zone_bounds
+
+    if agents_list and len(agents_list) > 0:
+        total = len(agents_list)
+        for idx, agent_info in enumerate(agents_list):
+            aid = agent_info["id"] if isinstance(agent_info, dict) else str(agent_info)
+            left, top, width, height = calculate_zone_bounds(
+                agent_index=idx,
+                total_agents=total,
+                screen_w=screen_w,
+                screen_h=screen_h,
+                layout_name=layout_name,
+                spacing=spacing,
+                show_spacing=True,
+                taskbar_margin=40
+            )
+            # Find matching page
+            for p in context.pages:
+                if is_matching_agent_page(p.url, aid):
+                    try:
+                        await set_window_bounds(p, left, top, width, height, agent_id=aid)
+                    except Exception:
+                        pass
+                    break
+    else:
+        pages = [p for p in context.pages if p.url not in ["about:blank", "chrome://newtab/"]]
+        if not pages:
+            return
+        total = len(pages)
+        for idx, p in enumerate(pages):
+            left, top, width, height = calculate_zone_bounds(
+                agent_index=idx,
+                total_agents=total,
+                screen_w=screen_w,
+                screen_h=screen_h,
+                layout_name=layout_name,
+                spacing=spacing,
+                show_spacing=True,
+                taskbar_margin=40
+            )
+            try:
+                await set_window_bounds(p, left, top, width, height)
+            except Exception:
+                pass
+
 
 
 

@@ -555,13 +555,14 @@ class AutonomousAgentWorker(QThread):
                     break
 
             try:
-                res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=12)
-                tool_call.exit_code = res.returncode
-                tool_call.result = res.stdout if res.returncode == 0 else f"{res.stdout}\n{res.stderr}".strip()
-                tool_call.status = "success" if res.returncode == 0 else "error"
+                from system.sandbox_executor import get_sandbox_executor
+                exec_res = get_sandbox_executor().execute_command(cmd, timeout=12)
+                tool_call.exit_code = exec_res.returncode
+                tool_call.result = exec_res.stdout if exec_res.returncode == 0 else f"{exec_res.stdout}\n{exec_res.stderr}".strip()
+                tool_call.status = "success" if exec_res.returncode == 0 else "error"
             except Exception as e:
                 tool_call.exit_code = 1
-                tool_call.result = f"Command execution failed: {e}"
+                tool_call.result = f"Sandbox execution failed: {e}"
                 tool_call.status = "error"
 
         elif name == "read_file":

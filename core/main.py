@@ -299,9 +299,17 @@ async def run_agent_loop(task, selected_agents_override=None):
         elif len(worker_names) > 1:
             speak_narrator(f"Workload distributed across {len(worker_names)} specialists: {', '.join(worker_names)}.")
 
-        # 3. Connect to all selected agents with equal tiling
-        total_cols = len(selected_agents)  # Number of columns = number of agents
-        print(f"\n{YELLOW}[*] Opening {total_cols} agent windows in equal-sized tiles...{RESET}")
+        # 3. Connect to all selected agents with FancyZones layout
+        total_cols = len(selected_agents)
+        try:
+            from system.fancyzones_manager import get_fancyzones_layout
+            from services.app_config import config
+            fz_layout = config.get("fancyzones.layout", "auto")
+            fz_spacing = int(config.get("fancyzones.spacing", 16))
+            print(f"\n{YELLOW}[FancyZones] Snapping {total_cols} agent browser windows into '{fz_layout}' layout (spacing: {fz_spacing}px)...{RESET}")
+        except Exception:
+            print(f"\n{YELLOW}[*] Opening {total_cols} agent windows in equal-sized tiles...{RESET}")
+
         tabs = {}
         for col_idx, agent in enumerate(selected_agents):
             tab = await get_or_open_tab(
@@ -316,11 +324,11 @@ async def run_agent_loop(task, selected_agents_override=None):
             if agent["id"] == "gemini":
                 gemini_tab = tab
 
-        # Explicitly bring all selected windows to the front so they display side-by-side
-        for agent in selected_agents:
-            await tabs[agent["id"]].bring_to_front()
+        # Explicitly snap all agent windows into side-by-side FancyZones with zero overlap
+        from browser.browser_helpers import snap_all_agents_to_fancyzones
+        await snap_all_agents_to_fancyzones(context, selected_agents)
 
-        print(f"{GREEN}[OK] All active agent interfaces connected successfully.{RESET}")
+        print(f"{GREEN}[OK] All active agent interfaces connected & snapped into FancyZones successfully.{RESET}")
 
         # Step 1: Gemini (Leader) Planning
         print(f"\n{MAGENTA}[Gemini Leader] Creating plan and delegating tasks...{RESET}")

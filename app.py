@@ -45,6 +45,12 @@ if getattr(sys, 'frozen', False):
                 except Exception:
                     pass
 
+# Install Autonomous GitHub Crash & Issue Reporter
+try:
+    from system.issue_reporter import install_crash_reporter
+    install_crash_reporter()
+except Exception:
+    pass
 
 # 0. Development Live-Reload Watcher
 if "--watch" in sys.argv or "--dev" in sys.argv or "--auto-restart" in sys.argv:
@@ -112,6 +118,7 @@ from gui.pages.mission_archive import MissionArchivePage
 from gui.pages.file_explorer import FileExplorerPage
 from gui.pages.mcp_hub import MCPHubPage
 from gui.pages.neural_memory import NeuralMemoryPage
+from gui.pages.token_manager_page import TokenManagerPage
 
 # Assistant Modes Pages
 from gui.pages.chat_page import ChatPage
@@ -257,6 +264,7 @@ class MainWindow(QMainWindow):
             "notepad": NotepadPage(),
             "scheduler": SchedulerPage(),
             # System
+            "tokens": TokenManagerPage(),
             "mcp": MCPHubPage(),
             "memory": NeuralMemoryPage(),
             "explorer": FileExplorerPage(),

@@ -1,0 +1,175 @@
+# ==============================================================================
+# Agentic Web Workstation - Project Specification & Architecture Configuration
+# ==============================================================================
+
+project:
+  name: "Agentic Web Workstation"
+  slug: "agentic-web"
+  version: "2.5.0"
+  description: "Autonomous Multi-Agent AI Workstation, Live Voice Orchestrator, and PowerToys FancyZones Multi-Browser Desktop Environment"
+  organization: "MaxMasAI"
+  author: "Sahil Kumar Dhala"
+  license: "MIT"
+  repository: "https://github.com/MaxMasAI/agentic-web"
+  python_version: ">=3.10"
+
+# ------------------------------------------------------------------------------
+# Entry Points & Execution Scripts
+# ------------------------------------------------------------------------------
+entrypoints:
+  gui: "python app.py"
+  cli: "python core/main.py"
+  launcher: "run.bat"
+  installer: "install.bat"
+  development: "dev.bat"  # Live auto-reload development mode runner
+
+# ------------------------------------------------------------------------------
+# Core Architecture & System Packages
+# ------------------------------------------------------------------------------
+packages:
+  system:
+    path: "system/"
+    description: "Centralized OS & Desktop System Automation Package"
+    modules:
+      - name: "fancyzones_manager"
+        description: "PowerToys FancyZones layout engine & multi-window layout fixer"
+      - name: "system_cursor"
+        description: "Antigravity visual System Cursor overlay with badge and action pill"
+      - name: "system_app_launcher"
+        description: "Native Windows desktop app launcher (Notepad, Calc, Task Manager, VS Code)"
+      - name: "system_os_service"
+        description: "OS command execution engine (sys_exec) with auto-CWD management"
+      - name: "mouse_keyboard_service"
+        description: "Direct OS mouse positioning, click simulation, keyboard typing, and screen capture"
+      - name: "pid_tracker"
+        description: "Windows process tree tracking and clean taskkill /F /T cleanup"
+      - name: "system_prompts"
+        description: "System prompts catalog and extended prompt directives manager"
+
+  browser:
+    path: "browser/"
+    description: "Multi-Agent Browser Automation & DOM Control Center"
+    modules:
+      - name: "agent_cursor"
+        description: "Antigravity collaborative multi-agent visual cursors & telemetry"
+      - name: "browser_controller"
+        description: "Direct autonomous browser & media execution engine"
+      - name: "browser_helpers"
+        description: "CDP window bounds, tab orchestration, and overlay dismissal"
+      - name: "downloader"
+        description: "Automated task-based download listener and asset tracker"
+
+  core:
+    path: "core/"
+    description: "Autonomous Multi-Agent Orchestration Engine"
+    modules:
+      - name: "main"
+        description: "Leader-worker multi-agent task dispatch and execution lifecycle"
+      - name: "agents"
+        description: "Direct browser prompt submission, response settlement, and tab handlers"
+      - name: "agentlist"
+        description: "Squad roster and specialization registry (Gemini, DeepSeek, Claude, etc.)"
+      - name: "discussion"
+        description: "Multi-round agent debate, peer critique, and consensus synthesizer"
+
+  gui:
+    path: "gui/"
+    description: "PySide6 Modern Cyberpunk Desktop Workstation Interface"
+    modules:
+      - name: "pages"
+        description: "Mission Control, Canvas Dev, VSCode Integration, Settings, Squad Roster"
+      - name: "theme"
+        description: "Cyberpunk dark theme, glassmorphism CSS tokens, and font scale factors"
+      - name: "widgets"
+        description: "Workflow HUD, interactive prompt box, live CDP monitors, agent cards"
+
+  voice:
+    path: "voice/"
+    description: "Real-time Voice Orchestration & Speech Synthesis"
+    modules:
+      - name: "voice_narrator"
+        description: "Audio queue narrator and live spoken agent announcements"
+
+# ------------------------------------------------------------------------------
+# Multi-Agent Squad Roster
+# ------------------------------------------------------------------------------
+agents:
+  leader:
+    id: "gemini"
+    name: "Google Gemini"
+    role: "Master Orchestrator & Task Decomposer"
+    color: "#1e6b52"
+    url: "https://gemini.google.com/app"
+
+  specialists:
+    - id: "deepseek"
+      name: "DeepSeek"
+      role: "Distributed Systems & Deep Reasoning Specialist"
+      color: "#1e40af"
+      url: "https://chat.deepseek.com"
+
+    - id: "claude"
+      name: "Anthropic Claude"
+      role: "Code Architect, Reviewer & System Designer"
+      color: "#c2410c"
+      url: "https://claude.ai"
+
+    - id: "chatgpt"
+      name: "OpenAI ChatGPT"
+      role: "General Intelligence & Synthesis Specialist"
+      color: "#047857"
+      url: "https://chatgpt.com"
+
+    - id: "perplexity"
+      name: "Perplexity AI"
+      role: "Real-Time Deep Web Researcher"
+      color: "#0891b2"
+      url: "https://www.perplexity.ai"
+
+    - id: "copilot"
+      name: "Microsoft Copilot"
+      role: "Office Suite & Windows Integration Specialist"
+      color: "#0284c7"
+      url: "https://copilot.microsoft.com"
+
+# ------------------------------------------------------------------------------
+# PowerToys FancyZones & Window Management Configuration
+# ------------------------------------------------------------------------------
+fancyzones:
+  enabled: true
+  default_layout: "auto"
+  spacing_px: 16
+  show_spacing: true
+  taskbar_margin_px: 40
+  supported_layouts:
+    - id: "columns_3"
+      name: "3-Columns (PowerToys 'yeong-sil musical')"
+      description: "Equal 3-zone vertical column split across physical 1920px display width"
+      zones: 3
+    - id: "priority_grid"
+      name: "Priority Grid"
+      description: "Primary Leader 50% left zone with 2 vertically stacked specialist zones on the right"
+      zones: 3
+    - id: "columns_2"
+      name: "2-Columns Split"
+      description: "Balanced 50/50 dual window arrangement"
+      zones: 2
+    - id: "grid_4"
+      name: "4-Grid Quadrants"
+      description: "2x2 four-zone quadrant layout for multi-agent squads"
+      zones: 4
+    - id: "focus_3"
+      name: "Focus 3"
+      description: "Large 50% center leader focus with 25% side specialist wings"
+      zones: 3
+
+# ------------------------------------------------------------------------------
+# Testing & Quality Assurance
+# ------------------------------------------------------------------------------
+testing:
+  runner: "unittest / pytest"
+  suites:
+    - "tests/test_fancyzones_manager.py"
+    - "tests/test_system_package.py"
+    - "tests/test_browser_helpers.py"
+    - "tests/test_mcp_service.py"

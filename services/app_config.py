@@ -24,6 +24,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "layout.display_tips": True,
     "layout.store_dialog_positions": True,
 
+    # PowerToys FancyZones Browser Layout Settings
+    "fancyzones.enabled": True,
+    "fancyzones.layout": "auto",
+    "fancyzones.spacing": 16,
+    "fancyzones.show_spacing": True,
+    "fancyzones.taskbar_margin": True,
+
     # Code Syntax Settings
     "syntax.theme": "github-dark",
     "syntax.disabled": False,
@@ -66,7 +73,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "browser.open_urls_in_builtin": True,
 
     # Remote Tools Settings
-    "tools.remote_enabled": True
+    "tools.remote_enabled": True,
+
+    # Automated GitHub Issue & Crash Reporting Settings
+    "github.auto_report_issues": True,
+    "github.repo_owner": "MaxMasAI",
+    "github.repo_name": "agentic-web",
+    "github.create_pr_on_fix": False
 }
 
 

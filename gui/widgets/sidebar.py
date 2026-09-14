@@ -115,6 +115,7 @@ class Sidebar(QWidget):
             ("scheduler", "⏰", "Task Scheduler"),
         ]),
         ("🔌 SYSTEM", [
+            ("tokens", "💎", "Token Manager"),
             ("mcp", "🔌", "MCP Service Hub"),
             ("memory", "🧠", "Neural Memory"),
             ("explorer", "📁", "Folder Explorer"),
@@ -156,6 +157,7 @@ class Sidebar(QWidget):
         "chat_files": "Ctrl+Shift+F",
         "mcp": "Ctrl+Shift+M",
         "memory": "Ctrl+Shift+N",
+        "tokens": "Ctrl+Shift+T / Alt+T",
     }
 
     @classmethod

@@ -11,6 +11,78 @@ from PySide6.QtGui import QCursor
 
 from gui.theme import MODEL_THEMES
 from core.agent_status import get_all_agent_status, set_agent_state
+from core.agentlist import get_lead_agent
+from gui.widgets.add_agent_dialog import AddAgentDialog
+
+
+class AddAgentCard(QFrame):
+    add_clicked = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.init_ui()
+
+    def init_ui(self):
+        self.setStyleSheet("""
+            QFrame {
+                background-color: rgba(15, 23, 42, 0.45);
+                border: 2px dashed rgba(56, 189, 248, 0.4);
+                border-radius: 10px;
+                padding: 10px;
+                min-height: 120px;
+            }
+            QFrame:hover {
+                border-color: #38bdf8;
+                background-color: rgba(56, 189, 248, 0.1);
+            }
+        """)
+        self.setCursor(QCursor(Qt.PointingHandCursor))
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
+        layout.setAlignment(Qt.AlignCenter)
+
+        icon_lbl = QLabel("➕")
+        icon_lbl.setAlignment(Qt.AlignCenter)
+        icon_lbl.setStyleSheet("font-size: 24px; color: #38bdf8;")
+        layout.addWidget(icon_lbl)
+
+        title_lbl = QLabel("Add New AI Agent")
+        title_lbl.setAlignment(Qt.AlignCenter)
+        title_lbl.setStyleSheet("font-size: 13px; font-weight: 800; color: #ffffff;")
+        layout.addWidget(title_lbl)
+
+        sub_lbl = QLabel("Register custom model schema")
+        sub_lbl.setAlignment(Qt.AlignCenter)
+        sub_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
+        layout.addWidget(sub_lbl)
+
+        btn_add = QPushButton("✨ Add Agent")
+        btn_add.setFixedHeight(26)
+        btn_add.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_add.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(56, 189, 248, 0.2);
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.4);
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 0 12px;
+            }
+            QPushButton:hover {
+                background-color: #38bdf8;
+                color: #0b1120;
+            }
+        """)
+        btn_add.clicked.connect(self.add_clicked.emit)
+        layout.addWidget(btn_add)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.add_clicked.emit()
+        super().mousePressEvent(event)
 
 
 class AgentCard(QFrame):
@@ -207,15 +279,19 @@ class PoolMonitor(QWidget):
         if not statuses:
             return
 
-        worker_statuses = {aid: s for aid, s in statuses.items() if aid != "gemini"}
+        lead_agent = get_lead_agent()
+        lead_id = lead_agent["id"]
+
+        worker_statuses = {aid: s for aid, s in statuses.items() if aid != lead_id}
         busy_count = sum(1 for s in worker_statuses.values() if s.get("state", "").upper() == "BUSY")
         free_count = len(worker_statuses) - busy_count
-        leader_count = 1 if "gemini" in statuses else 0
+        leader_count = 1 if lead_id in statuses else 0
         total_count = len(statuses)
 
+        lead_name = lead_agent.get("name", "Leader")
         self.m_free.setText(f"<div style='font-size:18px;font-weight:800;'>{free_count}</div><div style='font-size:10px;'>🟢 Free Specialists ({free_count}/{len(worker_statuses)})</div>")
         self.m_busy.setText(f"<div style='font-size:18px;font-weight:800;'>{busy_count}</div><div style='font-size:10px;'>🟡 Busy Models ({busy_count}/{len(worker_statuses)})</div>")
-        self.m_leader.setText(f"<div style='font-size:18px;font-weight:800;'>{leader_count}</div><div style='font-size:10px;'>👑 Master Leader (Gemini)</div>")
+        self.m_leader.setText(f"<div style='font-size:18px;font-weight:800;'>{leader_count}</div><div style='font-size:10px;'>👑 Master Leader ({lead_name})</div>")
         self.m_total.setText(f"<div style='font-size:18px;font-weight:800;'>{total_count}</div><div style='font-size:10px;'>🤖 Total Active Roster</div>")
 
         # Clear pool layout safely
@@ -242,14 +318,17 @@ class PoolMonitor(QWidget):
             self.inspector_frame.hide()
 
     def render_tree_format(self, statuses: dict):
-        gemini_info = statuses.get("gemini", {
-            "name": "Google Gemini",
-            "role": "Master Orchestrator & Leadership Lead",
+        lead_agent = get_lead_agent()
+        lead_id = lead_agent["id"]
+
+        lead_info = statuses.get(lead_id, {
+            "name": lead_agent.get("name", "Google Gemini"),
+            "role": lead_agent.get("role", "Master Orchestrator & Leadership Lead"),
             "state": "LEADER",
             "current_task": "Master Orchestrator - Directing workflow"
         })
 
-        # Gemini Leader Node
+        # Master Leader Node
         leader_box = QFrame()
         leader_box.setStyleSheet("""
             QFrame {
@@ -264,7 +343,7 @@ class PoolMonitor(QWidget):
         l_layout.setSpacing(6)
 
         top_l = QHBoxLayout()
-        title_l = QLabel(f"👑 {gemini_info.get('name', 'Google Gemini')}")
+        title_l = QLabel(f"👑 {lead_info.get('name', 'Google Gemini')}")
         title_l.setStyleSheet("font-size: 15px; font-weight: 800; color: #38bdf8;")
         top_l.addWidget(title_l)
         top_l.addStretch()
@@ -274,30 +353,31 @@ class PoolMonitor(QWidget):
         top_l.addWidget(b_lbl)
         l_layout.addLayout(top_l)
 
-        desc_l = QLabel(f"Google DeepMind · {gemini_info.get('role', 'Master Leader')}")
+        vendor = "Google DeepMind" if lead_id == "gemini" else "Custom Orchestrator"
+        desc_l = QLabel(f"{vendor} · {lead_info.get('role', 'Master Leader')}")
         desc_l.setStyleSheet("font-size: 11px; color: #94a3b8; font-family: monospace;")
         l_layout.addWidget(desc_l)
 
-        act_l = QLabel(f"<b>State:</b> {gemini_info.get('current_task', 'Orchestrating Specialist Workers')}")
+        act_l = QLabel(f"<b>State:</b> {lead_info.get('current_task', 'Orchestrating Specialist Workers')}")
         act_l.setStyleSheet("font-size: 12px; color: #cbd5e1;")
         l_layout.addWidget(act_l)
 
         # Direct Task Assignment Bar
         direct_row = QHBoxLayout()
         self.direct_input = QLineEdit()
-        self.direct_input.setPlaceholderText("🎯 Type mission goal here to directly assign task to Gemini & workers...")
+        self.direct_input.setPlaceholderText(f"🎯 Type mission goal here to directly assign task to {lead_info.get('name', 'Leader')} & workers...")
         self.direct_input.returnPressed.connect(self.submit_direct_task)
         direct_row.addWidget(self.direct_input, stretch=3)
 
-        btn_assign = QPushButton("🚀 Assign to Gemini")
+        btn_assign = QPushButton(f"🚀 Assign to {lead_info.get('name', 'Leader')}")
         btn_assign.setProperty("class", "primary-btn")
         btn_assign.setCursor(QCursor(Qt.PointingHandCursor))
         btn_assign.clicked.connect(self.submit_direct_task)
         direct_row.addWidget(btn_assign, stretch=1)
 
-        btn_insp_gem = QPushButton("🔍 Inspect Gemini")
+        btn_insp_gem = QPushButton(f"🔍 Inspect {lead_info.get('name', 'Leader')}")
         btn_insp_gem.setCursor(QCursor(Qt.PointingHandCursor))
-        btn_insp_gem.clicked.connect(lambda: self.inspect_agent("gemini"))
+        btn_insp_gem.clicked.connect(lambda: self.inspect_agent(lead_id))
         direct_row.addWidget(btn_insp_gem, stretch=1)
 
         l_layout.addLayout(direct_row)
@@ -310,15 +390,15 @@ class PoolMonitor(QWidget):
         self.pool_layout.addWidget(arrow_lbl)
 
         # Header for Specialists
-        spec_hdr = QLabel("══ SPECIALIST WORKER ROSTER (9 DISTINCT MODELS) ══")
+        workers = [aid for aid in statuses.keys() if aid != lead_id]
+        spec_hdr = QLabel(f"══ SPECIALIST WORKER ROSTER ({len(workers)} DISTINCT MODELS) ══")
         spec_hdr.setAlignment(Qt.AlignCenter)
         spec_hdr.setStyleSheet("color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: 1px;")
         self.pool_layout.addWidget(spec_hdr)
 
-        # 3x3 Grid for Workers
+        # 3x3 Grid for Workers + Add Agent Card at the end
         grid = QGridLayout()
         grid.setSpacing(10)
-        workers = [aid for aid in statuses.keys() if aid != "gemini"]
 
         for idx, aid in enumerate(workers):
             card = AgentCard(aid, statuses[aid])
@@ -326,6 +406,12 @@ class PoolMonitor(QWidget):
             row = idx // 3
             col = idx % 3
             grid.addWidget(card, row, col)
+
+        # Append "+" Add Agent Card at the end of all workers
+        add_idx = len(workers)
+        add_card = AddAgentCard()
+        add_card.add_clicked.connect(self.open_add_agent_dialog)
+        grid.addWidget(add_card, add_idx // 3, add_idx % 3)
 
         self.pool_layout.addLayout(grid)
 
@@ -341,7 +427,18 @@ class PoolMonitor(QWidget):
             col = idx % 3
             grid.addWidget(card, row, col)
 
+        # Append "+" Add Agent Card at the end of all models
+        add_idx = len(items)
+        add_card = AddAgentCard()
+        add_card.add_clicked.connect(self.open_add_agent_dialog)
+        grid.addWidget(add_card, add_idx // 3, add_idx % 3)
+
         self.pool_layout.addLayout(grid)
+
+    def open_add_agent_dialog(self):
+        dialog = AddAgentDialog(self)
+        dialog.agent_added.connect(lambda agent: self.refresh_pool())
+        dialog.exec()
 
     def submit_direct_task(self):
         if not hasattr(self, 'direct_input') or not self.direct_input:

@@ -28,6 +28,7 @@ from services.auth_service import (
 )
 from services.context_storage import is_context_enabled, set_context_enabled, get_context_db
 from gui.widgets.custom_popup import CustomPopup
+from core import agentlist
 
 
 class OAuthWorker(QThread):
@@ -449,8 +450,75 @@ class SettingsPage(QWidget):
         cb_pos.setChecked(bool(config.get("layout.store_dialog_positions", True)))
         lay.addWidget(create_setting_row("Store dialog window positions", "Enables storing and restoring dialog window positions.", cb_pos))
 
+        # ─── POWERTOYS FANCYZONES MULTI-BROWSER SECTION ───
+        sep_fz = QFrame()
+        sep_fz.setFrameShape(QFrame.HLine)
+        sep_fz.setStyleSheet("background: rgba(56, 189, 248, 0.25); height: 1px; margin-top: 10px; margin-bottom: 6px;")
+        lay.addWidget(sep_fz)
+
+        lay.addWidget(create_section_header("🪟 PowerToys FancyZones Browser Layout", "Snap multi-agent browser windows into 3-column zones with 16px margins."))
+
+        self.fz_enable_cb = QCheckBox()
+        self.fz_enable_cb.setChecked(bool(config.get("fancyzones.enabled", True)))
+        lay.addWidget(create_setting_row("Enable FancyZones Window Snapping", "Automatically arrange open agent browser windows into side-by-side FancyZones.", self.fz_enable_cb))
+
+        self.fz_layout_cmb = QComboBox()
+        self.fz_layout_cmb.addItem("⭐ Auto / PowerToys Active (yeong-sil musical)", "auto")
+        self.fz_layout_cmb.addItem("3-Columns (Left / Center / Right with 16px Spacing)", "columns_3")
+        self.fz_layout_cmb.addItem("Priority Grid (Leader Primary + Stacked Specialists)", "priority_grid")
+        self.fz_layout_cmb.addItem("2-Columns Split (50% / 50%)", "columns_2")
+        self.fz_layout_cmb.addItem("4-Grid (2x2 Quadrants)", "grid_4")
+        self.fz_layout_cmb.addItem("Focus 3 (25% Left / 50% Center / 25% Right)", "focus_3")
+        cur_fz_layout = config.get("fancyzones.layout", "auto")
+        idx = self.fz_layout_cmb.findData(cur_fz_layout)
+        if idx >= 0:
+            self.fz_layout_cmb.setCurrentIndex(idx)
+        lay.addWidget(create_setting_row("Active FancyZones Template", "Select the multi-window tiling layout for your AI agent browsers.", self.fz_layout_cmb))
+
+        self.fz_spacing_sp = QSpinBox()
+        self.fz_spacing_sp.setRange(0, 48)
+        self.fz_spacing_sp.setValue(int(config.get("fancyzones.spacing", 16)))
+        lay.addWidget(create_setting_row("Zone Spacing & Gaps (px)", "Margin and gap spacing between agent browser windows (default: 16px).", self.fz_spacing_sp))
+
+        self.fz_taskbar_cb = QCheckBox()
+        self.fz_taskbar_cb.setChecked(bool(config.get("fancyzones.taskbar_margin", True)))
+        lay.addWidget(create_setting_row("Taskbar Safety Margin", "Keep taskbar visible and prevent browser windows from overlapping the taskbar.", self.fz_taskbar_cb))
+
+        btn_snap_now = QPushButton("⚡ Snap Open Browsers to FancyZones Now")
+        btn_snap_now.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #38bdf8); color: #040d21; font-weight: bold; border-radius: 6px; padding: 8px 16px;")
+        btn_snap_now.clicked.connect(self._trigger_live_fancyzones_snap)
+        lay.addWidget(create_setting_row("Instant Layout Alignment", "Immediately re-align and tile all running agent browser windows.", btn_snap_now))
+
         lay.addStretch()
         return panel
+
+    def _trigger_live_fancyzones_snap(self):
+        """Triggers asynchronous snapping of open Chrome agent windows into current FancyZone layout."""
+        import asyncio
+        import threading
+
+        def _run_snap():
+            async def _snap():
+                try:
+                    from playwright.async_api import async_playwright
+                    async with async_playwright() as p:
+                        browser = await p.chromium.connect_over_cdp("http://127.0.0.1:9222")
+                        context = browser.contexts[0] if browser.contexts else None
+                        if context:
+                            from browser.browser_helpers import snap_all_agents_to_fancyzones
+                            cur_layout = self.fz_layout_cmb.currentData() if hasattr(self, "fz_layout_cmb") else "auto"
+                            sp = self.fz_spacing_sp.value() if hasattr(self, "fz_spacing_sp") else 16
+                            await snap_all_agents_to_fancyzones(context, layout_name=cur_layout, spacing=sp)
+                except Exception as e:
+                    print(f"[FancyZones Live Snap] Notice: {e}")
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(_snap())
+            loop.close()
+
+        threading.Thread(target=_run_snap, daemon=True).start()
+        QMessageBox.information(self, "FancyZones Snapped", "Active agent browser windows aligned to FancyZones layout!")
 
     # ─────────────────────────────────────────────────────────────
     # 4. FILES AND ATTACHMENTS
@@ -768,10 +836,11 @@ class SettingsPage(QWidget):
         panel = QWidget()
         lay = QVBoxLayout(panel)
         lay.setContentsMargins(15, 15, 15, 15)
-        lay.setSpacing(8)
+        lay.setSpacing(12)
 
-        lay.addWidget(create_section_header("👥 Agents and Experts", "Multi-agent autonomous loops, co-op expert manager, and supervisor routing."))
+        lay.addWidget(create_section_header("👥 Agents, Experts & Custom AI Models", "Register custom agents via text/JSON format, configure autonomous loops, and manage command hierarchy."))
 
+        # Top execution options
         cb_coop = QCheckBox()
         cb_coop.setChecked(True)
         lay.addWidget(create_setting_row("Enable Experts Co-op Mode", "Allows isolated per-expert context banks with manager orchestration.", cb_coop))
@@ -780,6 +849,278 @@ class SettingsPage(QWidget):
         sp_iter.setRange(1, 50)
         sp_iter.setValue(10)
         lay.addWidget(create_setting_row("Max Autonomous Loop Iterations", "Safety ceiling for autonomous Auto-GPT execution loops.", sp_iter))
+
+        # ─── ADD NEW AGENT VIA TEXT / JSON FORMAT ───
+        grp_add = QGroupBox("➕ Register Custom AI Agent (Text / JSON Format)")
+        grp_add.setStyleSheet("""
+            QGroupBox {
+                font-size: 13px;
+                font-weight: 700;
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 8px;
+                margin-top: 14px;
+                padding-top: 12px;
+                background: rgba(15, 23, 42, 0.45);
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 6px;
+            }
+        """)
+        v_add = QVBoxLayout(grp_add)
+        v_add.setContentsMargins(12, 12, 12, 12)
+        v_add.setSpacing(10)
+
+        lbl_instruct = QLabel(
+            "Paste or write your agent definition below in <b>JSON format</b> or <b>text key-value format</b>. "
+            "Required fields: <code>id</code>, <code>name</code>, <code>role</code>, <code>specialization</code>, <code>official_url</code>, <code>is_leader</code>, <code>routing_tag</code>."
+        )
+        lbl_instruct.setStyleSheet("color: #94a3b8; font-size: 11.5px; line-height: 1.4;")
+        lbl_instruct.setWordWrap(True)
+        v_add.addWidget(lbl_instruct)
+
+        # Editor toolbar
+        tbar = QHBoxLayout()
+        tbar.setSpacing(8)
+
+        btn_template = QPushButton("📋 Insert Schema Template")
+        btn_template.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_template.setStyleSheet("""
+            QPushButton {
+                background: rgba(30, 41, 59, 0.8);
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.3);
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 4px 10px;
+            }
+            QPushButton:hover { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+        """)
+
+        btn_clear = QPushButton("🧹 Clear")
+        btn_clear.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_clear.setStyleSheet("""
+            QPushButton {
+                background: rgba(30, 41, 59, 0.8);
+                color: #94a3b8;
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 5px;
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            QPushButton:hover { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        """)
+
+        tbar.addWidget(btn_template)
+        tbar.addWidget(btn_clear)
+        tbar.addStretch()
+        v_add.addLayout(tbar)
+
+        # Text Editor
+        default_agent_template = json.dumps({
+            "id": "qwen_coder",
+            "name": "Qwen 2.5 Coder",
+            "role": "Polyglot Software Architect & Senior Engineer",
+            "specialization": "Full-stack code generation, complex refactoring, test-driven development, and algorithmic optimization.",
+            "official_url": "https://chat.qwen.ai",
+            "is_leader": False,
+            "routing_tag": "[SEND_TO: qwen_coder]"
+        }, indent=4)
+
+        txt_agent = QTextEdit()
+        txt_agent.setFont(QFont("Consolas", 10))
+        txt_agent.setFixedHeight(180)
+        txt_agent.setStyleSheet("""
+            QTextEdit {
+                background: #040813;
+                color: #a5f3fc;
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 6px;
+                padding: 8px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 11.5px;
+            }
+            QTextEdit:focus {
+                border-color: #38bdf8;
+            }
+        """)
+        txt_agent.setPlainText(default_agent_template)
+        v_add.addWidget(txt_agent)
+
+        btn_template.clicked.connect(lambda: txt_agent.setPlainText(default_agent_template))
+        btn_clear.clicked.connect(lambda: txt_agent.clear())
+
+        # Action row
+        action_row = QHBoxLayout()
+        action_row.setSpacing(10)
+
+        btn_register = QPushButton("✨ Register & Save Agent")
+        btn_register.setFixedSize(190, 34)
+        btn_register.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_register.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #38bdf8);
+                color: #040d21;
+                border: none;
+                border-radius: 5px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0369a1, stop:1 #0284c7);
+                color: #ffffff;
+            }
+        """)
+
+        lbl_status = QLabel("")
+        lbl_status.setStyleSheet("font-size: 11.5px; font-weight: 600;")
+        action_row.addWidget(btn_register)
+        action_row.addWidget(lbl_status, stretch=1)
+        v_add.addLayout(action_row)
+
+        lay.addWidget(grp_add)
+
+        # ─── ACTIVE AGENTS ROSTER ───
+        grp_roster = QGroupBox("📋 Active AI Agents Roster")
+        grp_roster.setStyleSheet("""
+            QGroupBox {
+                font-size: 13px;
+                font-weight: 700;
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 8px;
+                margin-top: 14px;
+                padding-top: 12px;
+                background: rgba(15, 23, 42, 0.45);
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 6px;
+            }
+        """)
+        v_roster = QVBoxLayout(grp_roster)
+        v_roster.setContentsMargins(12, 12, 12, 12)
+        v_roster.setSpacing(8)
+
+        roster_container = QWidget()
+        roster_layout = QVBoxLayout(roster_container)
+        roster_layout.setContentsMargins(0, 0, 0, 0)
+        roster_layout.setSpacing(6)
+        v_roster.addWidget(roster_container)
+        lay.addWidget(grp_roster)
+
+        def refresh_roster():
+            # Clear existing items
+            while roster_layout.count() > 0:
+                item = roster_layout.takeAt(0)
+                w = item.widget()
+                if w:
+                    w.deleteLater()
+
+            all_agents = agentlist.list_all_active_agents()
+            for agent in all_agents:
+                aid = agent["id"]
+                name = agent.get("name", aid)
+                role = agent.get("role", "Specialist")
+                is_leader = agent.get("is_leader", False)
+                is_custom = agent.get("is_custom", False)
+
+                card = QFrame()
+                card.setStyleSheet("""
+                    QFrame {
+                        background: rgba(30, 41, 59, 0.6);
+                        border: 1px solid rgba(56, 189, 248, 0.15);
+                        border-radius: 6px;
+                        padding: 6px 10px;
+                    }
+                    QFrame:hover {
+                        border-color: rgba(56, 189, 248, 0.4);
+                        background: rgba(30, 41, 59, 0.85);
+                    }
+                """)
+                c_lay = QHBoxLayout(card)
+                c_lay.setContentsMargins(8, 6, 8, 6)
+                c_lay.setSpacing(10)
+
+                # Badge
+                if is_leader:
+                    badge = QLabel("👑 LEADER")
+                    badge.setStyleSheet("background: #f59e0b; color: #0f172a; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px;")
+                elif is_custom:
+                    badge = QLabel("⭐ CUSTOM")
+                    badge.setStyleSheet("background: #8b5cf6; color: white; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px;")
+                else:
+                    badge = QLabel("🤖 SPECIALIST")
+                    badge.setStyleSheet("background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px;")
+                c_lay.addWidget(badge)
+
+                # Name & Role
+                lbl_name = QLabel(f"<b>{name}</b> <span style='color: #94a3b8;'>({aid})</span> — <span style='color: #cbd5e1;'>{role}</span>")
+                lbl_name.setStyleSheet("font-size: 12px; color: #f8fafc;")
+                c_lay.addWidget(lbl_name, stretch=1)
+
+                # Action button
+                if is_custom:
+                    btn_del = QPushButton("🗑️ Remove")
+                    btn_del.setFixedSize(80, 26)
+                    btn_del.setCursor(QCursor(Qt.PointingHandCursor))
+                    btn_del.setStyleSheet("""
+                        QPushButton {
+                            background: rgba(239, 68, 68, 0.15);
+                            color: #f87171;
+                            border: 1px solid rgba(239, 68, 68, 0.3);
+                            border-radius: 4px;
+                            font-size: 11px;
+                            font-weight: 600;
+                        }
+                        QPushButton:hover {
+                            background: #ef4444;
+                            color: white;
+                        }
+                    """)
+                    btn_del.clicked.connect(lambda checked=False, target_id=aid: delete_agent_handler(target_id))
+                    c_lay.addWidget(btn_del)
+
+                roster_layout.addWidget(card)
+
+        def delete_agent_handler(target_id: str):
+            success, msg = agentlist.remove_custom_agent(target_id)
+            if success:
+                lbl_status.setText(f"✅ {msg}")
+                lbl_status.setStyleSheet("color: #10b981; font-size: 11.5px; font-weight: 600;")
+                refresh_roster()
+            else:
+                lbl_status.setText(f"❌ {msg}")
+                lbl_status.setStyleSheet("color: #ef4444; font-size: 11.5px; font-weight: 600;")
+
+        def register_agent_handler():
+            raw_text = txt_agent.toPlainText().strip()
+            if not raw_text:
+                lbl_status.setText("❌ Please enter agent data in JSON or text format.")
+                lbl_status.setStyleSheet("color: #ef4444; font-size: 11.5px; font-weight: 600;")
+                return
+
+            agent_dict, err = agentlist.parse_agent_text_format(raw_text)
+            if err or not agent_dict:
+                lbl_status.setText(f"❌ Parse Error: {err}")
+                lbl_status.setStyleSheet("color: #ef4444; font-size: 11.5px; font-weight: 600;")
+                return
+
+            success, msg = agentlist.add_custom_agent(agent_dict)
+            if success:
+                lbl_status.setText(f"✅ {msg}")
+                lbl_status.setStyleSheet("color: #10b981; font-size: 11.5px; font-weight: 600;")
+                refresh_roster()
+            else:
+                lbl_status.setText(f"❌ Save Error: {msg}")
+                lbl_status.setStyleSheet("color: #ef4444; font-size: 11.5px; font-weight: 600;")
+
+        btn_register.clicked.connect(register_agent_handler)
+        refresh_roster()
 
         lay.addStretch()
         return panel
@@ -888,8 +1229,99 @@ class SettingsPage(QWidget):
         cb_verbose.setChecked(False)
         lay.addWidget(create_setting_row("Verbose LLM Payload Logging", "Outputs raw prompt tokens and tool call JSON envelopes to terminal.", cb_verbose))
 
+        # ─── GITHUB AUTO-ISSUE & CRASH REPORTING ───
+        grp_gh = QGroupBox("🐙 Autonomous GitHub Issue & Crash Dispatcher (MaxMasAI/agentic-web)")
+        grp_gh.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.3);
+                border-radius: 8px;
+                margin-top: 12px;
+                padding-top: 14px;
+                background: rgba(15, 23, 42, 0.5);
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 12px;
+                padding: 0 6px;
+            }
+        """)
+        gh_lay = QVBoxLayout(grp_gh)
+        gh_lay.setSpacing(8)
+
+        self.cb_auto_issue = QCheckBox()
+        self.cb_auto_issue.setChecked(config.get("github.auto_report_issues", True))
+        gh_lay.addWidget(create_setting_row(
+            "Auto-Report App Exceptions to GitHub Issues",
+            "Automatically intercepts unhandled crashes/exceptions, sanitizes API secrets, and files structured issues on MaxMasAI/agentic-web.",
+            self.cb_auto_issue
+        ))
+
+        self.inp_gh_repo = QLineEdit()
+        self.inp_gh_repo.setText(f"{config.get('github.repo_owner', 'MaxMasAI')}/{config.get('github.repo_name', 'agentic-web')}")
+        self.inp_gh_repo.setFixedWidth(240)
+        self.inp_gh_repo.setStyleSheet("background: #0f172a; color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; padding: 4px 8px;")
+        gh_lay.addWidget(create_setting_row(
+            "Target GitHub Repository",
+            "Owner/Repo destination where automated issues and bug tickets are filed.",
+            self.inp_gh_repo
+        ))
+
+        btn_test_issue = QPushButton("🧪 Test Crash & Issue Dispatch")
+        btn_test_issue.setStyleSheet("""
+            QPushButton {
+                background: rgba(124, 58, 237, 0.8);
+                color: #ffffff;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 6px 14px;
+            }
+            QPushButton:hover {
+                background: rgba(139, 92, 246, 1.0);
+            }
+        """)
+        btn_test_issue.clicked.connect(self._test_github_issue_reporting)
+        gh_lay.addWidget(create_setting_row(
+            "Test Issue Reporter",
+            "Triggers a non-fatal diagnostic report to verify token authentication and GitHub API connectivity.",
+            btn_test_issue
+        ))
+
+        lay.addWidget(grp_gh)
+
         lay.addStretch()
         return panel
+
+    def _test_github_issue_reporting(self):
+        try:
+            from system.issue_reporter import get_issue_reporter
+            reporter = get_issue_reporter()
+            test_tb = "Traceback (most recent call last):\n  File \"app.py\", line 100, in test_diagnostic\n    # Manual Diagnostic Self-Test\nRuntimeError: [Self-Test] GitHub Auto-Issue Diagnostic verification from Settings."
+            res = reporter.report_crash(
+                exc_type="DiagnosticTest",
+                exc_value="Manual verification of automated crash reporting pipeline",
+                tb_str=test_tb,
+                extra_context={"triggered_by": "Settings Page UI", "timestamp": time.time()},
+                async_dispatch=False
+            )
+            if res.get("success"):
+                action = res.get("action", "processed")
+                url = res.get("issue_url", "https://github.com/MaxMasAI/agentic-web/issues")
+                QMessageBox.information(
+                    self,
+                    "✅ Issue Reporter Connected",
+                    f"Successfully executed GitHub Issue Dispatcher!\n\nAction: {action}\nIssue URL:\n{url}\n\nLocal Dump: {res.get('local_dump', 'Saved')}"
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "⚠️ Issue Reporter Local Only",
+                    f"Diagnostic report captured locally:\n{res.get('local_dump')}\n\nGitHub Note: {res.get('error', 'Check GITHUB_TOKEN')}"
+                )
+        except Exception as e:
+            QMessageBox.critical(self, "Reporter Error", f"Failed to test reporter: {str(e)}")
+
 
     def undo_changes(self):
         """Restores preferences from disk."""
@@ -905,6 +1337,26 @@ class SettingsPage(QWidget):
                 keys[p_id] = val
         if keys:
             save_api_keys(keys)
+
+        # Persist FancyZones settings
+        if hasattr(self, "fz_enable_cb"):
+            config.set("fancyzones.enabled", self.fz_enable_cb.isChecked())
+        if hasattr(self, "fz_layout_cmb"):
+            config.set("fancyzones.layout", self.fz_layout_cmb.currentData() or "auto")
+        if hasattr(self, "fz_spacing_sp"):
+            config.set("fancyzones.spacing", self.fz_spacing_sp.value())
+        if hasattr(self, "fz_taskbar_cb"):
+            config.set("fancyzones.taskbar_margin", self.fz_taskbar_cb.isChecked())
+
+        # Persist GitHub Auto Issue Dispatcher settings
+        if hasattr(self, "cb_auto_issue"):
+            config.set("github.auto_report_issues", self.cb_auto_issue.isChecked())
+        if hasattr(self, "inp_gh_repo"):
+            repo_text = self.inp_gh_repo.text().strip()
+            if "/" in repo_text:
+                parts = repo_text.split("/", 1)
+                config.set("github.repo_owner", parts[0].strip())
+                config.set("github.repo_name", parts[1].strip())
 
         config.save()
         QMessageBox.information(self, "Settings Saved", "All preferences and API configuration saved successfully.")

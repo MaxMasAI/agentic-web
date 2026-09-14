@@ -5,17 +5,17 @@
     "role": "Master Orchestrator & Leadership Lead",
     "specialization": "Project orchestration, multimodal asset evaluation, strict design quality audits, repetition filtering, prompt engineering refinement, and workflow direction.",
     "state": "LEADER",
-    "current_task": "Plan generated. Delegating subtasks.",
-    "last_updated": "20:57:15"
+    "current_task": "Master Orchestrator",
+    "last_updated": "12:57:26"
   },
   "deepseek": {
     "id": "deepseek",
     "name": "DeepSeek",
     "role": "Creative Ideator & Deep Researcher",
     "specialization": "Trend research, rapid concept brainstorming, cross-cultural aesthetic synthesis, and technical reasoning for fresh design ideation.",
-    "state": "BUSY",
-    "current_task": "Critiquing and refining in debate round",
-    "last_updated": "21:01:58"
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "12:57:26"
   },
   "chatgpt": {
     "id": "chatgpt",
@@ -24,16 +24,16 @@
     "specialization": "Final copy production, campaign aggregation, social media marketing text, hashtag generation, and formatted client-facing deliverables.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "claude": {
     "id": "claude",
     "name": "Anthropic Claude",
     "role": "Editorial & Nuance Reviewer",
     "specialization": "In-depth editorial critique, long-form content structuring, tone refinement, and adherence to complex narrative constraints.",
-    "state": "BUSY",
-    "current_task": "Critiquing and refining in debate round",
-    "last_updated": "21:01:58"
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "12:57:26"
   },
   "meta_ai": {
     "id": "meta_ai",
@@ -42,7 +42,7 @@
     "specialization": "Platform-specific social media hooks, viral pattern evaluation, and rapid audience engagement tactics.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "dalle": {
     "id": "dalle",
@@ -51,7 +51,7 @@
     "specialization": "Detailed text-to-image prompt styling, aspect ratio calculations, visual asset layout planning, and aesthetic style translation.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "perplexity": {
     "id": "perplexity",
@@ -60,7 +60,7 @@
     "specialization": "Live web searching, source verification, comparative data auditing, and academic citation gathering.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "copilot": {
     "id": "copilot",
@@ -69,7 +69,7 @@
     "specialization": "Enterprise workflow coordination, formatting guidelines, office documentation outline structures, and macro/data table automation formulas.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "nvidia_ai": {
     "id": "nvidia_ai",
@@ -78,7 +78,7 @@
     "specialization": "Technical scaling, performance profiling recommendations, API compute efficiency, and deep math/scientific calculation auditing.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "mistral": {
     "id": "mistral",
@@ -87,7 +87,7 @@
     "specialization": "Fluent translation across multiple European languages, light-weight utility scripts coding, and cost-effective task delegation.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
   },
   "web_agent": {
     "id": "web_agent",
@@ -96,6 +96,15 @@
     "specialization": "Full-screen computer use, whole-page visual inspection, multi-window layout coordination, direct web navigation, interactive clicking, and overarching screen management.",
     "state": "FREE",
     "current_task": "Idle - Ready for assignment",
-    "last_updated": "20:56:19"
+    "last_updated": "12:57:26"
+  },
+  "qwen_coder": {
+    "id": "qwen_coder",
+    "name": "Qwen 2.5 Coder",
+    "role": "Polyglot Software Architect & Senior Engineer",
+    "specialization": "Full-stack code generation, complex refactoring, test-driven development, and algorithmic optimization.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
   }
 }
