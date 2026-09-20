@@ -59,25 +59,25 @@ class MissionControlPage(QWidget):
         self.cards_layout.setSpacing(10)
 
         self.card_tasks = MetricCard("0", "Tasks Done", "#38bdf8", is_clickable=True)
-        self.card_tasks.clicked.connect(lambda: self.navigate_requested.emit("history"))
+        self.card_tasks.clicked.connect(lambda *args: self.navigate_requested.emit("history"))
 
         self.card_mem = MetricCard("0", "Memories", "#fbbf24", is_clickable=True)
-        self.card_mem.clicked.connect(lambda: self.navigate_requested.emit("memory"))
+        self.card_mem.clicked.connect(lambda *args: self.navigate_requested.emit("memory"))
 
         self.card_play = MetricCard("LIVE", "Playground", "#10b981", is_clickable=True)
-        self.card_play.clicked.connect(lambda: self.navigate_requested.emit("playground"))
+        self.card_play.clicked.connect(lambda *args: self.navigate_requested.emit("playground"))
 
         self.card_squads = MetricCard("0", "Squad Roster", "#818cf8", is_clickable=True)
-        self.card_squads.clicked.connect(lambda: self.navigate_requested.emit("subagents"))
+        self.card_squads.clicked.connect(lambda *args: self.navigate_requested.emit("subagents"))
 
         self.card_skills = MetricCard("0", "Skills", "#c084fc", is_clickable=True)
-        self.card_skills.clicked.connect(lambda: self.navigate_requested.emit("mcp"))
+        self.card_skills.clicked.connect(lambda *args: self.navigate_requested.emit("mcp"))
 
         self.card_assets = MetricCard("0", "Assets", "#38bdf8", is_clickable=True)
-        self.card_assets.clicked.connect(lambda: self.navigate_requested.emit("explorer"))
+        self.card_assets.clicked.connect(lambda *args: self.navigate_requested.emit("explorer"))
 
         self.card_active = MetricCard("0", "Active Runs", "#f87171", is_clickable=True)
-        self.card_active.clicked.connect(lambda: self.navigate_requested.emit("launch"))
+        self.card_active.clicked.connect(lambda *args: self.navigate_requested.emit("launch"))
 
         for c in [self.card_tasks, self.card_mem, self.card_play, self.card_squads, self.card_skills, self.card_assets, self.card_active]:
             self.cards_layout.addWidget(c)
@@ -91,7 +91,7 @@ class MissionControlPage(QWidget):
 
         self.pool_monitor = PoolMonitor()
         self.pool_monitor.direct_task_submitted.connect(self.direct_task_submitted.emit)
-        self.pool_monitor.goto_launch_requested.connect(lambda: self.navigate_requested.emit("launch"))
+        self.pool_monitor.goto_launch_requested.connect(lambda *args: self.navigate_requested.emit("launch"))
         self.layout.addWidget(self.pool_monitor)
 
         # Section: Recent Completed Missions

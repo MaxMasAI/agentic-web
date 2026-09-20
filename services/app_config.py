@@ -79,7 +79,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "github.auto_report_issues": True,
     "github.repo_owner": "MaxMasAI",
     "github.repo_name": "agentic-web",
-    "github.create_pr_on_fix": False
+    "github.create_pr_on_fix": False,
+
+    # Active Session State
+    "app.last_active_tab": "home"
 }
 
 

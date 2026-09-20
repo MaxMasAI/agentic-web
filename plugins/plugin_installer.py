@@ -370,7 +370,7 @@ class PluginInstallerDialog(QDialog):
                 color: #64748b;
             }
         """)
-        self.install_btn.clicked.connect(lambda: self._start_installation(overwrite=False))
+        self.install_btn.clicked.connect(lambda *args: self._start_installation(overwrite=False))
         button_layout.addWidget(self.install_btn)
 
         layout.addLayout(button_layout)

@@ -726,15 +726,51 @@ class SettingsPage(QWidget):
         cat_box.addWidget(btn_apply_preset)
         lay.addLayout(cat_box)
 
-        # Prompt Content Editor
+        # Prompt Content Editor Card (Full-width)
+        editor_card = QFrame()
+        editor_card.setStyleSheet("""
+            QFrame {
+                background: rgba(15, 23, 42, 0.5);
+                border: 1px solid rgba(56, 189, 248, 0.15);
+                border-radius: 8px;
+            }
+        """)
+        editor_lay = QVBoxLayout(editor_card)
+        editor_lay.setContentsMargins(14, 12, 14, 14)
+        editor_lay.setSpacing(8)
+
+        lbl_sys_title = QLabel("<b>Active System Prompt</b>")
+        lbl_sys_title.setStyleSheet("font-size: 13px; color: #f1f5f9; border: none; background: transparent;")
+        lbl_sys_desc = QLabel("Base prompt injected into models and agent loops.")
+        lbl_sys_desc.setStyleSheet("font-size: 11px; color: #94a3b8; border: none; background: transparent;")
+        editor_lay.addWidget(lbl_sys_title)
+        editor_lay.addWidget(lbl_sys_desc)
+
         txt_sys = QTextEdit()
-        txt_sys.setFixedHeight(180)
+        txt_sys.setFixedHeight(220)
         txt_sys.setPlaceholderText("Enter custom global system instructions or load a preset above...")
+        txt_sys.setStyleSheet("""
+            QTextEdit {
+                background: rgba(8, 11, 17, 0.85);
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 6px;
+                color: #f8fafc;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                padding: 10px;
+                line-height: 1.45;
+            }
+            QTextEdit:focus {
+                border: 1px solid #38bdf8;
+                background: rgba(8, 11, 17, 0.95);
+            }
+        """)
         default_claude_prompt = catalog.get_prompt_text("claude_coding_architect", "You are an expert autonomous AI coding assistant and agentic swarm orchestrator.")
         txt_sys.setText(default_claude_prompt)
-        
-        btn_apply_preset.clicked.connect(lambda: txt_sys.setText(catalog.get_prompt_text(cmb_catalog.currentData())))
-        lay.addWidget(create_setting_row("Active System Prompt", "Base prompt injected into models and agent loops.", txt_sys))
+
+        editor_lay.addWidget(txt_sys)
+        btn_apply_preset.clicked.connect(lambda *args: txt_sys.setText(catalog.get_prompt_text(cmb_catalog.currentData())))
+        lay.addWidget(editor_card)
 
         # Auto-match toggle
         cb_auto = QCheckBox()
@@ -950,8 +986,8 @@ class SettingsPage(QWidget):
         txt_agent.setPlainText(default_agent_template)
         v_add.addWidget(txt_agent)
 
-        btn_template.clicked.connect(lambda: txt_agent.setPlainText(default_agent_template))
-        btn_clear.clicked.connect(lambda: txt_agent.clear())
+        btn_template.clicked.connect(lambda *args: txt_agent.setPlainText(default_agent_template))
+        btn_clear.clicked.connect(lambda *args: txt_agent.clear())
 
         # Action row
         action_row = QHBoxLayout()
@@ -1082,7 +1118,7 @@ class SettingsPage(QWidget):
                             color: white;
                         }
                     """)
-                    btn_del.clicked.connect(lambda checked=False, target_id=aid: delete_agent_handler(target_id))
+                    btn_del.clicked.connect(lambda *args, target_id=aid: delete_agent_handler(target_id))
                     c_lay.addWidget(btn_del)
 
                 roster_layout.addWidget(card)
@@ -1097,7 +1133,7 @@ class SettingsPage(QWidget):
                 lbl_status.setText(f"❌ {msg}")
                 lbl_status.setStyleSheet("color: #ef4444; font-size: 11.5px; font-weight: 600;")
 
-        def register_agent_handler():
+        def register_agent_handler(*args):
             raw_text = txt_agent.toPlainText().strip()
             if not raw_text:
                 lbl_status.setText("❌ Please enter agent data in JSON or text format.")
@@ -1204,7 +1240,7 @@ class SettingsPage(QWidget):
 
         btn_chk = QPushButton("🔄 Check for Updates Now")
         btn_chk.setStyleSheet("background: #0284c7; color: white; border-radius: 6px; padding: 8px 16px; font-weight: bold;")
-        btn_chk.clicked.connect(lambda: QMessageBox.information(self, "Update Status", "You are running the latest version (v2.4.4)."))
+        btn_chk.clicked.connect(lambda *args: QMessageBox.information(self, "Update Status", "You are running the latest version (v2.4.4)."))
         lay.addWidget(create_setting_row("Check Updates", "Connects to release server to check for new builds.", btn_chk))
 
         lay.addStretch()

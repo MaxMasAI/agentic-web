@@ -45,12 +45,24 @@ def save_agent_chat_url(agent_id: str, current_url: str):
         return
 
     # Check if URL contains actual conversation identifiers
+    root_endpoints = {
+        "https://gemini.google.com",
+        "https://gemini.google.com/app",
+        "https://chat.deepseek.com",
+        "https://claude.ai",
+        "https://claude.ai/new",
+        "https://chatgpt.com",
+    }
+    cleaned_url = current_url.rstrip("/")
+    if cleaned_url in root_endpoints or current_url.endswith((".com", ".ai")):
+        # Generic homepage / landing page, skip until actual conversation ID is generated
+        return
+
     has_chat_id = any(p in current_url for p in [
         "/c/", "/chat/", "/app/", "/s/", "/search/", "?model=", "/thread/"
     ])
 
-    if not has_chat_id and current_url.endswith((".com", ".ai", ".com/", ".ai/")):
-        # Generic homepage, skip until actual conversation ID is generated
+    if not has_chat_id:
         return
 
     data = load_chat_sessions()

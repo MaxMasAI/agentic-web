@@ -1,0 +1,119 @@
+{
+  "gemini": {
+    "id": "gemini",
+    "name": "Google Gemini",
+    "role": "Master Orchestrator & Leadership Lead",
+    "specialization": "Project orchestration, multimodal asset evaluation, strict design quality audits, repetition filtering, prompt engineering refinement, and workflow direction.",
+    "state": "LEADER",
+    "current_task": "Master Orchestrator",
+    "last_updated": "Initialized"
+  },
+  "deepseek": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "role": "Creative Ideator & Deep Researcher",
+    "specialization": "Trend research, rapid concept brainstorming, cross-cultural aesthetic synthesis, and technical reasoning for fresh design ideation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "chatgpt": {
+    "id": "chatgpt",
+    "name": "OpenAI ChatGPT",
+    "role": "Campaign Synthesizer & Client Dispatcher",
+    "specialization": "Final copy production, campaign aggregation, social media marketing text, hashtag generation, and formatted client-facing deliverables.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "claude": {
+    "id": "claude",
+    "name": "Anthropic Claude",
+    "role": "Editorial & Nuance Reviewer",
+    "specialization": "In-depth editorial critique, long-form content structuring, tone refinement, and adherence to complex narrative constraints.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "meta_ai": {
+    "id": "meta_ai",
+    "name": "Meta AI",
+    "role": "Social Trends & Viral Formatting Agent",
+    "specialization": "Platform-specific social media hooks, viral pattern evaluation, and rapid audience engagement tactics.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "dalle": {
+    "id": "dalle",
+    "name": "OpenAI DALL-E 3 Specialist",
+    "role": "Graphic Asset Descriptor & Visual Prompt Designer",
+    "specialization": "Detailed text-to-image prompt styling, aspect ratio calculations, visual asset layout planning, and aesthetic style translation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "perplexity": {
+    "id": "perplexity",
+    "name": "Perplexity AI",
+    "role": "Real-Time Fact Checker & Citations Specialist",
+    "specialization": "Live web searching, source verification, comparative data auditing, and academic citation gathering.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "copilot": {
+    "id": "copilot",
+    "name": "Microsoft Copilot",
+    "role": "Office Suite & Enterprise Integration Specialist",
+    "specialization": "Enterprise workflow coordination, formatting guidelines, office documentation outline structures, and macro/data table automation formulas.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "nvidia_ai": {
+    "id": "nvidia_ai",
+    "name": "Nvidia NIM AI",
+    "role": "High-Performance GPU Compute & Optimization Advisor",
+    "specialization": "Technical scaling, performance profiling recommendations, API compute efficiency, and deep math/scientific calculation auditing.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "mistral": {
+    "id": "mistral",
+    "name": "Mistral Le Chat",
+    "role": "European Multilingual & Open-Weights Specialist",
+    "specialization": "Fluent translation across multiple European languages, light-weight utility scripts coding, and cost-effective task delegation.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "web_agent": {
+    "id": "web_agent",
+    "name": "Web-Agent",
+    "role": "Full-Screen Autonomous Browser & Screen Overseer",
+    "specialization": "Full-screen computer use, whole-page visual inspection, multi-window layout coordination, direct web navigation, interactive clicking, and overarching screen management.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "grok": {
+    "id": "grok",
+    "name": "xAI Grok",
+    "role": "Real-Time Deep Search & Unhinged Truth Specialist",
+    "specialization": "Real-time knowledge retrieval, maximum truth-seeking, razor-sharp witty analysis, spicy/humorous critical perspective, and advanced deep-thinking breakdowns.",
+    "state": "FREE",
+    "current_task": "Idle - Ready for assignment",
+    "last_updated": "Initialized"
+  },
+  "custom_lead_ai": {
+    "id": "custom_lead_ai",
+    "name": "Custom Supreme Commander",
+    "role": "Master Orchestrator AI",
+    "specialization": "Global multi-agent task planning.",
+    "state": "LEADER",
+    "current_task": "Master Orchestrator",
+    "last_updated": "Initialized"
+  }
+}

@@ -56,6 +56,7 @@ LOCAL_OLLAMA_TEMPLATE = """{
 
 class AddAgentDialog(QDialog):
     agent_added = Signal(dict)
+    agent_registered = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -114,8 +115,9 @@ class AddAgentDialog(QDialog):
 
         # Presets Bar
         preset_box = QFrame()
+        preset_box.setObjectName("PresetBox")
         preset_box.setStyleSheet("""
-            QFrame {
+            QFrame#PresetBox {
                 background-color: rgba(15, 23, 42, 0.7);
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 8px;
@@ -149,7 +151,7 @@ class AddAgentDialog(QDialog):
                     color: #0b1120;
                 }
             """)
-            btn.clicked.connect(lambda: self.editor.setPlainText(template))
+            btn.clicked.connect(lambda *args, tmpl=template: self.editor.setPlainText(tmpl))
             return btn
 
         preset_lay.addWidget(make_preset_btn("🤖 Specialist", DEFAULT_TEMPLATE))
@@ -248,6 +250,7 @@ class AddAgentDialog(QDialog):
         if success:
             QMessageBox.information(self, "Agent Registered", msg)
             self.agent_added.emit(parsed)
+            self.agent_registered.emit(parsed)
             self.accept()
         else:
             QMessageBox.critical(self, "Registration Failed", f"Failed to register custom agent:\n\n{msg}")

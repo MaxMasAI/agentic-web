@@ -44,5 +44,17 @@
       "claude"
     ],
     "created": "2026-09-05 14:31"
+  },
+  {
+    "name": "⚡ Grok Deep Think & Live Search Squad",
+    "desc": "Real-time web intelligence, truth-seeking inquiry, unfiltered critique & deep reasoning synthesis",
+    "task": "Perform exhaustive real-time intelligence search, analyze controversies, and synthesize deep truth-seeking reports",
+    "agents": [
+      "grok",
+      "perplexity",
+      "gemini",
+      "deepseek"
+    ],
+    "created": "2026-09-20 20:25"
   }
 ]

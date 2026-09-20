@@ -19,10 +19,15 @@ from system.system_prompts import SystemPromptsCatalog, SystemPromptExtraService
 class TestSystemPackage(unittest.TestCase):
 
     def test_system_cursor_constants(self):
-        """Verify System Cursor styling parameters."""
+        """Verify System Cursor styling parameters and red System cursor template."""
         self.assertEqual(SYSTEM_CURSOR_COLOR, "#7c3aed")
         self.assertIn("system-cursor-wrapper", SYSTEM_CURSOR_JS)
-        self.assertIn("System Operator", SYSTEM_CURSOR_JS)
+        from system.system_cursor import get_agent_cursor_template
+        sys_tmpl = get_agent_cursor_template("system")
+        self.assertEqual(sys_tmpl["id"], "system")
+        self.assertEqual(sys_tmpl["name"], "System")
+        self.assertEqual(sys_tmpl["color"], "#ef4444")
+        self.assertIn("#ef4444", sys_tmpl["gradient"])
 
     def test_system_app_launcher_detection(self):
         """Verify native system application task classification."""

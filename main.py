@@ -9,12 +9,6 @@ import os
 # Ensure workspace root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Install Autonomous GitHub Crash & Issue Reporter
-try:
-    from system.issue_reporter import install_crash_reporter
-    install_crash_reporter()
-except Exception as e:
-    pass
 
 if __name__ == "__main__":
     if "--watch" in sys.argv or "--dev" in sys.argv or "--auto-restart" in sys.argv:

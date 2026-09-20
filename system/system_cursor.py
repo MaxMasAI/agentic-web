@@ -15,11 +15,24 @@ from typing import Optional, Tuple, Dict, Any
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Agent Cursor Visual Templates Registry
 # ─────────────────────────────────────────────────────────────────────────────
+SYSTEM_CURSOR_COLOR = "#7c3aed"
+
 AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
+    "system": {
+        "id": "system",
+        "name": "System",
+        "icon": "⚡",
+        "color": "#ef4444",                 # Vibrant System Red
+        "gradient": "linear-gradient(135deg, #ef4444, #dc2626)",
+        "dot_color": "#fb7185",
+        "accent": "#fecdd3",
+        "role_title": "OS System Controller",
+        "default_action": "System Follow"
+    },
     "gemini": {
         "id": "gemini",
         "name": "Google Gemini",
-        "icon": "👑",
+        "icon": "✨",
         "color": "#7c3aed",                 # Royal Violet
         "gradient": "linear-gradient(135deg, #4285f4, #9333ea)",
         "dot_color": "#a78bfa",
@@ -30,7 +43,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "deepseek": {
         "id": "deepseek",
         "name": "DeepSeek",
-        "icon": "🔬",
+        "icon": "🐋",
         "color": "#2563eb",                 # Deep Blue
         "gradient": "linear-gradient(135deg, #3b82f6, #1d4ed8)",
         "dot_color": "#60a5fa",
@@ -41,7 +54,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "chatgpt": {
         "id": "chatgpt",
         "name": "OpenAI ChatGPT",
-        "icon": "✍️",
+        "icon": "✳️",
         "color": "#059669",                 # OpenAI Emerald
         "gradient": "linear-gradient(135deg, #10b981, #047857)",
         "dot_color": "#34d399",
@@ -52,7 +65,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "claude": {
         "id": "claude",
         "name": "Anthropic Claude",
-        "icon": "🎭",
+        "icon": "✴️",
         "color": "#d97706",                 # Warm Amber / Terracotta
         "gradient": "linear-gradient(135deg, #f59e0b, #b45309)",
         "dot_color": "#fcd34d",
@@ -63,7 +76,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "meta_ai": {
         "id": "meta_ai",
         "name": "Meta AI",
-        "icon": "🌐",
+        "icon": "♾️",
         "color": "#0284c7",                 # Meta Sky Blue
         "gradient": "linear-gradient(135deg, #0ea5e9, #0369a1)",
         "dot_color": "#38bdf8",
@@ -96,7 +109,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "copilot": {
         "id": "copilot",
         "name": "Microsoft Copilot",
-        "icon": "📎",
+        "icon": "🪟",
         "color": "#0078d4",                 # Windows / Microsoft Blue
         "gradient": "linear-gradient(135deg, #0284c7, #005a9e)",
         "dot_color": "#38bdf8",
@@ -107,7 +120,7 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
     "nvidia_ai": {
         "id": "nvidia_ai",
         "name": "Nvidia NIM AI",
-        "icon": "⚡",
+        "icon": "🟩",
         "color": "#65a30d",                 # Nvidia Lime Green
         "gradient": "linear-gradient(135deg, #76b900, #4d7c0f)",
         "dot_color": "#a3e635",
@@ -136,6 +149,28 @@ AGENT_CURSOR_TEMPLATES: Dict[str, Dict[str, Any]] = {
         "accent": "#cffafe",
         "role_title": "OS Browser Overseer",
         "default_action": "Full-Screen Navigation..."
+    },
+    "qwen": {
+        "id": "qwen",
+        "name": "Qwen 2.5 Coder",
+        "icon": "💻",
+        "color": "#a855f7",
+        "gradient": "linear-gradient(135deg, #a855f7, #7c3aed)",
+        "dot_color": "#c084fc",
+        "accent": "#e9d5ff",
+        "role_title": "Senior Engineer",
+        "default_action": "Full-Stack Coding..."
+    },
+    "qwen_coder": {
+        "id": "qwen_coder",
+        "name": "Qwen 2.5 Coder",
+        "icon": "💻",
+        "color": "#a855f7",
+        "gradient": "linear-gradient(135deg, #a855f7, #7c3aed)",
+        "dot_color": "#c084fc",
+        "accent": "#e9d5ff",
+        "role_title": "Senior Engineer",
+        "default_action": "Full-Stack Coding..."
     }
 }
 
@@ -334,7 +369,19 @@ SYSTEM_CURSOR_JS = """
 
     window.__system_cursor_x = window.innerWidth / 2;
     window.__system_cursor_y = window.innerHeight / 2;
+    window.__system_cursor_follow_mouse = false;
     wrapper.style.transform = `translate(${window.__system_cursor_x}px, ${window.__system_cursor_y}px)`;
+
+    document.addEventListener('mousemove', (e) => {
+        if (window.__system_cursor_follow_mouse) {
+            const wrap = document.getElementById('system-cursor-wrapper');
+            if (wrap) {
+                wrap.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+                window.__system_cursor_x = e.clientX;
+                window.__system_cursor_y = e.clientY;
+            }
+        }
+    });
 })();
 """
 
@@ -386,6 +433,31 @@ async def inject_system_cursor(
         }})();
         """
         await page.evaluate(update_js)
+    except Exception:
+        pass
+
+
+async def enable_mouse_follow(page, agent_id: str = "system", action_text: str = "Live Follow"):
+    """
+    Enables live mouse tracking so the cursor follows the user's mouse pointer with the specified agent badge.
+    """
+    if not page:
+        return
+    await inject_system_cursor(page, agent_id=agent_id, action_text=action_text)
+    try:
+        await page.evaluate("window.__system_cursor_follow_mouse = true;")
+    except Exception:
+        pass
+
+
+async def disable_mouse_follow(page):
+    """
+    Disables live mouse following mode in browser.
+    """
+    if not page:
+        return
+    try:
+        await page.evaluate("window.__system_cursor_follow_mouse = false;")
     except Exception:
         pass
 
@@ -452,20 +524,20 @@ async def simulate_system_cursor_click(page, target_x: float, target_y: float, a
 # ─────────────────────────────────────────────────────────────────────────────
 try:
     from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout
-    from PySide6.QtCore import Qt, QPoint, QRect
-    from PySide6.QtGui import QPainter, QColor, QPolygon, QFont, QPen, QBrush
+    from PySide6.QtCore import Qt, QPoint, QRect, QTimer
+    from PySide6.QtGui import QPainter, QColor, QPolygon, QFont, QPen, QBrush, QCursor
 
     class DesktopSystemCursorOverlay(QWidget):
         """
         A native transparent, click-through overlay window rendering the dynamic
         agent cursor across the Windows desktop styled with the active worker's template.
         """
-        def __init__(self, parent=None):
+        def __init__(self, agent_id: str = "system", parent=None):
             super().__init__(parent)
             self.setWindowFlags(
                 Qt.WindowStaysOnTopHint |
                 Qt.FramelessWindowHint |
-                Qt.SubWindow |
+                Qt.Tool |
                 Qt.WindowTransparentForInput
             )
             self.setAttribute(Qt.WA_TranslucentBackground, True)
@@ -473,19 +545,17 @@ try:
             self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
             self.cursor_pos = QPoint(400, 300)
-            self.current_agent_id = "gemini"
-            self.template = get_agent_cursor_template("gemini")
-            self.action_text = self.template.get("default_action", "Master Orchestrator")
-            self.resize(360, 90)
+            self.current_agent_id = agent_id
+            self.template = get_agent_cursor_template(agent_id)
+            self.action_text = ""
+            self._follow_timer = None
+            self.resize(260, 48)
 
         def set_active_worker(self, agent_id: str, action_text: str = ""):
             """Dynamically updates the overlay to match the active worker agent's template."""
             self.current_agent_id = agent_id
             self.template = get_agent_cursor_template(agent_id, action_text)
-            if action_text:
-                self.action_text = action_text
-            else:
-                self.action_text = self.template.get("default_action", "")
+            self.action_text = action_text
             self.update()
 
         def set_cursor_location(self, x: int, y: int, action_text: str = ""):
@@ -493,51 +563,92 @@ try:
             self.cursor_pos = QPoint(x, y)
             if action_text:
                 self.action_text = action_text
-            self.move(x - 4, y - 4)
+            self.move(x - 2, y - 2)
             self.update()
+
+        def start_following_mouse(self, interval_ms: int = 16):
+            """Starts a high-refresh timer to follow the mouse pointer continuously."""
+            if self._follow_timer is None:
+                self._follow_timer = QTimer(self)
+                self._follow_timer.timeout.connect(self._sync_with_os_cursor)
+            if not self._follow_timer.isActive():
+                self._follow_timer.start(interval_ms)
+
+        def stop_following_mouse(self):
+            """Stops following the mouse pointer."""
+            if self._follow_timer and self._follow_timer.isActive():
+                self._follow_timer.stop()
+
+        def _sync_with_os_cursor(self):
+            pos = QCursor.pos()
+            self.set_cursor_location(pos.x(), pos.y())
 
         def paintEvent(self, event):
             painter = QPainter(self)
             painter.setRenderHint(QPainter.Antialiasing, True)
 
             tmpl = self.template
+            theme_color = QColor(tmpl.get("color", "#e11d48"))
+            dot_color = QColor(tmpl.get("dot_color", "#fb7185"))
+            accent_color = QColor(tmpl.get("accent", "#fecdd3"))
 
-            # 1. Draw Pointer Arrow with Agent's Color
+            # 1. Compact sleek pointer arrow (Tip precisely at (2, 2))
             pointer = QPolygon([
-                QPoint(4, 4),
-                QPoint(22, 12),
-                QPoint(14, 15),
-                QPoint(11, 23)
+                QPoint(2, 2),
+                QPoint(15, 8),
+                QPoint(10, 10),
+                QPoint(8, 16)
             ])
-            ptr_color = QColor(tmpl.get("color", "#7c3aed"))
-            painter.setBrush(QBrush(ptr_color))
-            painter.setPen(QPen(QColor("#ffffff"), 1.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.setBrush(QBrush(theme_color))
+            painter.setPen(QPen(QColor("#ffffff"), 1.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             painter.drawPolygon(pointer)
 
-            # 2. Draw Badge Pill
-            badge_rect = QRect(24, 16, 290, 28)
-            badge_bg = QColor(tmpl.get("color", "#7c3aed"))
-            badge_bg.setAlpha(225)
-            painter.setBrush(QBrush(badge_bg))
-            painter.setPen(QPen(QColor(tmpl.get("dot_color", "#a78bfa")), 1))
-            painter.drawRoundedRect(badge_rect, 6, 6)
+            # 2. Text Measurement
+            font_main = QFont("Segoe UI", 8, QFont.Bold)
+            painter.setFont(font_main)
+            fm = painter.fontMetrics()
 
-            # 3. Draw Glowing Dot
-            painter.setBrush(QBrush(QColor(tmpl.get("dot_color", "#a78bfa"))))
+            name_str = f"{tmpl.get('icon', '⚡')} {tmpl.get('name', 'System')}"
+            name_w = fm.horizontalAdvance(name_str)
+
+            action_clean = self.action_text.strip() if self.action_text else ""
+            if action_clean in ("System Live Follow...", "System Active"):
+                action_clean = ""
+
+            action_str = f"• {action_clean}" if action_clean else ""
+            font_sub = QFont("Segoe UI", 7, QFont.Bold)
+            painter.setFont(font_sub)
+            fm_sub = painter.fontMetrics()
+            action_w = fm_sub.horizontalAdvance(action_str) if action_str else 0
+
+            pill_w = name_w + (action_w + 8 if action_w else 0) + 20
+            pill_h = 20
+            pill_x = 16
+            pill_y = 8
+            badge_rect = QRect(pill_x, pill_y, pill_w, pill_h)
+
+            # 3. Sleek Dark Obsidian Glass Background with Ruby Neon Border
+            bg_color = QColor("#090d16")
+            bg_color.setAlpha(235)
+            painter.setBrush(QBrush(bg_color))
+            painter.setPen(QPen(theme_color, 1.2))
+            painter.drawRoundedRect(badge_rect, 10, 10)
+
+            # 4. Glowing Indicator Dot
+            painter.setBrush(QBrush(dot_color))
             painter.setPen(Qt.NoPen)
-            painter.drawEllipse(QPoint(34, 30), 3, 3)
+            painter.drawEllipse(QPoint(pill_x + 8, pill_y + 10), 2.5, 2.5)
 
-            # 4. Draw Agent Icon & Name
-            painter.setFont(QFont("Segoe UI", 9, QFont.Bold))
+            # 5. Icon & Name
+            painter.setFont(font_main)
             painter.setPen(QColor("#ffffff"))
-            display_title = f"{tmpl.get('icon', '🤖')} {tmpl.get('name', 'Agent')}"
-            painter.drawText(44, 34, display_title)
+            painter.drawText(pill_x + 14, pill_y + 14, name_str)
 
-            # 5. Draw Action Chip
-            if self.action_text:
-                painter.setFont(QFont("Segoe UI", 8, QFont.Bold))
-                painter.setPen(QColor(tmpl.get("accent", "#38bdf8")))
-                painter.drawText(180, 34, f"• {self.action_text[:18]}")
+            # 6. Action text (if executing active task)
+            if action_str:
+                painter.setFont(font_sub)
+                painter.setPen(accent_color)
+                painter.drawText(pill_x + 14 + name_w + 5, pill_y + 14, action_str)
 
 except Exception:
     DesktopSystemCursorOverlay = None

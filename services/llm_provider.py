@@ -40,8 +40,12 @@ DEFAULT_MODELS = [
     {"id": "deepseek-reasoner", "name": "🐋 DeepSeek R1 (Reasoner)", "provider": "DeepSeek", "badge": "CLOUD"},
     # Perplexity
     {"id": "sonar-pro", "name": "🔮 Perplexity Sonar Pro (Web)", "provider": "Perplexity", "badge": "CLOUD"},
-    # xAI Grok
-    {"id": "grok-2-latest", "name": "⚡ xAI Grok 2", "provider": "xAI", "badge": "CLOUD"},
+    # xAI Grok Models
+    {"id": "grok-2-latest", "name": "⚡ xAI Grok 2 (Official)", "provider": "xAI", "badge": "CLOUD"},
+    {"id": "grok-2-vision-1212", "name": "⚡ xAI Grok 2 Vision", "provider": "xAI", "badge": "CLOUD"},
+    {"id": "grok-beta", "name": "⚡ xAI Grok Beta", "provider": "xAI", "badge": "CLOUD"},
+    {"id": "openrouter:x-ai/grok-2-1212", "name": "🚀 xAI Grok 2 (OpenRouter)", "provider": "OpenRouter", "badge": "CLOUD"},
+    {"id": "openrouter:x-ai/grok-vision-beta", "name": "🚀 xAI Grok Vision (OpenRouter)", "provider": "OpenRouter", "badge": "CLOUD"},
 ]
 
 
@@ -441,8 +445,11 @@ def generate_chat_response(
         except Exception as e:
             return {"role": "assistant", "content": f"**[OpenRouter Connection Error]** {e}", "model": model_id, "tokens": 0}
 
-    # 5. OpenAI / DeepSeek / Perplexity via OpenAI-compatible endpoints
-    if "deepseek" in model_id.lower() and keys.get("deepseek"):
+    # 5. OpenAI / DeepSeek / Perplexity / xAI Grok via OpenAI-compatible endpoints
+    if "grok" in model_id.lower() and (keys.get("grok") or os.getenv("GROK_API_KEY") or os.getenv("XAI_API_KEY")):
+        endpoint = "https://api.x.ai/v1/chat/completions"
+        api_key = keys.get("grok") or os.getenv("GROK_API_KEY") or os.getenv("XAI_API_KEY")
+    elif "deepseek" in model_id.lower() and keys.get("deepseek"):
         endpoint = "https://api.deepseek.com/v1/chat/completions"
         api_key = keys.get("deepseek")
     elif "sonar" in model_id.lower() and keys.get("perplexity"):

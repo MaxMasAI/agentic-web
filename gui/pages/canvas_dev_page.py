@@ -752,11 +752,11 @@ class AgentInspectorNodeWidget(QFrame):
 
         approve_btn = QPushButton("✅ Approve")
         approve_btn.setStyleSheet("background: #059669; color: white; font-weight: 700; font-size: 10px; border-radius: 3px; padding: 2px 8px;")
-        approve_btn.clicked.connect(lambda: self.handle_hitl_decision(True))
+        approve_btn.clicked.connect(lambda *args: self.handle_hitl_decision(True))
 
         reject_btn = QPushButton("❌ Reject")
         reject_btn.setStyleSheet("background: #dc2626; color: white; font-weight: 700; font-size: 10px; border-radius: 3px; padding: 2px 8px;")
-        reject_btn.clicked.connect(lambda: self.handle_hitl_decision(False))
+        reject_btn.clicked.connect(lambda *args: self.handle_hitl_decision(False))
 
         hitl_layout.addWidget(self.hitl_msg, stretch=1)
         hitl_layout.addWidget(approve_btn)
@@ -1002,7 +1002,7 @@ class FileDiffNodeWidget(QFrame):
 
         edit_toggle = QPushButton("✏️ Edit")
         edit_toggle.setStyleSheet("background: #1e293b; color: #cbd5e1; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;")
-        edit_toggle.clicked.connect(lambda: self.diff_view.setReadOnly(not self.diff_view.isReadOnly()))
+        edit_toggle.clicked.connect(lambda *args: self.diff_view.setReadOnly(not self.diff_view.isReadOnly()))
 
         ftr.addWidget(accept_btn)
         ftr.addWidget(discard_btn)
@@ -1808,25 +1808,25 @@ class CanvasDevPage(QWidget):
         add_term_btn = QPushButton("➕ Terminal")
         add_term_btn.setToolTip("Add new Terminal Node (Ctrl+T)")
         add_term_btn.setStyleSheet("background: #0f172a; color: #38bdf8; border: 1px solid #1e293b; border-radius: 4px; padding: 4px 8px; font-weight: 700; font-size: 11px;")
-        add_term_btn.clicked.connect(lambda: self.spawn_node("terminal"))
+        add_term_btn.clicked.connect(lambda *args: self.spawn_node("terminal"))
         tb_layout.addWidget(add_term_btn)
 
         add_agent_btn = QPushButton("➕ Agent")
         add_agent_btn.setToolTip("Add new Autonomous Agent Node (Alt+A / Ctrl+Shift+A)")
         add_agent_btn.setStyleSheet("background: #0f172a; color: #a78bfa; border: 1px solid #1e293b; border-radius: 4px; padding: 4px 8px; font-weight: 700; font-size: 11px;")
-        add_agent_btn.clicked.connect(lambda: self.spawn_node("agent"))
+        add_agent_btn.clicked.connect(lambda *args: self.spawn_node("agent"))
         tb_layout.addWidget(add_agent_btn)
 
         add_file_btn = QPushButton("➕ File/Diff")
         add_file_btn.setToolTip("Add new File/Diff Node (Alt+D / Ctrl+D)")
         add_file_btn.setStyleSheet("background: #0f172a; color: #34d399; border: 1px solid #1e293b; border-radius: 4px; padding: 4px 8px; font-weight: 700; font-size: 11px;")
-        add_file_btn.clicked.connect(lambda: self.spawn_node("file_diff"))
+        add_file_btn.clicked.connect(lambda *args: self.spawn_node("file_diff"))
         tb_layout.addWidget(add_file_btn)
 
         add_note_btn = QPushButton("📌 Note")
         add_note_btn.setToolTip("Add Spatial Spec / Sticky Note (Alt+N)")
         add_note_btn.setStyleSheet("background: #0f172a; color: #c7d2fe; border: 1px solid #1e293b; border-radius: 4px; padding: 4px 8px; font-weight: 700; font-size: 11px;")
-        add_note_btn.clicked.connect(lambda: self.spawn_node("note"))
+        add_note_btn.clicked.connect(lambda *args: self.spawn_node("note"))
         tb_layout.addWidget(add_note_btn)
 
         # Pipeline Trigger
@@ -1873,7 +1873,7 @@ class CanvasDevPage(QWidget):
         center_btn = QPushButton("🎯 Center")
         center_btn.setToolTip("Center viewport at origin (Ctrl+0)")
         center_btn.setStyleSheet("background: #1e293b; color: #cbd5e1; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;")
-        center_btn.clicked.connect(lambda: self.view.centerOn(0, 0))
+        center_btn.clicked.connect(lambda *args: self.view.centerOn(0, 0))
         tb_layout.addWidget(center_btn)
 
         # Shortcuts Info Button

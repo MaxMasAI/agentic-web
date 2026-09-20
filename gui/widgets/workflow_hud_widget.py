@@ -74,8 +74,9 @@ class AgentWorkflowCard(QFrame):
 
         # Pill Badge Frame matching screenshot
         self.badge_frame = QFrame()
+        self.badge_frame.setObjectName("BadgeFrame")
         self.badge_frame.setStyleSheet(f"""
-            QFrame {{
+            QFrame#BadgeFrame {{
                 background-color: {self.color_hex};
                 border-radius: 6px;
                 padding: 3px 8px;
@@ -126,7 +127,7 @@ class AgentWorkflowCard(QFrame):
                 color: #030712;
             }
         """)
-        self.pop_btn.clicked.connect(lambda: self.focus_requested.emit(self.agent_id))
+        self.pop_btn.clicked.connect(lambda *args, aid=self.agent_id: self.focus_requested.emit(aid))
         h_top.addWidget(self.pop_btn)
 
         v_box.addLayout(h_top)

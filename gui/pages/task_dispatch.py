@@ -14,6 +14,7 @@ from PySide6.QtGui import QCursor, QKeySequence, QShortcut
 
 from gui.widgets.terminal_view import TerminalView
 from gui.widgets.pool_monitor import PoolMonitor
+from gui.widgets.slash_autocomplete import attach_slash_autocomplete
 from utils.latency_manager import load_latency_config, save_latency_config, PROFILES
 
 
@@ -67,11 +68,11 @@ class TaskDispatchPage(QWidget):
         # Presets Row
         preset_row = QHBoxLayout()
         btn_turbo = QPushButton("🚀 Turbo (0.5s)")
-        btn_turbo.clicked.connect(lambda: self.apply_latency_profile("turbo"))
+        btn_turbo.clicked.connect(lambda *args: self.apply_latency_profile("turbo"))
         btn_bal = QPushButton("⚖️ Balanced (1.5s)")
-        btn_bal.clicked.connect(lambda: self.apply_latency_profile("balanced"))
+        btn_bal.clicked.connect(lambda *args: self.apply_latency_profile("balanced"))
         btn_paced = QPushButton("🐢 Paced (3.5s)")
-        btn_paced.clicked.connect(lambda: self.apply_latency_profile("paced"))
+        btn_paced.clicked.connect(lambda *args: self.apply_latency_profile("paced"))
         
         preset_row.addWidget(btn_turbo)
         preset_row.addWidget(btn_bal)
@@ -124,6 +125,7 @@ class TaskDispatchPage(QWidget):
         self.prompt_edit = QTextEdit()
         self.prompt_edit.setPlaceholderText("Describe your project, code requirements, research topic, or design asset... (Ctrl+Enter to deploy)")
         self.prompt_edit.setFixedHeight(120)
+        attach_slash_autocomplete(self.prompt_edit)
         left_box.addWidget(self.prompt_edit)
 
         # Agent Allocation Strategy

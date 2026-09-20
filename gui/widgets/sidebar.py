@@ -109,6 +109,7 @@ class Sidebar(QWidget):
             ("vscode", "💻", "VS Code Studio"),
             ("canvas_dev", "🌌", "Agent Canvas IDE"),
             ("playground", "🎮", "Playground Studio"),
+            ("harness", "⚡", "MaxMasAI Harness (Dev)"),
             ("agent_builder", "🧩", "Node Agent Builder"),
             ("painter", "🖌️", "Painter Canvas"),
             ("notepad", "📝", "Smart Notepad"),
@@ -230,8 +231,9 @@ class Sidebar(QWidget):
 
         # Brand Box Header
         self.brand_frame = QFrame()
+        self.brand_frame.setObjectName("BrandFrame")
         self.brand_frame.setStyleSheet("""
-            QFrame {
+            QFrame#BrandFrame {
                 background: rgba(15, 23, 42, 0.7);
                 border: 1px solid rgba(56, 189, 248, 0.2);
                 border-radius: 8px;
@@ -287,8 +289,9 @@ class Sidebar(QWidget):
 
         # Active Missions Container
         self.active_missions_frame = QFrame()
+        self.active_missions_frame.setObjectName("ActiveMissionsFrame")
         self.active_missions_frame.setStyleSheet("""
-            QFrame {
+            QFrame#ActiveMissionsFrame {
                 background: rgba(245, 158, 11, 0.08);
                 border: 1px solid rgba(245, 158, 11, 0.3);
                 border-radius: 8px;

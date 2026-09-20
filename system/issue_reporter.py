@@ -381,13 +381,14 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
 
 
 def install_crash_reporter():
-    """Installs global exception handlers into sys and threading modules."""
+    """Disabled by default so development and execution remain clean without automatic GitHub crash reporting."""
+    if "--enable-github-reporter" not in sys.argv:
+        return
     sys.excepthook = global_exception_handler
     if hasattr(threading, "excepthook"):
         def thread_exception_handler(args):
             global_exception_handler(args.exc_type, args.exc_value, args.exc_traceback)
         threading.excepthook = thread_exception_handler
-    print("\033[92m[IssueReporter] Autonomous GitHub Crash & Issue Reporter Active (Target: MaxMasAI/agentic-web)\033[0m")
 
 
 if __name__ == "__main__":

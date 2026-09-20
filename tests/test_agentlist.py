@@ -173,19 +173,26 @@ class TestAgentList(unittest.TestCase):
         # Test Gemini template
         gemini_tmpl = get_agent_cursor_template("gemini")
         self.assertEqual(gemini_tmpl["id"], "gemini")
-        self.assertEqual(gemini_tmpl["icon"], "👑")
+        self.assertEqual(gemini_tmpl["icon"], "✨")
         self.assertEqual(gemini_tmpl["color"], "#7c3aed")
 
         # Test DeepSeek template
         deepseek_tmpl = get_agent_cursor_template("deepseek")
         self.assertEqual(deepseek_tmpl["id"], "deepseek")
-        self.assertEqual(deepseek_tmpl["icon"], "🔬")
+        self.assertEqual(deepseek_tmpl["icon"], "🐋")
         self.assertEqual(deepseek_tmpl["color"], "#2563eb")
 
         # Test Claude template
         claude_tmpl = get_agent_cursor_template("claude")
         self.assertEqual(claude_tmpl["id"], "claude")
-        self.assertEqual(claude_tmpl["icon"], "🎭")
+        self.assertEqual(claude_tmpl["icon"], "✴️")
+
+        # Test System cursor template
+        system_tmpl = get_agent_cursor_template("system")
+        self.assertEqual(system_tmpl["id"], "system")
+        self.assertEqual(system_tmpl["name"], "System")
+        self.assertEqual(system_tmpl["color"], "#ef4444")
+        self.assertIn("#ef4444", system_tmpl["gradient"])
 
         # Test Custom / Unknown model template generation
         custom_tmpl = get_agent_cursor_template("qwen_coder")

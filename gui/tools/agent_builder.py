@@ -194,27 +194,27 @@ class AgentBuilderPage(QWidget):
         toolbar.setSpacing(8)
 
         self.btn_add_start = QPushButton("🎯 + Start")
-        self.btn_add_start.clicked.connect(lambda: self.add_node_by_type(NodeType.START))
+        self.btn_add_start.clicked.connect(lambda *args: self.add_node_by_type(NodeType.START))
         toolbar.addWidget(self.btn_add_start)
 
         self.btn_add_agent = QPushButton("🤖 + Agent")
-        self.btn_add_agent.clicked.connect(lambda: self.add_node_by_type(NodeType.AGENT))
+        self.btn_add_agent.clicked.connect(lambda *args: self.add_node_by_type(NodeType.AGENT))
         toolbar.addWidget(self.btn_add_agent)
 
         self.btn_add_memory = QPushButton("🧠 + Memory")
-        self.btn_add_memory.clicked.connect(lambda: self.add_node_by_type(NodeType.MEMORY))
+        self.btn_add_memory.clicked.connect(lambda *args: self.add_node_by_type(NodeType.MEMORY))
         toolbar.addWidget(self.btn_add_memory)
 
         self.btn_add_end = QPushButton("🏁 + End")
-        self.btn_add_end.clicked.connect(lambda: self.add_node_by_type(NodeType.END))
+        self.btn_add_end.clicked.connect(lambda *args: self.add_node_by_type(NodeType.END))
         toolbar.addWidget(self.btn_add_end)
 
         self.btn_connect = QPushButton("🔗 Connect Selected")
-        self.btn_connect.clicked.connect(self.connect_selected_nodes)
+        self.btn_connect.clicked.connect(lambda *args: self.connect_selected_nodes())
         toolbar.addWidget(self.btn_connect)
 
         self.btn_clear = QPushButton("🗑️ Clear Canvas")
-        self.btn_clear.clicked.connect(self.clear_canvas)
+        self.btn_clear.clicked.connect(lambda *args: self.clear_canvas())
         toolbar.addWidget(self.btn_clear)
 
         toolbar.addStretch()
@@ -226,7 +226,7 @@ class AgentBuilderPage(QWidget):
 
         self.btn_compile = QPushButton("🚀 Compile & Register Preset")
         self.btn_compile.setProperty("class", "primary-btn")
-        self.btn_compile.clicked.connect(self.compile_preset)
+        self.btn_compile.clicked.connect(lambda *args: self.compile_preset())
         toolbar.addWidget(self.btn_compile)
 
         main_layout.addLayout(toolbar)

@@ -18,6 +18,7 @@ from services.llm_provider import get_available_models, generate_chat_response
 from services.context_storage import (
     get_context_db, is_context_enabled, set_context_enabled
 )
+from gui.widgets.slash_autocomplete import attach_slash_autocomplete
 
 
 class ChatWorker(QThread):
@@ -171,8 +172,50 @@ class ChatPage(QWidget):
         self.chat_layout.setSpacing(12)
         self.chat_layout.addStretch()
         self.scroll.setWidget(self.chat_container)
-
         right_layout.addWidget(self.scroll, stretch=1)
+
+        # Unified Input Container Card
+        input_card = QFrame()
+        input_card.setStyleSheet("""
+            QFrame {
+                background: rgba(15, 23, 42, 0.75);
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 12px;
+            }
+        """)
+        input_card_lay = QVBoxLayout(input_card)
+        input_card_lay.setContentsMargins(10, 8, 10, 8)
+        input_card_lay.setSpacing(8)
+
+        # Persona & Intelligence Mode Toolbar
+        mode_bar = QHBoxLayout()
+        mode_bar.setSpacing(6)
+
+        mode_lbl = QLabel("⚡ <b>Mode:</b>")
+        mode_lbl.setStyleSheet("font-size: 11px; color: #94a3b8; font-family: monospace; border: none; background: transparent;")
+        mode_bar.addWidget(mode_lbl)
+
+        self.active_mode = "normal"  # normal, fun, think, search
+        self.mode_buttons = {}
+
+        modes = [
+            ("normal", "⚡ Normal", "Direct, concise, objective logic"),
+            ("fun", "🔥 Fun / Rebel", "Witty, humorous, sarcastic, unhinged personality"),
+            ("think", "🧠 Deep Think", "Deep reasoning chain, step-by-step hypothesis & thought trace"),
+            ("search", "🌐 Live Search", "Real-time web verification, fact-checking & cited synthesis")
+        ]
+
+        for mode_key, mode_title, mode_tip in modes:
+            btn = QPushButton(mode_title)
+            btn.setToolTip(mode_tip)
+            btn.setCursor(QCursor(Qt.PointingHandCursor))
+            btn.setFixedHeight(26)
+            btn.clicked.connect(lambda checked=False, k=mode_key: self.set_chat_mode(k))
+            self.mode_buttons[mode_key] = btn
+            mode_bar.addWidget(btn)
+
+        mode_bar.addStretch()
+        input_card_lay.addLayout(mode_bar)
 
         # Message Input Bar
         input_bar = QHBoxLayout()
@@ -180,16 +223,53 @@ class ChatPage(QWidget):
 
         self.input_edit = QTextEdit()
         self.input_edit.setPlaceholderText("Type a message or prompt... (Ctrl+Enter to Send, Enter for newline)")
-        self.input_edit.setFixedHeight(70)
+        self.input_edit.setFixedHeight(68)
+        self.input_edit.setStyleSheet("""
+            QTextEdit {
+                background: rgba(8, 11, 17, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: #f8fafc;
+                font-size: 13px;
+                padding: 8px 10px;
+            }
+            QTextEdit:focus {
+                border: 1px solid #38bdf8;
+                background: rgba(8, 11, 17, 0.95);
+            }
+        """)
         self.input_edit.installEventFilter(self)
+        attach_slash_autocomplete(self.input_edit)
         input_bar.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("🚀 Send")
-        self.send_btn.setProperty("class", "primary-btn")
-        self.send_btn.setFixedSize(90, 70)
+        self.send_btn.setFixedSize(90, 68)
+        self.send_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.send_btn.setToolTip("Send Message (Ctrl+Enter)")
+        self.send_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #38bdf8);
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: 800;
+                border: 1px solid #7dd3fc;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0369a1, stop:1 #0284c7);
+                border: 1px solid #38bdf8;
+            }
+            QPushButton:disabled {
+                background: rgba(30, 41, 59, 0.5);
+                color: #64748b;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+        """)
         self.send_btn.clicked.connect(self.send_message)
         input_bar.addWidget(self.send_btn)
+
+        input_card_lay.addLayout(input_bar)
+        right_layout.addWidget(input_card)
 
         # Page Shortcuts
         self.new_chat_sc = QShortcut(QKeySequence("Ctrl+N"), self)
@@ -200,7 +280,6 @@ class ChatPage(QWidget):
         self.clear_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.clear_sc.activated.connect(self.clear_all_history)
 
-        right_layout.addLayout(input_bar)
         self.splitter.addWidget(right_panel)
 
         # Splitter proportions: 260px sidebar, remainder chat
@@ -208,8 +287,37 @@ class ChatPage(QWidget):
         main_layout.addWidget(self.splitter, stretch=1)
 
         # Initialize
+        self.update_mode_styles()
         self.refresh_contexts()
         self.refresh_models()
+
+    def set_chat_mode(self, mode: str):
+        self.active_mode = mode
+        self.update_mode_styles()
+
+    def set_grok_mode(self, mode: str):
+        self.set_chat_mode(mode)
+
+    def update_mode_styles(self):
+        active_styles = {
+            "normal": "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #38bdf8); color: #ffffff; font-weight: 800; border: 1px solid #7dd3fc; border-radius: 6px; padding: 2px 10px;",
+            "fun": "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ea580c, stop:1 #f97316); color: #ffffff; font-weight: 800; border: 1px solid #fdba74; border-radius: 6px; padding: 2px 10px;",
+            "think": "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7c3aed, stop:1 #a855f7); color: #ffffff; font-weight: 800; border: 1px solid #d8b4fe; border-radius: 6px; padding: 2px 10px;",
+            "search": "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #059669, stop:1 #10b981); color: #ffffff; font-weight: 800; border: 1px solid #6ee7b7; border-radius: 6px; padding: 2px 10px;",
+        }
+        inactive_style = (
+            "background: rgba(30, 41, 59, 0.6); color: #94a3b8; font-size: 11px; font-weight: 600; "
+            "border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 2px 10px;"
+        )
+
+        for mode_key, btn in getattr(self, "mode_buttons", {}).items():
+            if mode_key == self.active_mode:
+                btn.setStyleSheet(active_styles.get(mode_key, active_styles["normal"]))
+            else:
+                btn.setStyleSheet(inactive_style)
+
+    def update_grok_mode_styles(self):
+        self.update_mode_styles()
 
     def eventFilter(self, obj, event):
         if obj == self.input_edit and event.type() == QEvent.KeyPress:
@@ -218,10 +326,6 @@ class ChatPage(QWidget):
                 self.send_message()
                 return True
         return super().eventFilter(obj, event)
-
-        # Initialize
-        self.refresh_contexts()
-        self.refresh_models()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -324,7 +428,39 @@ class ChatPage(QWidget):
         self.refresh_contexts()
 
         self.send_btn.setEnabled(False)
-        self.send_btn.setText("Thinking...")
+        self.send_btn.setText("⚡ Thinking...")
+
+        # Configure Persona System Prompt & Temperature based on Active Intelligence Mode
+        if self.active_mode == "fun":
+            sys_prompt = (
+                "You are an AI assistant operating in Fun & Rebellious Mode. "
+                "You have a witty, humorous, clever, and sarcastic personality. "
+                "Answer questions with sharp insights and bold takes, while remaining genuinely helpful and highly accurate. "
+                "Do not be boring, overly bureaucratic, or bland."
+            )
+            temperature = 0.85
+        elif self.active_mode == "think":
+            sys_prompt = (
+                "You are an AI assistant in Deep Think & Reasoning Mode. "
+                "Approach every question with rigorous first-principles thinking and multi-step analytical reasoning. "
+                "Structure your output cleanly with:\n"
+                "### 🧠 Thought Trace & Deep Analysis\n"
+                "(Detailed step-by-step reasoning, hypotheses, edge cases, fact validation)\n\n"
+                "### 🎯 Final Synthesis\n"
+                "(Direct, comprehensive, actionable answer)"
+            )
+            temperature = 0.4
+        elif self.active_mode == "search":
+            sys_prompt = (
+                "You are an AI assistant in Live Search & Fact Checking Mode. "
+                "Synthesize current facts, verify claims, cite sources, and provide unbiased truth-seeking analysis."
+            )
+            temperature = 0.6
+        else:
+            sys_prompt = (
+                "You are a helpful and intelligent desktop AI assistant designed for clarity, truth-seeking, and concise precision."
+            )
+            temperature = 0.7
 
         # Build payload based on Config -> Settings -> Use context
         if self.cb_use_context.isChecked():
@@ -332,17 +468,27 @@ class ChatPage(QWidget):
         else:
             payload_messages = [{"role": "user", "content": text}]
 
-        self.worker = ChatWorker(payload_messages, model_id, "You are a helpful and intelligent desktop AI assistant.", 0.7)
+        self.worker = ChatWorker(payload_messages, model_id, sys_prompt, temperature)
         self.worker.finished.connect(self.on_response_ready)
         self.worker.start()
 
     def on_response_ready(self, result: dict):
         content = result.get("content", "No response.")
         model_name = result.get("model", "")
-        self.db.add_message(self.current_context_id, "assistant", content, model_name)
+        
+        # Tag with active Intelligence Mode
+        mode_icons = {
+            "normal": "⚡ Normal",
+            "fun": "🔥 Fun Mode",
+            "think": "🧠 Deep Think",
+            "search": "🌐 Live Search"
+        }
+        active_tag = f"{model_name} · {mode_icons.get(self.active_mode, 'Assistant')}"
+
+        self.db.add_message(self.current_context_id, "assistant", content, active_tag)
         self.messages.append({"role": "assistant", "content": content})
 
-        self.add_message_bubble("assistant", content, model_name)
+        self.add_message_bubble("assistant", content, active_tag)
         self.send_btn.setEnabled(True)
         self.send_btn.setText("🚀 Send")
         self.refresh_contexts()

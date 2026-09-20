@@ -9,6 +9,7 @@ from gui.widgets.terminal_view import TerminalView
 from gui.widgets.lightbox import LightboxDialog
 from gui.widgets.workflow_hud_widget import WorkflowHUDWidget, AgentWorkflowCard
 from gui.widgets.custom_widget_registry import CustomWidgetRegistry, get_custom_widget_registry
+from gui.widgets.custom_title_bar import CustomTitleBar
 
 __all__ = [
     "MetricCard",
@@ -20,5 +21,6 @@ __all__ = [
     "WorkflowHUDWidget",
     "AgentWorkflowCard",
     "CustomWidgetRegistry",
-    "get_custom_widget_registry"
+    "get_custom_widget_registry",
+    "CustomTitleBar"
 ]

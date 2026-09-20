@@ -24,16 +24,20 @@ COLORS = {
 }
 
 MODEL_THEMES = {
-    "gemini":     {"name": "Google Gemini",    "role": "Master Leader",          "icon": "👑", "color": "#38bdf8", "vendor": "Google DeepMind"},
-    "deepseek":   {"name": "DeepSeek",         "role": "Creative & Coder",       "icon": "⚡", "color": "#06b6d4", "vendor": "DeepSeek AI"},
-    "chatgpt":    {"name": "ChatGPT (GPT-4o)", "role": "Copy & Synthesis",       "icon": "🟢", "color": "#10b981", "vendor": "OpenAI"},
-    "claude":     {"name": "Claude",           "role": "Critique & Review",      "icon": "🟠", "color": "#f97316", "vendor": "Anthropic"},
+    "gemini":     {"name": "Google Gemini",    "role": "Master Leader",          "icon": "✨", "color": "#38bdf8", "vendor": "Google DeepMind"},
+    "deepseek":   {"name": "DeepSeek",         "role": "Creative & Coder",       "icon": "🐋", "color": "#06b6d4", "vendor": "DeepSeek AI"},
+    "chatgpt":    {"name": "ChatGPT (GPT-4o)", "role": "Copy & Synthesis",       "icon": "✳️", "color": "#10b981", "vendor": "OpenAI"},
+    "claude":     {"name": "Claude 3.5 Sonnet", "role": "Critique & Review",      "icon": "✴️", "color": "#f97316", "vendor": "Anthropic"},
     "perplexity": {"name": "Perplexity AI",   "role": "Live Web Search",        "icon": "🔍", "color": "#3b82f6", "vendor": "Perplexity"},
-    "nvidia_ai":  {"name": "Nvidia NIM",       "role": "High-Performance GPU",   "icon": "🏎️", "color": "#22c55e", "vendor": "Nvidia NIM"},
+    "nvidia_ai":  {"name": "Nvidia NIM",       "role": "High-Performance GPU",   "icon": "🟩", "color": "#22c55e", "vendor": "Nvidia NIM"},
     "dalle":      {"name": "DALL-E 3",        "role": "Visual Designer",        "icon": "🎨", "color": "#c084fc", "vendor": "OpenAI DALL-E"},
-    "meta_ai":    {"name": "Meta AI",         "role": "Social & Engagement",    "icon": "📈", "color": "#0ea5e9", "vendor": "Meta AI"},
-    "copilot":    {"name": "Microsoft Copilot","role": "Workflow Specialist",   "icon": "📊", "color": "#38bdf8", "vendor": "Microsoft"},
-    "mistral":    {"name": "Mistral Le Chat", "role": "Multilingual Logic",     "icon": "🌐", "color": "#f59e0b", "vendor": "Mistral AI"}
+    "meta_ai":    {"name": "Meta AI",         "role": "Social & Engagement",    "icon": "♾️", "color": "#0ea5e9", "vendor": "Meta AI"},
+    "copilot":    {"name": "Microsoft Copilot","role": "Workflow Specialist",   "icon": "🪟", "color": "#38bdf8", "vendor": "Microsoft"},
+    "mistral":    {"name": "Mistral Le Chat", "role": "Multilingual Logic",     "icon": "🌪️", "color": "#f59e0b", "vendor": "Mistral AI"},
+    "web_agent":  {"name": "Web-Agent",       "role": "Autonomous Browser",     "icon": "🖥️", "color": "#06b6d4", "vendor": "Agentic Web"},
+    "qwen":       {"name": "Qwen 2.5 Coder",   "role": "Senior Engineer",        "icon": "💻", "color": "#a855f7", "vendor": "Alibaba Cloud"},
+    "qwen_coder": {"name": "Qwen 2.5 Coder",   "role": "Senior Engineer",        "icon": "💻", "color": "#a855f7", "vendor": "Alibaba Cloud"},
+    "system":     {"name": "System",          "role": "OS & Host Operator",     "icon": "⚡", "color": "#ef4444", "vendor": "Host System"}
 }
 
 APP_QSS = """

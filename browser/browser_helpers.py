@@ -224,6 +224,14 @@ async def get_or_open_tab(context, url_keyword, direct_url,
             await set_window_bounds(page, win_left, win_top, win_width, win_height)
             await set_page_agent_tab_header(page, url_keyword)
             await dismiss_sidebar_and_overlays(page, url_keyword)
+            try:
+                from browser.agent_cursor import inject_agent_cursor
+                from core import agentlist
+                ag = agentlist.get_agent_by_id(url_keyword)
+                role = "Leader" if (ag and ag.get("is_leader")) or url_keyword.lower() == "gemini" else "Specialist Worker"
+                await inject_agent_cursor(page, agent_name=url_keyword, agent_role=role)
+            except Exception:
+                pass
             return page
         except Exception as e:
             print(f"{YELLOW}  [window] Could not activate existing tab for '{url_keyword}': {e}{RESET}")
@@ -238,6 +246,14 @@ async def get_or_open_tab(context, url_keyword, direct_url,
                 await set_window_bounds(page, win_left, win_top, win_width, win_height)
                 await set_page_agent_tab_header(page, url_keyword)
                 await dismiss_sidebar_and_overlays(page, url_keyword)
+                try:
+                    from browser.agent_cursor import inject_agent_cursor
+                    from core import agentlist
+                    ag = agentlist.get_agent_by_id(url_keyword)
+                    role = "Leader" if (ag and ag.get("is_leader")) or url_keyword.lower() == "gemini" else "Specialist Worker"
+                    await inject_agent_cursor(page, agent_name=url_keyword, agent_role=role)
+                except Exception:
+                    pass
                 return page
             except Exception:
                 pass
@@ -304,7 +320,10 @@ async def get_or_open_tab(context, url_keyword, direct_url,
     # Inject Antigravity-styled agent cursor overlay
     try:
         from browser.agent_cursor import inject_agent_cursor
-        await inject_agent_cursor(new_page, agent_name=url_keyword)
+        from core import agentlist
+        ag = agentlist.get_agent_by_id(url_keyword)
+        role = "Leader" if (ag and ag.get("is_leader")) or url_keyword.lower() == "gemini" else "Specialist Worker"
+        await inject_agent_cursor(new_page, agent_name=url_keyword, agent_role=role)
     except Exception:
         pass
 

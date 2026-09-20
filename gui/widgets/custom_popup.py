@@ -47,6 +47,7 @@ class CustomPopup(QDialog):
 
         # Card container with glassmorphism & glow
         self.card = QFrame()
+        self.card.setObjectName("PopupCard")
         
         type_colors = {
             "success": {"glow": "rgba(16, 185, 129, 0.5)", "border": "#10b981", "accent": "#34d399", "icon": "✅", "badge": "SUCCESS"},
@@ -58,7 +59,7 @@ class CustomPopup(QDialog):
         cfg = type_colors.get(self.dialog_type, type_colors["info"])
 
         self.card.setStyleSheet(f"""
-            QFrame {{
+            QFrame#PopupCard {{
                 background-color: #0b0f19;
                 border: 1px solid {cfg['border']};
                 border-radius: 14px;
@@ -154,8 +155,9 @@ class CustomPopup(QDialog):
         # Optional Details Box
         if self.details_text:
             details_box = QFrame()
+            details_box.setObjectName("DetailsBox")
             details_box.setStyleSheet("""
-                QFrame {
+                QFrame#DetailsBox {
                     background-color: rgba(15, 23, 42, 0.7);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     border-radius: 8px;
@@ -198,7 +200,6 @@ class CustomPopup(QDialog):
                     }}
                     QPushButton:hover {{
                         background: {cfg['border']};
-                        box-shadow: 0 0 15px {cfg['glow']};
                     }}
                 """)
             else:

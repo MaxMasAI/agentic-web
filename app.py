@@ -45,12 +45,6 @@ if getattr(sys, 'frozen', False):
                 except Exception:
                     pass
 
-# Install Autonomous GitHub Crash & Issue Reporter
-try:
-    from system.issue_reporter import install_crash_reporter
-    install_crash_reporter()
-except Exception:
-    pass
 
 # 0. Development Live-Reload Watcher
 if "--watch" in sys.argv or "--dev" in sys.argv or "--auto-restart" in sys.argv:
@@ -105,10 +99,11 @@ from PySide6.QtWidgets import (
     QLabel, QPushButton, QStackedWidget, QMessageBox, QDialog
 )
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QKeySequence, QShortcut, QIcon, QCursor
 
 from gui.theme import APP_QSS
 from gui.widgets.sidebar import Sidebar
+from gui.widgets.custom_title_bar import CustomTitleBar
 
 # Core Operations Pages
 from gui.pages.mission_control import MissionControlPage
@@ -135,6 +130,7 @@ from gui.tools.agent_builder import AgentBuilderPage
 from gui.tools.painter import PainterPage
 from gui.tools.notepad import NotepadPage
 from gui.tools.scheduler_view import SchedulerPage
+from gui.pages.maxmasai_harness_page import MaxMasAIHarnessPage
 
 
 from core.agent_status import init_agent_status
@@ -149,9 +145,9 @@ for d in ["tasks", "logs", "downloads", "visuals", "json", "plugins"]:
 if not os.path.exists("json/agent_status.json"):
     init_agent_status(agentlist.list_all_active_agents())
 
+# Fast cached task indexer
 _tasks_cache = []
 _tasks_cache_mtime = 0
-
 
 def parse_task_file(raw: str, path: str) -> dict:
     result = {
@@ -180,7 +176,6 @@ def parse_task_file(raw: str, path: str) -> dict:
                         result["worker_outputs"][agent_name] = body
                         break
     return result
-
 
 def load_all_tasks(force_reload: bool = False) -> list:
     global _tasks_cache, _tasks_cache_mtime
@@ -214,33 +209,111 @@ def load_all_tasks(force_reload: bool = False) -> list:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("⚡ Agentic Mission Control & Multi-Model AI Assistant Suite")
+        self.setWindowTitle("⚡ AUTONOMOUS MULTI-AGENT OS")
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.resize(1380, 900)
         self.setMinimumSize(1020, 680)
+
+        # Set application icon
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images", "000_web_agent.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
 
         self.running_procs = {}
         self._last_tasks_count = -1
         self._last_mem_count = -1
         self._last_sub_count = -1
 
+        # Initialize Antigravity System Cursor Overlay (Auto-shows during system tasks)
+        self.system_cursor_overlay = None
+        self._cursor_auto_hide_timer = None
+        try:
+            from system.system_cursor import DesktopSystemCursorOverlay
+            if DesktopSystemCursorOverlay:
+                self.system_cursor_overlay = DesktopSystemCursorOverlay(agent_id="system")
+                self.system_cursor_overlay.hide()
+        except Exception as e:
+            print(f"[SystemCursor] Note: {e}")
+
         self.init_ui()
         self.init_timers()
         self.refresh_all_data(force=True)
+
+        # Restore last active tab from previous session
+        try:
+            from services.app_config import config
+            last_tab = config.get("app.last_active_tab", "home")
+            if last_tab and (last_tab in self.pages or last_tab.startswith("settings")):
+                self.switch_page(last_tab)
+        except Exception as e:
+            print(f"[MainWindow] Note restoring last tab: {e}")
+
+    def show_system_cursor_for_task(self, action_text: str = "System Executing...", duration_sec: float = 4.0):
+        """Auto-activates Antigravity System cursor when system-level operations run, hiding automatically upon completion."""
+        if getattr(self, "system_cursor_overlay", None):
+            try:
+                self.system_cursor_overlay.set_active_worker("system", action_text)
+                self.system_cursor_overlay.show()
+                self.system_cursor_overlay.start_following_mouse(interval_ms=16)
+
+                # Check if permanently pinned by user toggle
+                is_pinned = hasattr(self, "title_bar") and self.title_bar and hasattr(self.title_bar, "btn_cursor") and self.title_bar.btn_cursor.isChecked()
+                if not is_pinned:
+                    if self._cursor_auto_hide_timer:
+                        self._cursor_auto_hide_timer.stop()
+                    self._cursor_auto_hide_timer = QTimer(self)
+                    self._cursor_auto_hide_timer.setSingleShot(True)
+                    self._cursor_auto_hide_timer.timeout.connect(self._auto_hide_system_cursor)
+                    self._cursor_auto_hide_timer.start(int(duration_sec * 1000))
+            except Exception as e:
+                print(f"[SystemCursor] Trigger Note: {e}")
+
+    def _auto_hide_system_cursor(self):
+        if getattr(self, "system_cursor_overlay", None):
+            is_pinned = hasattr(self, "title_bar") and self.title_bar and hasattr(self.title_bar, "btn_cursor") and self.title_bar.btn_cursor.isChecked()
+            if not is_pinned:
+                self.system_cursor_overlay.stop_following_mouse()
+                self.system_cursor_overlay.hide()
+
+    def toggle_system_cursor(self, enabled: bool):
+        """Manually toggles or pins the Antigravity System follow cursor overlay."""
+        if getattr(self, "system_cursor_overlay", None):
+            if enabled:
+                if self._cursor_auto_hide_timer and self._cursor_auto_hide_timer.isActive():
+                    self._cursor_auto_hide_timer.stop()
+                self.system_cursor_overlay.set_active_worker("system", "Pinned Follow")
+                self.system_cursor_overlay.show()
+                self.system_cursor_overlay.start_following_mouse(16)
+            else:
+                self.system_cursor_overlay.stop_following_mouse()
+                self.system_cursor_overlay.hide()
 
     def init_ui(self):
         central = QWidget()
         central.setObjectName("CentralWidget")
         self.setCentralWidget(central)
 
-        main_layout = QHBoxLayout(central)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
+        # Root vertical layout: Title bar + Body
+        root_layout = QVBoxLayout(central)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
+
+        # 0. Custom Top Title Bar
+        self.title_bar = CustomTitleBar(self)
+        self.title_bar.snapshot_requested.connect(self.capture_app_tabs_to_images)
+        self.title_bar.cursor_toggled.connect(self.toggle_system_cursor)
+        root_layout.addWidget(self.title_bar)
+
+        # Body Horizontal Layout
+        body_layout = QHBoxLayout()
+        body_layout.setContentsMargins(0, 0, 0, 0)
+        body_layout.setSpacing(0)
 
         # 1. Categorized Sidebar
         self.sidebar = Sidebar()
         self.sidebar.page_changed.connect(self.switch_page)
         self.sidebar.abort_requested.connect(self.abort_mission)
-        main_layout.addWidget(self.sidebar)
+        body_layout.addWidget(self.sidebar)
 
         # 2. Stacked Pages Suite
         self.stack = QStackedWidget()
@@ -259,6 +332,7 @@ class MainWindow(QMainWindow):
             "vscode": VSCodePage(),
             "canvas_dev": CanvasDevPage(),
             "playground": PlaygroundPage(),
+            "harness": MaxMasAIHarnessPage(),
             "agent_builder": AgentBuilderPage(),
             "painter": PainterPage(),
             "notepad": NotepadPage(),
@@ -344,13 +418,15 @@ class MainWindow(QMainWindow):
             ("Ctrl+Shift+F", "chat_files"),
             ("Ctrl+Shift+M", "mcp"),
             ("Ctrl+Shift+N", "memory"),
+            ("Ctrl+Shift+H", "harness"),
         ]
         # Ctrl+Shift+S: Capture High-Res Screenshots of all App Tabs into images/
         self.screenshot_all_shortcut = QShortcut(QKeySequence("Ctrl+Shift+S"), self)
         self.screenshot_all_shortcut.setContext(Qt.ApplicationShortcut)
         self.screenshot_all_shortcut.activated.connect(self.capture_app_tabs_to_images)
 
-        main_layout.addWidget(self.stack, stretch=1)
+        body_layout.addWidget(self.stack, stretch=1)
+        root_layout.addLayout(body_layout)
 
     def show_hotkeys_dialog(self):
         """Displays master side-by-side 3-column hotkey cheatsheet dialog across the application."""
@@ -471,6 +547,32 @@ class MainWindow(QMainWindow):
         self.poll_timer.start()
 
     def switch_page(self, page_key: str):
+        page_titles = {
+            "home": "Mission Control Dashboard",
+            "launch": "Task Dispatch Console",
+            "subagents": "Multi-Agent Squad Roster",
+            "history": "Mission Archives & Deliverables",
+            "chat": "Multi-Model AI Chat",
+            "chat_files": "Document & Knowledge Chat",
+            "research": "Deep Research Studio",
+            "media_studio": "Media & Creative Studio",
+            "vscode": "Monaco Code Studio (IDE)",
+            "canvas_dev": "Infinite Agent Canvas IDE",
+            "playground": "Agent Playground & Live Preview",
+            "agent_builder": "Custom Agent Builder",
+            "painter": "AI Visual Sketch Studio",
+            "notepad": "Scratchpad & Notes",
+            "scheduler": "Automated Job Scheduler",
+            "tokens": "Token & Cost Optimization",
+            "mcp": "MCP Server Hub & Protocol",
+            "memory": "Neural Memory & Knowledge",
+            "explorer": "Project File Explorer",
+            "settings": "System Configuration & Models",
+        }
+        title = page_titles.get(page_key.replace("settings_", ""), page_key.title())
+        if hasattr(self, 'title_bar') and self.title_bar:
+            self.title_bar.set_page_title(title)
+
         if page_key.startswith("settings_") or page_key == "settings":
             widget = self.pages["settings"]
             if self.stack.currentWidget() != widget:
@@ -485,9 +587,102 @@ class MainWindow(QMainWindow):
                 self.stack.setCurrentWidget(widget)
             self.sidebar.set_active_page(page_key, emit_signal=False)
 
+        # Persist selected page across application restarts
+        try:
+            from services.app_config import config
+            config.set("app.last_active_tab", page_key)
+        except Exception:
+            pass
+
     def on_direct_task_submitted(self, task_str: str):
-        self.launch_pipeline(task_str, "auto", f"Task @ {time.strftime('%H:%M:%S')}")
+        from core.command_router import parse_slash_task_command
+        cmd_info = parse_slash_task_command(task_str)
+        cmd_type = cmd_info.get("type", "dispatch")
+
+        if cmd_type == "empty":
+            return
+
+        if cmd_type == "reset":
+            self.show_system_cursor_for_task("Pool State Reset", duration_sec=3.0)
+            from core.agent_status import set_all_agents_free
+            set_all_agents_free("Idle - Ready for assignment")
+            self.refresh_all_data(force=True)
+            QMessageBox.information(self, "🔄 State Reset", "All agent statuses have been reset to FREE.")
+            return
+
+        if cmd_type == "help":
+            self.show_slash_commands_help_dialog()
+            return
+
+        if cmd_type == "inspect":
+            target = cmd_info.get("target_agent", "gemini")
+            self.show_system_cursor_for_task(f"Inspecting {target.title()}", duration_sec=3.0)
+            self.pages["home"].pool_monitor.inspect_agent(target)
+            return
+
+        if cmd_type == "system_exec":
+            task_cmd = cmd_info.get("task", "")
+            self.show_system_cursor_for_task(f"OS Exec: {task_cmd[:20]}", duration_sec=5.0)
+            from system.system_os_service import SystemOSService
+            sys_svc = SystemOSService()
+            res = sys_svc.sys_exec(task_cmd)
+            msg = res.get("stdout") or res.get("stderr") or ("Command executed successfully." if res.get("success") else "Execution error")
+            QMessageBox.information(self, "⚡ System OS Execution", f"<b>Command:</b> <code>{task_cmd}</code><br><br><b>Output:</b><pre>{msg[:800]}</pre>")
+            return
+
+        # Regular or routed multi-agent task dispatch
+        target_agents = cmd_info.get("agents", "auto")
+        task_text = cmd_info.get("task", task_str)
+        label = f"{target_agents.upper()} @ {time.strftime('%H:%M:%S')}"
+        self.launch_pipeline(task_text, target_agents, label)
         self.switch_page("launch")
+
+    def show_slash_commands_help_dialog(self):
+        """Displays slash command syntax reference dialog."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("⚡ Multi-Agent Direct Slash Commands Guide")
+        dialog.setMinimumWidth(720)
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: #0b1120;
+                border: 1.5px solid rgba(56, 189, 248, 0.4);
+                border-radius: 12px;
+            }
+            QLabel { color: #f8fafc; font-size: 12.5px; }
+            QPushButton {
+                background: #38bdf8;
+                color: #080b11;
+                font-weight: 700;
+                border-radius: 6px;
+                padding: 6px 20px;
+            }
+        """)
+        d_lay = QVBoxLayout(dialog)
+        d_lay.setContentsMargins(20, 18, 20, 18)
+        d_lay.setSpacing(12)
+
+        hdr = QLabel("<div style='font-size:16px;font-weight:800;color:#38bdf8;'>⚡ Direct Control Slash Syntax: <code>/{names} - task</code></div>")
+        d_lay.addWidget(hdr)
+
+        body = QLabel("""
+        <div style='line-height:1.7; color:#cbd5e1;'>
+        You can control and route tasks directly to any model or squad from this text area:<br><br>
+        • <b>Single Specialist:</b> <code>/deepseek - Write a python web scraper</code><br>
+        • <b>Multi-Agent Squad:</b> <code>/claude,chatgpt - Review and synthesize report</code><br>
+        • <b>Full Team Squad:</b> <code>/all - Execute full collaborative plan</code><br>
+        • <b>System / OS Command:</b> <code>/system - open notepad</code> or <code>/os - calc</code><br>
+        • <b>Inspect Agent:</b> <code>/inspect deepseek</code><br>
+        • <b>Reset Agent Pool:</b> <code>/reset</code><br>
+        • <b>Normal Direct Goal:</b> <code>Write a full marketing campaign</code> (auto leader routing)
+        </div>
+        """)
+        d_lay.addWidget(body)
+
+        btn_ok = QPushButton("Got It")
+        btn_ok.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_ok.clicked.connect(dialog.accept)
+        d_lay.addWidget(btn_ok, alignment=Qt.AlignRight)
+        dialog.exec()
 
     def on_open_deliverable_in_playground(self, html_code: str):
         self.pages["playground"].set_editor_code(html_code)
@@ -632,7 +827,15 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "Capture Error", f"Could not capture all tabs: {e}")
 
+
     def closeEvent(self, event):
+        if getattr(self, "system_cursor_overlay", None):
+            try:
+                self.system_cursor_overlay.stop_following_mouse()
+                self.system_cursor_overlay.close()
+            except Exception:
+                pass
+
         for info in self.running_procs.values():
             proc = info.get("proc")
             if proc and proc.pid:

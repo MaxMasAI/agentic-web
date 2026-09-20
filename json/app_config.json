@@ -11,6 +11,11 @@
   "layout.auto_collapse_user_msg_px": 1500,
   "layout.display_tips": true,
   "layout.store_dialog_positions": true,
+  "fancyzones.enabled": true,
+  "fancyzones.layout": "auto",
+  "fancyzones.spacing": 16,
+  "fancyzones.show_spacing": true,
+  "fancyzones.taskbar_margin": true,
   "syntax.theme": "github-dark",
   "syntax.disabled": false,
   "syntax.stream_highlight_every_n_lines": 50,
@@ -46,5 +51,10 @@
   "context.hide_reasoning_after_response": true,
   "context.use_extra_context_output": true,
   "browser.open_urls_in_builtin": true,
-  "tools.remote_enabled": true
+  "tools.remote_enabled": true,
+  "github.auto_report_issues": true,
+  "github.repo_owner": "MaxMasAI",
+  "github.repo_name": "agentic-web",
+  "github.create_pr_on_fix": false,
+  "app.last_active_tab": "harness"
 }

@@ -13,6 +13,7 @@ from gui.theme import MODEL_THEMES
 from core.agent_status import get_all_agent_status, set_agent_state
 from core.agentlist import get_lead_agent
 from gui.widgets.add_agent_dialog import AddAgentDialog
+from gui.widgets.slash_autocomplete import attach_slash_autocomplete
 
 
 class AddAgentCard(QFrame):
@@ -20,18 +21,18 @@ class AddAgentCard(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("AddAgentCard")
         self.init_ui()
 
     def init_ui(self):
         self.setStyleSheet("""
-            QFrame {
+            QFrame#AddAgentCard {
                 background-color: rgba(15, 23, 42, 0.45);
                 border: 2px dashed rgba(56, 189, 248, 0.4);
                 border-radius: 10px;
                 padding: 10px;
-                min-height: 120px;
             }
-            QFrame:hover {
+            QFrame#AddAgentCard:hover {
                 border-color: #38bdf8;
                 background-color: rgba(56, 189, 248, 0.1);
             }
@@ -39,24 +40,26 @@ class AddAgentCard(QFrame):
         self.setCursor(QCursor(Qt.PointingHandCursor))
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(6)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(4)
         layout.setAlignment(Qt.AlignCenter)
 
         icon_lbl = QLabel("➕")
         icon_lbl.setAlignment(Qt.AlignCenter)
-        icon_lbl.setStyleSheet("font-size: 24px; color: #38bdf8;")
+        icon_lbl.setStyleSheet("font-size: 20px; color: #38bdf8; background: transparent; border: none; padding: 0;")
         layout.addWidget(icon_lbl)
 
         title_lbl = QLabel("Add New AI Agent")
         title_lbl.setAlignment(Qt.AlignCenter)
-        title_lbl.setStyleSheet("font-size: 13px; font-weight: 800; color: #ffffff;")
+        title_lbl.setStyleSheet("font-size: 13px; font-weight: 700; color: #ffffff; background: transparent; border: none; padding: 0;")
         layout.addWidget(title_lbl)
 
         sub_lbl = QLabel("Register custom model schema")
         sub_lbl.setAlignment(Qt.AlignCenter)
-        sub_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
+        sub_lbl.setStyleSheet("font-size: 11px; color: #94a3b8; background: transparent; border: none; padding: 0;")
         layout.addWidget(sub_lbl)
+
+        layout.addSpacing(2)
 
         btn_add = QPushButton("✨ Add Agent")
         btn_add.setFixedHeight(26)
@@ -76,7 +79,7 @@ class AddAgentCard(QFrame):
                 color: #0b1120;
             }
         """)
-        btn_add.clicked.connect(self.add_clicked.emit)
+        btn_add.clicked.connect(lambda *args: self.add_clicked.emit())
         layout.addWidget(btn_add)
 
     def mousePressEvent(self, event):
@@ -90,6 +93,7 @@ class AgentCard(QFrame):
 
     def __init__(self, agent_id: str, info: dict, parent=None):
         super().__init__(parent)
+        self.setObjectName("AgentCard")
         self.agent_id = agent_id
         self.info = info
         self.init_ui()
@@ -111,14 +115,14 @@ class AgentCard(QFrame):
         bg_color = "rgba(12, 38, 56, 0.65)" if is_leader else ("rgba(41, 29, 10, 0.6)" if is_busy else "rgba(15, 23, 42, 0.75)")
 
         self.setStyleSheet(f"""
-            QFrame {{
+            QFrame#AgentCard {{
                 background-color: {bg_color};
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-left: 4px solid {border_color};
                 border-radius: 10px;
                 padding: 10px;
             }}
-            QFrame:hover {{
+            QFrame#AgentCard:hover {{
                 border-color: {border_color};
                 background-color: rgba(19, 29, 49, 0.9);
             }}
@@ -183,7 +187,7 @@ class AgentCard(QFrame):
             }
         """)
         inspect_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        inspect_btn.clicked.connect(lambda: self.inspect_clicked.emit(self.agent_id))
+        inspect_btn.clicked.connect(lambda *args, aid=self.agent_id: self.inspect_clicked.emit(aid))
         layout.addWidget(inspect_btn)
 
 
@@ -254,8 +258,9 @@ class PoolMonitor(QWidget):
 
         # Inspection Drawer Frame
         self.inspector_frame = QFrame()
+        self.inspector_frame.setObjectName("InspectorFrame")
         self.inspector_frame.setStyleSheet("""
-            QFrame {
+            QFrame#InspectorFrame {
                 background-color: rgba(15, 23, 42, 0.95);
                 border: 2px solid #38bdf8;
                 border-radius: 12px;
@@ -330,8 +335,9 @@ class PoolMonitor(QWidget):
 
         # Master Leader Node
         leader_box = QFrame()
+        leader_box.setObjectName("LeaderBox")
         leader_box.setStyleSheet("""
-            QFrame {
+            QFrame#LeaderBox {
                 background-color: rgba(12, 38, 56, 0.85);
                 border: 2px solid #38bdf8;
                 border-radius: 12px;
@@ -365,19 +371,22 @@ class PoolMonitor(QWidget):
         # Direct Task Assignment Bar
         direct_row = QHBoxLayout()
         self.direct_input = QLineEdit()
-        self.direct_input.setPlaceholderText(f"🎯 Type mission goal here to directly assign task to {lead_info.get('name', 'Leader')} & workers...")
+        self.direct_input.setPlaceholderText("🎯 Enter goal or control via /{names} - task (e.g. /deepseek - code app, /claude,chatgpt - review, /all - dispatch)...")
+        self.direct_input.setToolTip("Type mission goal directly or use slash routing: /{agent_name} - {task}\nExamples:\n• /deepseek - build python scraper\n• /claude,chatgpt - security review\n• /all - full collaborative squad task\n• /system - open notepad\n• /reset - reset all agent states to FREE\n• /help - view slash commands guide")
         self.direct_input.returnPressed.connect(self.submit_direct_task)
+        attach_slash_autocomplete(self.direct_input)
         direct_row.addWidget(self.direct_input, stretch=3)
 
-        btn_assign = QPushButton(f"🚀 Assign to {lead_info.get('name', 'Leader')}")
+        btn_assign = QPushButton(f"🚀 Dispatch Task / Slash Command")
         btn_assign.setProperty("class", "primary-btn")
+        btn_assign.setToolTip("Execute direct task or /{name} slash control command")
         btn_assign.setCursor(QCursor(Qt.PointingHandCursor))
         btn_assign.clicked.connect(self.submit_direct_task)
         direct_row.addWidget(btn_assign, stretch=1)
 
         btn_insp_gem = QPushButton(f"🔍 Inspect {lead_info.get('name', 'Leader')}")
         btn_insp_gem.setCursor(QCursor(Qt.PointingHandCursor))
-        btn_insp_gem.clicked.connect(lambda: self.inspect_agent(lead_id))
+        btn_insp_gem.clicked.connect(lambda *args, lid=lead_id: self.inspect_agent(lid))
         direct_row.addWidget(btn_insp_gem, stretch=1)
 
         l_layout.addLayout(direct_row)
@@ -435,9 +444,9 @@ class PoolMonitor(QWidget):
 
         self.pool_layout.addLayout(grid)
 
-    def open_add_agent_dialog(self):
+    def open_add_agent_dialog(self, *args):
         dialog = AddAgentDialog(self)
-        dialog.agent_added.connect(lambda agent: self.refresh_pool())
+        dialog.agent_added.connect(lambda *_: self.refresh_pool())
         dialog.exec()
 
     def submit_direct_task(self):
@@ -450,24 +459,38 @@ class PoolMonitor(QWidget):
             self.direct_task_submitted.emit(txt)
 
     def inspect_agent(self, agent_id: str):
-        self.inspected_agent_id = agent_id
+        self.inspected_agent_id = str(agent_id).strip()
         statuses = get_all_agent_status()
-        if agent_id in statuses:
-            self.render_inspector(statuses[agent_id])
+        if self.inspected_agent_id in statuses:
+            self.render_inspector(statuses[self.inspected_agent_id])
+        else:
+            from core import agentlist
+            agent_meta = agentlist.get_agent_by_id(self.inspected_agent_id) or {}
+            info = {
+                "id": self.inspected_agent_id,
+                "name": agent_meta.get("name", self.inspected_agent_id),
+                "role": agent_meta.get("role", "Specialist"),
+                "specialization": agent_meta.get("specialization", ""),
+                "state": "FREE",
+                "current_task": "Idle - Ready for assignment"
+            }
+            self.render_inspector(info)
 
-    def render_inspector(self, info: dict):
+    def _clear_inspector_layout(self):
         while self.inspector_layout.count():
             item = self.inspector_layout.takeAt(0)
             w = item.widget()
-            if w:
+            if w is not None:
                 w.deleteLater()
             l = item.layout()
-            if l:
+            if l is not None:
                 while l.count():
                     sub = l.takeAt(0)
-                    if sub.widget():
+                    if sub.widget() is not None:
                         sub.widget().deleteLater()
 
+    def render_inspector(self, info: dict):
+        self._clear_inspector_layout()
         self.inspector_frame.show()
 
         state = info.get("state", "FREE")
@@ -492,24 +515,24 @@ class PoolMonitor(QWidget):
         btn_row = QHBoxLayout()
         btn_launch = QPushButton("🚀 Open Live Mission Console")
         btn_launch.setProperty("class", "primary-btn")
-        btn_launch.clicked.connect(self.goto_launch_requested.emit)
+        btn_launch.clicked.connect(lambda *args: self.goto_launch_requested.emit())
         btn_row.addWidget(btn_launch)
 
         btn_reset = QPushButton("🔄 Force Reset State to FREE")
-        btn_reset.clicked.connect(self.reset_agent_state)
+        btn_reset.clicked.connect(lambda *args: self.reset_agent_state())
         btn_row.addWidget(btn_reset)
 
         btn_close = QPushButton("✖ Close Inspector")
-        btn_close.clicked.connect(self.close_inspector)
+        btn_close.clicked.connect(lambda *args: self.close_inspector())
         btn_row.addWidget(btn_close)
 
         self.inspector_layout.addLayout(btn_row)
 
-    def reset_agent_state(self):
+    def reset_agent_state(self, *args):
         if self.inspected_agent_id:
             set_agent_state(self.inspected_agent_id, "FREE", "Idle - Ready for assignment")
             self.refresh_pool()
 
-    def close_inspector(self):
+    def close_inspector(self, *args):
         self.inspected_agent_id = None
         self.inspector_frame.hide()
