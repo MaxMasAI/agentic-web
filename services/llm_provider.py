@@ -228,100 +228,114 @@ def generate_chat_response(
             prompt_parts.append(f"{m['role'].capitalize()}: {m['content']}")
         full_prompt = "\n\n".join(prompt_parts)
 
-        # A. Try Google GenAI SDK (Vertex AI & Developer API)
+        # A. Try Google GenAI SDK (Fast Direct Google AI Studio API)
         sdk_err = None
-        project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or "weighty-utility-419819"
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or ""
         location = os.getenv("GOOGLE_CLOUD_LOCATION") or "us-central1"
-        use_vertex = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "true").lower() in ("true", "1")
+        use_vertex = bool(project_id) and os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "false").lower() in ("true", "1")
 
-        # 1. Try GenAI SDK with OAuth Credentials for Vertex AI
-        if oauth_token:
+        # 1. Try GenAI SDK with API Key (Fastest Direct Path)
+        if gemini_key:
+            try:
+                from google import genai
+                client = genai.Client(api_key=gemini_key)
+                clean_m = model_id.replace("google:", "").replace("vertexai:", "")
+                if not clean_m or clean_m == "gemini":
+                    clean_m = "gemini-2.0-flash"
+
+                for m_candidate in [clean_m, "gemini-2.0-flash", "gemini-1.5-flash"]:
+                    try:
+                        resp = client.models.generate_content(
+                            model=m_candidate,
+                            contents=full_prompt,
+                        )
+                        text = resp.text or ""
+                        if text:
+                            return {
+                                "role": "assistant",
+                                "content": text,
+                                "model": m_candidate,
+                                "tokens": len(text.split())
+                            }
+                    except Exception as err:
+                        sdk_err = f"GenAI SDK ({m_candidate}): {err}"
+                        continue
+            except Exception as e:
+                sdk_err = f"GenAI SDK Init: {e}"
+
+            # Fast REST API Fallback for API Key
+            clean_m = model_id.replace("google:", "").replace("vertexai:", "")
+            if not clean_m or clean_m == "gemini":
+                clean_m = "gemini-2.0-flash"
+            try:
+                rest_url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_m}:generateContent?key={gemini_key}"
+                resp = requests.post(
+                    rest_url,
+                    headers={"Content-Type": "application/json"},
+                    json={"contents": [{"parts": [{"text": full_prompt}]}]},
+                    timeout=15
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        if text:
+                            return {
+                                "role": "assistant",
+                                "content": text,
+                                "model": clean_m,
+                                "tokens": len(text.split())
+                            }
+            except Exception:
+                pass
+
+        # 2. Try GenAI SDK with OAuth Credentials for Vertex AI (if configured)
+        if oauth_token and project_id:
             try:
                 from google.oauth2.credentials import Credentials as OAuthCreds
                 from google import genai
                 creds = OAuthCreds(token=oauth_token)
                 client = genai.Client(vertexai=True, project=project_id, location=location, credentials=creds)
-                for m_candidate in [model_id, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
-                    clean_m = m_candidate.replace("google:", "").replace("vertexai:", "")
-                    try:
-                        resp = client.models.generate_content(
-                            model=clean_m,
-                            contents=full_prompt,
-                        )
-                        text = resp.text or ""
-                        if text:
-                            return {
-                                "role": "assistant",
-                                "content": text,
-                                "model": clean_m,
-                                "tokens": len(text.split())
-                            }
-                    except Exception as err:
-                        sdk_err = f"Vertex AI (OAuth): {err}"
+                clean_m = model_id.replace("google:", "").replace("vertexai:", "")
+                if not clean_m or clean_m == "gemini":
+                    clean_m = "gemini-2.0-flash"
+                try:
+                    resp = client.models.generate_content(
+                        model=clean_m,
+                        contents=full_prompt,
+                    )
+                    text = resp.text or ""
+                    if text:
+                        return {
+                            "role": "assistant",
+                            "content": text,
+                            "model": clean_m,
+                            "tokens": len(text.split())
+                        }
+                except Exception as err:
+                    sdk_err = f"Vertex AI (OAuth): {err}"
             except Exception as e:
                 sdk_err = f"Vertex AI (OAuth Init): {e}"
 
-        # 2. Try GenAI SDK with API Key
-        if gemini_key:
-            try:
-                from google import genai
-                if use_vertex:
-                    client = genai.Client(vertexai=True, project=project_id, location=location, api_key=gemini_key)
-                else:
-                    client = genai.Client(api_key=gemini_key)
-                for m_candidate in [model_id, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
-                    clean_m = m_candidate.replace("google:", "").replace("vertexai:", "")
-                    try:
-                        resp = client.models.generate_content(
-                            model=clean_m,
-                            contents=full_prompt,
-                        )
-                        text = resp.text or ""
-                        if text:
-                            return {
-                                "role": "assistant",
-                                "content": text,
-                                "model": clean_m,
-                                "tokens": len(text.split())
-                            }
-                    except Exception as err:
-                        # Fallback to standard studio client if vertex failed
-                        if use_vertex:
-                            try:
-                                fallback_client = genai.Client(api_key=gemini_key)
-                                resp2 = fallback_client.models.generate_content(model=clean_m, contents=full_prompt)
-                                text2 = resp2.text or ""
-                                if text2:
-                                    return {
-                                        "role": "assistant",
-                                        "content": text2,
-                                        "model": clean_m,
-                                        "tokens": len(text2.split())
-                                    }
-                            except Exception:
-                                pass
-                        sdk_err = f"GenAI SDK (API Key): {err}"
-            except Exception as e:
-                sdk_err = f"GenAI SDK Init: {e}"
-
-        # B. Try Google REST API with OAuth Bearer Token (Generative Language & Vertex AI)
+        # B. Try Google REST API with OAuth Bearer Token
         oauth_err = None
         if oauth_token:
+            clean_m = model_id.replace("google:", "").replace("vertexai:", "")
+            if not clean_m or clean_m == "gemini":
+                clean_m = "gemini-2.0-flash"
             candidate_endpoints = []
-            for m_candidate in [model_id, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
-                clean_m = m_candidate.replace("google:", "").replace("vertexai:", "")
-                # 1. Google Cloud Vertex AI Endpoint
+            if project_id:
                 candidate_endpoints.append((
                     clean_m,
                     f"https://{location}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{location}/publishers/google/models/{clean_m}:generateContent",
                     {"contents": [{"role": "user", "parts": [{"text": full_prompt}]}]}
                 ))
-                # 2. Google AI Studio Generative Language Endpoint
-                candidate_endpoints.append((
-                    clean_m,
-                    f"https://generativelanguage.googleapis.com/v1beta/models/{clean_m}:generateContent",
-                    {"contents": [{"parts": [{"text": full_prompt}]}]}
-                ))
+            candidate_endpoints.append((
+                clean_m,
+                f"https://generativelanguage.googleapis.com/v1beta/models/{clean_m}:generateContent",
+                {"contents": [{"parts": [{"text": full_prompt}]}]}
+            ))
 
             for m_candidate, url, payload in candidate_endpoints:
                 try:
@@ -329,7 +343,7 @@ def generate_chat_response(
                         url,
                         headers={"Authorization": f"Bearer {oauth_token}", "Content-Type": "application/json"},
                         json=payload,
-                        timeout=30
+                        timeout=15
                     )
                     if resp.status_code == 200:
                         data = resp.json()

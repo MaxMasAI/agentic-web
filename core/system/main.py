@@ -127,6 +127,18 @@ async def run_agent_loop(task, selected_agents_override=None):
         except Exception:
             pass
 
+    # ── Autonomous Internal Tools Pre-flight Execution (File I/O, Web Search, Wikipedia, Memory, MCP) ──
+    try:
+        from core.internal_tool_executor import InternalToolExecutor
+        tool_exec = InternalToolExecutor.get_instance()
+        auto_tool_res = tool_exec.detect_and_auto_execute_tools(task)
+        if auto_tool_res and "[INTERNAL_TOOL_EXECUTION:" not in task:
+            formatted_res = tool_exec.format_tool_result_for_agent(auto_tool_res)
+            task = f"{task}\n\n{formatted_res}"
+            print(f"{GREEN}[OK] Autonomous Internal Tool Executed: {auto_tool_res.get('tool', 'tool').upper()}{RESET}")
+    except Exception as e:
+        print(f"{YELLOW}[*] Internal tool check notice: {e}{RESET}")
+
     # ── Direct Native Windows System Application Launcher ──
     try:
         from services.system_app_launcher import is_system_app_task, execute_system_app_launch

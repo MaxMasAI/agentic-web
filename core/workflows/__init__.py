@@ -25,6 +25,7 @@ from core.workflows.command_router import (
     AGENT_ALIASES,
     resolve_agent_id,
     parse_slash_task_command,
+    route_task_with_laya,
 )
 
 __all__ = [
@@ -44,5 +45,6 @@ __all__ = [
     "AGENT_ALIASES",
     "resolve_agent_id",
     "parse_slash_task_command",
+    "route_task_with_laya",
 ]
 

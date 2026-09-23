@@ -13,16 +13,18 @@ RED   = "\033[91m"
 RESET = "\033[0m"
 
 AGENT_DOMAINS = {
-    "gemini": ["gemini.google.com"],
-    "deepseek": ["chat.deepseek.com", "deepseek.com"],
-    "chatgpt": ["chatgpt.com", "openai.com"],
-    "dalle": ["chatgpt.com", "openai.com"],
-    "claude": ["claude.ai"],
-    "meta_ai": ["meta.ai"],
-    "perplexity": ["perplexity.ai"],
-    "copilot": ["copilot.microsoft.com", "bing.com"],
-    "nvidia_ai": ["build.nvidia.com", "nvidia.com"],
-    "mistral": ["mistral.ai", "chat.mistral.ai"],
+    "gemini": ["gemini.google.com", "bard.google.com", "aistudio.google.com"],
+    "deepseek": ["chat.deepseek.com", "deepseek.com", "platform.deepseek.com"],
+    "chatgpt": ["chatgpt.com", "chat.openai.com", "openai.com"],
+    "dalle": ["chatgpt.com", "chat.openai.com", "openai.com"],
+    "claude": ["claude.ai", "console.anthropic.com", "anthropic.com"],
+    "meta_ai": ["meta.ai", "www.meta.ai"],
+    "perplexity": ["perplexity.ai", "www.perplexity.ai"],
+    "copilot": ["copilot.microsoft.com", "bing.com", "microsoft365.com"],
+    "nvidia_ai": ["build.nvidia.com", "nvidia.com", "nim.nvidia.com"],
+    "mistral": ["mistral.ai", "chat.mistral.ai", "console.mistral.ai"],
+    "qwen": ["qwen.ai", "tongyi.aliyun.com", "chat.qwen.ai"],
+    "qwen_coder": ["qwen.ai", "tongyi.aliyun.com", "chat.qwen.ai"],
 }
 
 

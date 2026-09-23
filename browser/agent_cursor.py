@@ -315,6 +315,20 @@ ANTIGRAVITY_CURSOR_JS = """
             if (window.__agentic_cursor) window.__agentic_cursor.show();
         });
     }
+
+    // Continuous persistence watchdog for SPA dynamic DOM re-renders (e.g. Gemini, ChatGPT)
+    setInterval(() => {
+        try {
+            ensureCursorStyles();
+            const wrapper = document.getElementById('agentic-cursor-wrapper');
+            if (!wrapper || (document.body && !document.body.contains(wrapper))) {
+                ensureCursorElement();
+                if (window.__agentic_cursor) {
+                    window.__agentic_cursor.show();
+                }
+            }
+        } catch (e) {}
+    }, 500);
 })();
 """
 

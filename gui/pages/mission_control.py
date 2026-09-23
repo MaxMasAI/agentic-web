@@ -19,6 +19,7 @@ from utils.mcp_service import get_skills_count
 class MissionControlPage(QWidget):
     navigate_requested = Signal(str)
     direct_task_submitted = Signal(str)
+    multi_tasks_submitted = Signal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -58,6 +59,9 @@ class MissionControlPage(QWidget):
         self.cards_layout = QHBoxLayout()
         self.cards_layout.setSpacing(10)
 
+        self.card_tokens = MetricCard("1.019B+", "Free Tokens", "#ff4b4b", is_clickable=True)
+        self.card_tokens.clicked.connect(lambda *args: self.navigate_requested.emit("tokens"))
+
         self.card_tasks = MetricCard("0", "Tasks Done", "#38bdf8", is_clickable=True)
         self.card_tasks.clicked.connect(lambda *args: self.navigate_requested.emit("history"))
 
@@ -79,7 +83,7 @@ class MissionControlPage(QWidget):
         self.card_active = MetricCard("0", "Active Runs", "#f87171", is_clickable=True)
         self.card_active.clicked.connect(lambda *args: self.navigate_requested.emit("launch"))
 
-        for c in [self.card_tasks, self.card_mem, self.card_play, self.card_squads, self.card_skills, self.card_assets, self.card_active]:
+        for c in [self.card_tokens, self.card_tasks, self.card_mem, self.card_play, self.card_squads, self.card_skills, self.card_assets, self.card_active]:
             self.cards_layout.addWidget(c)
 
         self.layout.addLayout(self.cards_layout)
@@ -91,6 +95,7 @@ class MissionControlPage(QWidget):
 
         self.pool_monitor = PoolMonitor()
         self.pool_monitor.direct_task_submitted.connect(self.direct_task_submitted.emit)
+        self.pool_monitor.multi_tasks_submitted.connect(self.multi_tasks_submitted.emit)
         self.pool_monitor.goto_launch_requested.connect(lambda *args: self.navigate_requested.emit("launch"))
         self.layout.addWidget(self.pool_monitor)
 
@@ -113,6 +118,18 @@ class MissionControlPage(QWidget):
         main_vbox.addWidget(scroll)
 
     def refresh_data(self, tasks: list, memories: list, subagents: list, running_procs: dict):
+        try:
+            from services.token_manager import get_token_manager
+            tm = get_token_manager()
+            stats = tm.get_lifetime_stats()
+            consumed = stats.get("lifetime_total_tokens", 0)
+            if consumed > 0:
+                self.card_tokens.set_value(f"{consumed/1000:.1f}k" if consumed < 1000000 else f"{consumed/1000000:.2f}M")
+            else:
+                self.card_tokens.set_value("1.019B+")
+        except Exception:
+            self.card_tokens.set_value("1.019B+")
+
         self.card_tasks.set_value(str(len(tasks)))
         self.card_mem.set_value(str(len(memories)))
         self.card_squads.set_value(str(len(subagents)))
@@ -172,3 +189,7 @@ class MissionControlPage(QWidget):
                 c_layout.addStretch()
                 c_layout.addWidget(badge)
                 self.recent_missions_layout.addWidget(card)
+
+    def update_running_processes(self, procs: dict):
+        if hasattr(self, "pool_monitor") and self.pool_monitor:
+            self.pool_monitor.update_running_processes(procs)

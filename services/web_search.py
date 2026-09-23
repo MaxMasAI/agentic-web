@@ -64,7 +64,9 @@ class WebSearchService:
         except Exception:
             pass
 
-    def search(self, query: str, max_results: int = 5, provider: Optional[str] = None) -> List[Dict[str, str]]:
+    def search(self, query: str, max_results: int = 5, provider: Optional[str] = None, num_results: Optional[int] = None) -> List[Dict[str, str]]:
+        if num_results is not None:
+            max_results = num_results
         chosen = (provider or self.default_provider).lower()
 
         if chosen == SearchProvider.GOOGLE and self.google_cse_id:

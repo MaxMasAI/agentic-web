@@ -13,12 +13,24 @@ from PySide6.QtGui import QCursor, QFont, QColor, QKeyEvent
 
 from core.agentlist import list_all_active_agents, get_lead_agent
 
-# Standard Slash Commands & Workflows
+# Standard Slash Commands, Workflows & Internal Tools
 DEFAULT_SLASH_WORKFLOWS = [
     {"id": "all", "name": "all", "icon": "👥", "category": "Squad", "desc": "Dispatch task concurrently to all active specialists in roster"},
-    {"id": "system", "name": "system", "icon": "⚡", "category": "System", "desc": "Antigravity OS · Host command line, apps & desktop automation"},
+    {"id": "system", "name": "system", "icon": "⚡", "category": "Tool", "desc": "System OS · Host command line, apps & desktop automation"},
+    {"id": "search", "name": "search", "icon": "🌐", "category": "Tool", "desc": "Real-time web search across DuckDuckGo, Google CSE, Bing"},
+    {"id": "memory", "name": "memory", "icon": "🧠", "category": "Tool", "desc": "Neural memory search or record knowledge note"},
+    {"id": "file", "name": "file", "icon": "📁", "category": "Tool", "desc": "Local filesystem I/O (read, write, list, search files)"},
+    {"id": "wiki", "name": "wiki", "icon": "📚", "category": "Tool", "desc": "Instant Wikipedia factual knowledge & article lookup"},
+    {"id": "mcp", "name": "mcp", "icon": "🔌", "category": "Tool", "desc": "Execute tool on active Model Context Protocol (MCP) server"},
+    {"id": "harness", "name": "harness", "icon": "🧪", "category": "Tool", "desc": "Run MaxMasAI LAYA evaluation harness with plugins & CoT"},
+    {"id": "tokens", "name": "tokens", "icon": "💎", "category": "Studio", "desc": "Real-time Token Manager & 1.019B free token metrics"},
+    {"id": "canvas", "name": "canvas", "icon": "🌌", "category": "Studio", "desc": "Switch to Infinite Agent Canvas DAG Workflow Studio"},
+    {"id": "vscode", "name": "vscode", "icon": "💻", "category": "Studio", "desc": "Switch to Monaco Code Studio & project explorer"},
+    {"id": "notepad", "name": "notepad", "icon": "📝", "category": "Studio", "desc": "Switch to Scratchpad & notes workspace"},
+    {"id": "painter", "name": "painter", "icon": "🎨", "category": "Studio", "desc": "Switch to AI Visual Sketch & Painter Studio"},
+    {"id": "scheduler", "name": "scheduler", "icon": "🕒", "category": "Studio", "desc": "Switch to Automated Recurring Job Scheduler"},
     {"id": "goal", "name": "goal", "icon": "⏱️", "category": "Workflow", "desc": "Run until the specified goal is completely fulfilled"},
-    {"id": "schedule", "name": "schedule", "icon": "🕒", "category": "Workflow", "desc": "Run an instruction on a recurring schedule or timer"},
+    {"id": "schedule", "name": "schedule", "icon": "📅", "category": "Workflow", "desc": "Run an instruction on a recurring schedule or timer"},
     {"id": "grill-me", "name": "grill-me", "icon": "💬", "category": "Workflow", "desc": "Interview me to align on a plan and resolve decisions"},
     {"id": "learn", "name": "learn", "icon": "💡", "category": "Workflow", "desc": "Reflect on recent successes or corrections to persist pattern"},
     {"id": "reset", "name": "reset", "icon": "🔄", "category": "System", "desc": "Reset all agent worker states back to FREE ready status"},
@@ -49,7 +61,7 @@ def get_slash_catalogue():
     except Exception:
         pass
         
-    # 3. Add system workflows & utility slash commands
+    # 3. Add system workflows, tools & utility slash commands
     catalogue.extend(DEFAULT_SLASH_WORKFLOWS[1:])
     return catalogue
 
@@ -78,7 +90,7 @@ class SlashItemWidget(QWidget):
         cat = item_data.get("category", "")
         if cat:
             cat_lbl = QLabel(cat.upper())
-            cat_color = "#38bdf8" if cat == "Agent" else "#10b981" if cat == "Squad" else "#a855f7" if cat == "Workflow" else "#f59e0b"
+            cat_color = "#38bdf8" if cat in ("Agent", "Leader") else "#10b981" if cat == "Squad" else "#a855f7" if cat in ("Workflow", "Studio") else "#f59e0b"
             cat_lbl.setStyleSheet(f"""
                 font-size: 9px;
                 font-weight: 800;
@@ -106,8 +118,8 @@ class SlashAutoCompletePopup(QFrame):
         super().__init__(parent_input.window(), Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.parent_input = parent_input
         self.setObjectName("SlashAutoCompletePopup")
-        self.setFixedWidth(520)
-        self.setMaximumHeight(280)
+        self.setFixedWidth(540)
+        self.setMaximumHeight(300)
         
         # Sci-Fi Glassmorphism Styling
         self.setStyleSheet("""
@@ -162,7 +174,7 @@ class SlashAutoCompletePopup(QFrame):
         layout.setSpacing(2)
 
         # Header Hint
-        hdr = QLabel("⚡ QUICK SLASH ROUTING & AGENT SELECTION (↑/↓ to navigate · Enter to select)")
+        hdr = QLabel("⚡ QUICK SLASH ROUTING, TOOLS & AGENTS (↑/↓ to navigate · Enter to select)")
         hdr.setStyleSheet("font-size: 9.5px; font-weight: 800; color: #38bdf8; padding: 4px 8px; letter-spacing: 0.5px;")
         layout.addWidget(hdr)
 
@@ -207,7 +219,7 @@ class SlashAutoCompletePopup(QFrame):
     def _update_height(self):
         count = self.list_widget.count()
         item_h = 38
-        new_h = min(280, max(80, count * item_h + 36))
+        new_h = min(300, max(80, count * item_h + 36))
         self.setFixedHeight(new_h)
 
     def _reposition(self):
@@ -265,8 +277,8 @@ class SlashAutoCompletePopup(QFrame):
         cmd_id = item["name"]
         cat = item.get("category", "")
         
-        # Formatting rule: Agents / Squads get "/{name} - ", workflows get "/{name} "
-        if cat in ("Agent", "Squad", "System") and cmd_id not in ("reset", "help"):
+        # Formatting rule: Agents / Squads get "/{name} - ", tools/studios get "/{name} "
+        if cat in ("Agent", "Squad") and cmd_id not in ("reset", "help"):
             completion_text = f"/{cmd_id} - "
         else:
             completion_text = f"/{cmd_id} "

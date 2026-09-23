@@ -27,7 +27,7 @@ DEFAULT_LEAD_AGENT: Dict[str, Any] = {
         "Project orchestration, multimodal asset evaluation, strict design quality audits, "
         "repetition filtering, prompt engineering refinement, and workflow direction."
     ),
-    "official_url": "https://gemini.google.com/app",
+    "official_url": "https://gemini.google.com",
     "is_leader": True,
     "routing_tag": "[SEND_TO: gemini]"
 }

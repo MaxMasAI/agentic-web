@@ -333,12 +333,41 @@ class PluginManager:
                     pass
         return tools
 
-    def call_plugin_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def evaluate_plugin_laya_contract(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+        """Evaluates plugin tool call using LAYA System 1 Decision Contract."""
+        try:
+            from core.laya_engine import LayaDecisionEngine, DEFAULT_PLUGIN_CONTRACT
+            engine = LayaDecisionEngine.get_instance()
+            state = engine.normalize_state(
+                raw_payload=f"plugin_tool_call:{tool_name}",
+                context_attributes={"tool_name": tool_name, "arguments": arguments}
+            )
+            return engine.evaluate_contract(state, DEFAULT_PLUGIN_CONTRACT)
+        except Exception:
+            return None
+
+    def call_plugin_tool(self, tool_name: str, arguments: Dict[str, Any], enforce_laya_gating: bool = True) -> Dict[str, Any]:
+        """
+        Executes a registered tool with LAYA System 1 gatekeeping and security isolation.
+        """
+        laya_result = None
+        if enforce_laya_gating:
+            laya_result = self.evaluate_plugin_laya_contract(tool_name, arguments)
+
         for p in self.plugins.values():
             if p.enabled:
                 tools = p.attach_tools()
                 if any(t.get("name") == tool_name for t in tools):
-                    return p.execute_tool(tool_name, arguments)
+                    res = p.execute_tool(tool_name, arguments)
+                    if isinstance(res, dict) and laya_result is not None:
+                        res["laya_telemetry"] = {
+                            "latency_ms": laya_result.latency_ms,
+                            "privilege_level": laya_result.urgency_tier,
+                            "requires_sandbox": laya_result.decisions.get("requires_sandbox_isolation", False),
+                            "is_security_sensitive": laya_result.is_security_sensitive,
+                            "fast_path_eligible": laya_result.fast_path_eligible
+                        }
+                    return res
         return {"success": False, "error": f"No active plugin found for tool '{tool_name}'."}
 
 

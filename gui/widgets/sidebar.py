@@ -95,7 +95,7 @@ class Sidebar(QWidget):
     NAV_SECTIONS = [
         ("🚀 OPERATIONS", [
             ("home", "🛰️", "Mission Control"),
-            ("launch", "🚀", "Task Dispatch"),
+            ("launch", "⚡", "Task Dispatcher"),
             ("subagents", "🤖", "Agent Squads"),
             ("history", "📋", "Mission Archive"),
         ]),

@@ -14,6 +14,7 @@ from core.agent_status import get_all_agent_status, set_agent_state
 from core.agentlist import get_lead_agent
 from gui.widgets.add_agent_dialog import AddAgentDialog
 from gui.widgets.slash_autocomplete import attach_slash_autocomplete
+from gui.widgets.popout_dispatcher_widget import PopoutDispatcherWidget, PopoutDispatcherDialog
 
 
 class AddAgentCard(QFrame):
@@ -193,12 +194,15 @@ class AgentCard(QFrame):
 
 class PoolMonitor(QWidget):
     direct_task_submitted = Signal(str)
-    goto_launch_requested = Signal()
+    multi_tasks_submitted = Signal(list)
+    goto_launch_requested = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.inspected_agent_id = None
         self.view_mode = "tree"  # "tree" or "grid"
+        self.running_procs = {}
+        self.popout_dialogs = []
         self.init_ui()
 
     def init_ui(self):
@@ -370,6 +374,7 @@ class PoolMonitor(QWidget):
 
         # Direct Task Assignment Bar
         direct_row = QHBoxLayout()
+        direct_row.setSpacing(8)
         self.direct_input = QLineEdit()
         self.direct_input.setPlaceholderText("🎯 Enter goal or control via /{names} - task (e.g. /deepseek - code app, /claude,chatgpt - review, /all - dispatch)...")
         self.direct_input.setToolTip("Type mission goal directly or use slash routing: /{agent_name} - {task}\nExamples:\n• /deepseek - build python scraper\n• /claude,chatgpt - security review\n• /all - full collaborative squad task\n• /system - open notepad\n• /reset - reset all agent states to FREE\n• /help - view slash commands guide")
@@ -377,12 +382,33 @@ class PoolMonitor(QWidget):
         attach_slash_autocomplete(self.direct_input)
         direct_row.addWidget(self.direct_input, stretch=3)
 
-        btn_assign = QPushButton(f"🚀 Dispatch Task / Slash Command")
+        btn_assign = QPushButton(f"🚀 Dispatch Task")
         btn_assign.setProperty("class", "primary-btn")
         btn_assign.setToolTip("Execute direct task or /{name} slash control command")
         btn_assign.setCursor(QCursor(Qt.PointingHandCursor))
         btn_assign.clicked.connect(self.submit_direct_task)
         direct_row.addWidget(btn_assign, stretch=1)
+
+        btn_popout_disp = QPushButton("⚡ Pop-out Dispatcher")
+        btn_popout_disp.setCursor(QCursor(Qt.PointingHandCursor))
+        btn_popout_disp.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(56, 189, 248, 0.2);
+                color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.5);
+                border-radius: 6px;
+                font-weight: 800;
+                font-size: 11.5px;
+                padding: 6px 14px;
+            }
+            QPushButton:hover {
+                background-color: #38bdf8;
+                color: #0b1120;
+            }
+        """)
+        btn_popout_disp.setToolTip("Open detachable Multi-Agent Pop-out Task Dispatcher (Supports single-prompt Multi-Tasking)")
+        btn_popout_disp.clicked.connect(self.toggle_popout_dispatcher)
+        direct_row.addWidget(btn_popout_disp, stretch=1)
 
         btn_insp_gem = QPushButton(f"🔍 Inspect {lead_info.get('name', 'Leader')}")
         btn_insp_gem.setCursor(QCursor(Qt.PointingHandCursor))
@@ -390,6 +416,16 @@ class PoolMonitor(QWidget):
         direct_row.addWidget(btn_insp_gem, stretch=1)
 
         l_layout.addLayout(direct_row)
+
+        # Embedded Pop-out Task Dispatcher Section
+        self.popout_dispatcher = PopoutDispatcherWidget(self)
+        self.popout_dispatcher.hide()
+        self.popout_dispatcher.task_dispatched.connect(lambda t, a, l: self.direct_task_submitted.emit(t))
+        self.popout_dispatcher.multi_tasks_dispatched.connect(self.multi_tasks_submitted.emit)
+        if self.running_procs:
+            self.popout_dispatcher.update_running_processes(self.running_procs)
+        l_layout.addWidget(self.popout_dispatcher)
+
         self.pool_layout.addWidget(leader_box)
 
         # Flow Arrow
@@ -448,6 +484,49 @@ class PoolMonitor(QWidget):
         dialog = AddAgentDialog(self)
         dialog.agent_added.connect(lambda *_: self.refresh_pool())
         dialog.exec()
+
+    def open_in_agents_tab(self):
+        txt = self.direct_input.text().strip() if hasattr(self, 'direct_input') and self.direct_input else ""
+        if txt:
+            self.direct_input.clear()
+            self.direct_task_submitted.emit(txt)
+        else:
+            self.goto_launch_requested.emit("launch")
+
+    def toggle_popout_dispatcher(self):
+        self.open_popout_dispatcher()
+
+    def open_popout_dispatcher(self, initial_text: str = ""):
+        if not initial_text and hasattr(self, 'direct_input') and self.direct_input.text().strip():
+            initial_text = self.direct_input.text().strip()
+            self.direct_input.clear()
+
+        dialog = PopoutDispatcherDialog(parent=self, initial_text=initial_text, running_procs=self.running_procs)
+        dialog.task_dispatched.connect(lambda t, a, l: self.direct_task_submitted.emit(t))
+        dialog.multi_tasks_dispatched.connect(self.multi_tasks_submitted.emit)
+        dialog.new_window_requested.connect(lambda: self.open_popout_dispatcher())
+        self.popout_dialogs.append(dialog)
+        dialog.show()
+        dialog.raise_()
+        dialog.activateWindow()
+
+    def update_running_processes(self, procs: dict):
+        self.running_procs = procs
+        if hasattr(self, 'popout_dispatcher') and self.popout_dispatcher:
+            self.popout_dispatcher.update_running_processes(procs)
+        # Update all active multi-window dialogs
+        for dlg in list(getattr(self, 'popout_dialogs', [])):
+            try:
+                if dlg.isVisible():
+                    dlg.update_running_processes(procs)
+            except Exception:
+                pass
+        for dlg in list(PopoutDispatcherDialog._active_dialogs):
+            try:
+                if dlg.isVisible():
+                    dlg.update_running_processes(procs)
+            except Exception:
+                pass
 
     def submit_direct_task(self):
         if not hasattr(self, 'direct_input') or not self.direct_input:

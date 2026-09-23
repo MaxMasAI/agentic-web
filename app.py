@@ -16,6 +16,11 @@ import time
 import subprocess
 import re
 
+# Ensure project root is always first in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 # Ensure correct base directory and path resolution when running as standalone frozen executable
 if getattr(sys, 'frozen', False):
     app_data_dir = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AgenticWeb")
@@ -230,7 +235,7 @@ class MainWindow(QMainWindow):
         try:
             from system.system_cursor import DesktopSystemCursorOverlay
             if DesktopSystemCursorOverlay:
-                self.system_cursor_overlay = DesktopSystemCursorOverlay(agent_id="system")
+                self.system_cursor_overlay = DesktopSystemCursorOverlay(agent_id="gemini")
                 self.system_cursor_overlay.hide()
         except Exception as e:
             print(f"[SystemCursor] Note: {e}")
@@ -248,11 +253,11 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"[MainWindow] Note restoring last tab: {e}")
 
-    def show_system_cursor_for_task(self, action_text: str = "System Executing...", duration_sec: float = 4.0):
-        """Auto-activates Antigravity System cursor when system-level operations run, hiding automatically upon completion."""
+    def show_system_cursor_for_task(self, action_text: str = "Gemini Orchestrating...", duration_sec: float = 4.0, agent_id: str = "gemini"):
+        """Auto-activates visual agent cursor overlay when tasks run, hiding automatically upon completion."""
         if getattr(self, "system_cursor_overlay", None):
             try:
-                self.system_cursor_overlay.set_active_worker("system", action_text)
+                self.system_cursor_overlay.set_active_worker(agent_id, action_text)
                 self.system_cursor_overlay.show()
                 self.system_cursor_overlay.start_following_mouse(interval_ms=16)
 
@@ -276,12 +281,12 @@ class MainWindow(QMainWindow):
                 self.system_cursor_overlay.hide()
 
     def toggle_system_cursor(self, enabled: bool):
-        """Manually toggles or pins the Antigravity System follow cursor overlay."""
+        """Manually toggles or pins the visual follow cursor overlay (Default Google Gemini Leader)."""
         if getattr(self, "system_cursor_overlay", None):
             if enabled:
                 if self._cursor_auto_hide_timer and self._cursor_auto_hide_timer.isActive():
                     self._cursor_auto_hide_timer.stop()
-                self.system_cursor_overlay.set_active_worker("system", "Pinned Follow")
+                self.system_cursor_overlay.set_active_worker("gemini", "👑 Gemini Follow")
                 self.system_cursor_overlay.show()
                 self.system_cursor_overlay.start_following_mouse(16)
             else:
@@ -351,8 +356,10 @@ class MainWindow(QMainWindow):
         # Cross-Page Signals
         self.pages["home"].navigate_requested.connect(self.switch_page)
         self.pages["home"].direct_task_submitted.connect(self.on_direct_task_submitted)
+        self.pages["home"].multi_tasks_submitted.connect(self.on_multi_tasks_submitted)
 
         self.pages["launch"].launch_requested.connect(self.launch_pipeline)
+        self.pages["launch"].multi_tasks_submitted.connect(self.on_multi_tasks_submitted)
         self.pages["launch"].abort_requested.connect(self.abort_mission)
 
         self.pages["playground"].dispatch_refactor_requested.connect(self.launch_pipeline)
@@ -549,7 +556,7 @@ class MainWindow(QMainWindow):
     def switch_page(self, page_key: str):
         page_titles = {
             "home": "Mission Control Dashboard",
-            "launch": "Task Dispatch Console",
+            "launch": "Antigravity Agents & Task Dispatch",
             "subagents": "Multi-Agent Squad Roster",
             "history": "Mission Archives & Deliverables",
             "chat": "Multi-Model AI Chat",
@@ -595,53 +602,164 @@ class MainWindow(QMainWindow):
             pass
 
     def on_direct_task_submitted(self, task_str: str):
-        from core.command_router import parse_slash_task_command
-        cmd_info = parse_slash_task_command(task_str)
+        from core.command_router import route_task_with_laya, split_multi_task_prompt
+        from core.internal_tool_executor import InternalToolExecutor
+        
+        # Check if the prompt contains multiple compound subtasks
+        subtasks = split_multi_task_prompt(task_str)
+        if len(subtasks) > 1:
+            dispatched = []
+            for idx, t_info in enumerate(subtasks, 1):
+                t_txt = t_info.get("task", task_str)
+                t_agt = t_info.get("agents", "auto")
+                lbl = f"[{idx}/{len(subtasks)}] {t_agt.upper()} @ {time.strftime('%H:%M:%S')}"
+                dispatched.append((t_txt, t_agt, lbl))
+            self.on_multi_tasks_submitted(dispatched)
+            return
+
+        cmd_info = route_task_with_laya(task_str)
         cmd_type = cmd_info.get("type", "dispatch")
+        tool_exec = InternalToolExecutor.get_instance()
 
         if cmd_type == "empty":
             return
 
+        # 1. State Reset
         if cmd_type == "reset":
-            self.show_system_cursor_for_task("Pool State Reset", duration_sec=3.0)
+            self.show_system_cursor_for_task("Pool State Reset", duration_sec=3.0, agent_id="system")
             from core.agent_status import set_all_agents_free
             set_all_agents_free("Idle - Ready for assignment")
             self.refresh_all_data(force=True)
             QMessageBox.information(self, "🔄 State Reset", "All agent statuses have been reset to FREE.")
             return
 
+        # 2. Help Guide
         if cmd_type == "help":
             self.show_slash_commands_help_dialog()
             return
 
+        # 3. Direct Page Navigation
+        if cmd_type == "navigate":
+            target_page = cmd_info.get("target_page", "home")
+            self.show_system_cursor_for_task(f"Navigating to {target_page.title()}", duration_sec=2.0, agent_id="gemini")
+            self.switch_page(target_page)
+            return
+
+        # 4. Agent Inspector
         if cmd_type == "inspect":
             target = cmd_info.get("target_agent", "gemini")
-            self.show_system_cursor_for_task(f"Inspecting {target.title()}", duration_sec=3.0)
+            self.show_system_cursor_for_task(f"Inspecting {target.title()}", duration_sec=3.0, agent_id=target)
             self.pages["home"].pool_monitor.inspect_agent(target)
             return
 
+        # 5. Direct OS / System Exec Tool
         if cmd_type == "system_exec":
             task_cmd = cmd_info.get("task", "")
-            self.show_system_cursor_for_task(f"OS Exec: {task_cmd[:20]}", duration_sec=5.0)
-            from system.system_os_service import SystemOSService
-            sys_svc = SystemOSService()
-            res = sys_svc.sys_exec(task_cmd)
-            msg = res.get("stdout") or res.get("stderr") or ("Command executed successfully." if res.get("success") else "Execution error")
-            QMessageBox.information(self, "⚡ System OS Execution", f"<b>Command:</b> <code>{task_cmd}</code><br><br><b>Output:</b><pre>{msg[:800]}</pre>")
+            self.show_system_cursor_for_task(f"OS Exec: {task_cmd[:20]}", duration_sec=5.0, agent_id="system")
+            res = tool_exec.execute_os_command(task_cmd)
+            msg = res.get("output") or res.get("error") or "Command executed."
+            QMessageBox.information(self, "⚡ System OS Execution", f"<b>Command:</b> <code>{task_cmd}</code><br><br><b>Output:</b><pre style='background:#1e293b;padding:8px;border-radius:6px;color:#f8fafc;'>{msg[:1200]}</pre>")
             return
 
-        # Regular or routed multi-agent task dispatch
+        # 6. Direct MCP Tool Execution
+        if cmd_type == "mcp_tool":
+            tool_name = cmd_info.get("tool_name", "")
+            tool_args = cmd_info.get("tool_args", "{}")
+            self.show_system_cursor_for_task(f"MCP Tool: {tool_name}", duration_sec=4.0, agent_id="system")
+            res = tool_exec.execute_mcp_tool(tool_name, tool_args)
+            msg = res.get("output") or res.get("error") or "MCP operation finished."
+            QMessageBox.information(self, "🔌 MCP Hub Execution", f"<b>Tool:</b> <code>{tool_name}</code><br><br><b>Output:</b><pre style='background:#1e293b;padding:8px;border-radius:6px;color:#f8fafc;'>{msg[:1200]}</pre>")
+            return
+
+        # 7. Direct Neural Memory Tool
+        if cmd_type == "memory_tool":
+            act = cmd_info.get("action", "search")
+            q = cmd_info.get("query", "")
+            self.show_system_cursor_for_task(f"Neural Memory {act.title()}", duration_sec=3.0, agent_id="gemini")
+            res = tool_exec.execute_memory_operation(act, q)
+            msg = res.get("output") or res.get("error") or "Memory updated."
+            QMessageBox.information(self, "🧠 Neural Memory", f"<b>Action:</b> {act.upper()}<br><b>Query:</b> {q}<br><br><b>Result:</b><pre style='background:#1e293b;padding:8px;border-radius:6px;color:#f8fafc;'>{msg[:1200]}</pre>")
+            return
+
+        # 8. Direct File I/O Tool
+        if cmd_type == "file_tool":
+            op = cmd_info.get("operation", "read")
+            path = cmd_info.get("path", "")
+            content = cmd_info.get("content", "")
+            self.show_system_cursor_for_task(f"File {op.title()}: {path}", duration_sec=3.0, agent_id="system")
+            res = tool_exec.execute_file_operation(op, path, content)
+            msg = res.get("output") or res.get("error") or "File operation completed."
+            QMessageBox.information(self, "📁 Local Filesystem Tool", f"<b>Operation:</b> {op.upper()}<br><b>Path:</b> <code>{path}</code><br><br><b>Output:</b><pre style='background:#1e293b;padding:8px;border-radius:6px;color:#f8fafc;'>{msg[:1200]}</pre>")
+            return
+
+        # 9. Direct Wikipedia Tool
+        if cmd_type == "wiki_tool":
+            q = cmd_info.get("query", "")
+            self.show_system_cursor_for_task(f"Wikipedia: {q}", duration_sec=3.0, agent_id="gemini")
+            res = tool_exec.execute_wikipedia(q)
+            msg = res.get("output") or res.get("error") or "No article found."
+            QMessageBox.information(self, "📚 Wikipedia Knowledge Tool", f"<b>Article:</b> {res.get('title', q)}<br><br><div style='line-height:1.6;color:#f8fafc;'>{msg[:1500]}</div>")
+            return
+
+        # 10. Direct Web Search Tool
+        if cmd_type == "web_tool":
+            q = cmd_info.get("query", "")
+            self.show_system_cursor_for_task(f"Web Search: {q}", duration_sec=4.0, agent_id="perplexity")
+            res = tool_exec.execute_web_search(q)
+            msg = res.get("output") or res.get("error") or "Search complete."
+            QMessageBox.information(self, "🌐 Real-Time Web Search", f"<b>Query:</b> {q}<br><br><pre style='background:#1e293b;padding:8px;border-radius:6px;color:#f8fafc;white-space:pre-wrap;'>{msg[:1500]}</pre>")
+            return
+
+        # 11. Direct MaxMasAI Harness Execution
+        if cmd_type == "harness_tool":
+            h_task = cmd_info.get("task", "")
+            self.show_system_cursor_for_task("Launching MaxMasAI Harness", duration_sec=3.0, agent_id="gemini")
+            self.switch_page("harness")
+            if hasattr(self.pages["harness"], "input_area"):
+                self.pages["harness"].input_area.setText(h_task)
+            return
+
+        # 12. Regular or Multi-Agent Task Dispatch with Autonomous Tool Ingestion & LAYA Telemetry
         target_agents = cmd_info.get("agents", "auto")
         task_text = cmd_info.get("task", task_str)
-        label = f"{target_agents.upper()} @ {time.strftime('%H:%M:%S')}"
+
+        # Autonomous Agent Tool Resolution: If LAYA or InternalToolExecutor detected an internal tool need
+        auto_tool = cmd_info.get("auto_tool_result")
+        if auto_tool:
+            tool_name = auto_tool.get("tool", "internal_tool")
+            self.show_system_cursor_for_task(f"Auto Tool Executed: {tool_name.upper()}", duration_sec=3.5, agent_id="gemini")
+            tool_injection = InternalToolExecutor.format_tool_result_for_agent(auto_tool)
+            task_text = f"{task_text}\n\n{tool_injection}"
+
+        # If agents="auto" and LAYA fast-path identified a specialist with >=85% confidence
+        if target_agents == "auto" and cmd_info.get("laya_fast_path"):
+            rec_specialist = cmd_info.get("laya_recommended_specialist", "gemini_leader")
+            spec_map = {
+                "gemini_leader": "gemini",
+                "deepseek_coder": "deepseek",
+                "claude_auditor": "claude",
+                "chatgpt_synthesizer": "chatgpt",
+                "web_researcher": "perplexity",
+                "system_exec": "system",
+                "multi_agent_squad": "all"
+            }
+            mapped_agent = spec_map.get(rec_specialist, "auto")
+            if mapped_agent != "auto":
+                target_agents = mapped_agent
+
+        active_agent_id = "gemini" if target_agents in ("auto", "gemini", "all") else target_agents.split(",")[0]
+        self.show_system_cursor_for_task(f"Deploying {target_agents.upper()}", duration_sec=3.5, agent_id=active_agent_id)
+
+        laya_lat = cmd_info.get("laya_latency_ms", 0.0)
+        label = f"{target_agents.upper()} (LAYA {laya_lat}ms) @ {time.strftime('%H:%M:%S')}"
         self.launch_pipeline(task_text, target_agents, label)
         self.switch_page("launch")
 
     def show_slash_commands_help_dialog(self):
-        """Displays slash command syntax reference dialog."""
+        """Displays slash command syntax reference and internal tool cheatsheet."""
         dialog = QDialog(self)
-        dialog.setWindowTitle("⚡ Multi-Agent Direct Slash Commands Guide")
-        dialog.setMinimumWidth(720)
+        dialog.setWindowTitle("⚡ Multi-Agent Direct Slash Commands & Internal Tools Guide")
+        dialog.setMinimumWidth(800)
         dialog.setStyleSheet("""
             QDialog {
                 background-color: #0b1120;
@@ -661,19 +779,31 @@ class MainWindow(QMainWindow):
         d_lay.setContentsMargins(20, 18, 20, 18)
         d_lay.setSpacing(12)
 
-        hdr = QLabel("<div style='font-size:16px;font-weight:800;color:#38bdf8;'>⚡ Direct Control Slash Syntax: <code>/{names} - task</code></div>")
+        hdr = QLabel("<div style='font-size:16px;font-weight:800;color:#38bdf8;'>⚡ Unified Internal Tools & Multi-Agent Slash Routing</div>")
         d_lay.addWidget(hdr)
 
         body = QLabel("""
         <div style='line-height:1.7; color:#cbd5e1;'>
-        You can control and route tasks directly to any model or squad from this text area:<br><br>
+        You can control all internal tools and route tasks directly from the Mission Control input bar:<br><br>
+        
+        <b>🛠️ Internal Tool Controls:</b><br>
+        • <b>System / OS Exec:</b> <code>/system - open notepad</code> or <code>/os - calc</code> or <code>/exec - ipconfig</code><br>
+        • <b>Real-Time Web Search:</b> <code>/search &lt;query&gt;</code> or <code>/web &lt;query&gt;</code><br>
+        • <b>Neural Memory:</b> <code>/memory search &lt;query&gt;</code> or <code>/memory add &lt;note&gt;</code><br>
+        • <b>File I/O:</b> <code>/file read &lt;path&gt;</code> or <code>/file write &lt;path&gt; &lt;content&gt;</code><br>
+        • <b>Wikipedia Lookup:</b> <code>/wiki &lt;topic&gt;</code><br>
+        • <b>MCP Protocol:</b> <code>/mcp &lt;tool_name&gt; [args_json]</code><br>
+        • <b>MaxMasAI Harness:</b> <code>/harness &lt;task&gt;</code><br>
+        • <b>Instant Page Jump:</b> <code>/tokens</code>, <code>/canvas</code>, <code>/vscode</code>, <code>/notepad</code>, <code>/painter</code>, <code>/scheduler</code><br><br>
+        
+        <b>👥 Multi-Agent Squad Routing:</b><br>
         • <b>Single Specialist:</b> <code>/deepseek - Write a python web scraper</code><br>
         • <b>Multi-Agent Squad:</b> <code>/claude,chatgpt - Review and synthesize report</code><br>
         • <b>Full Team Squad:</b> <code>/all - Execute full collaborative plan</code><br>
-        • <b>System / OS Command:</b> <code>/system - open notepad</code> or <code>/os - calc</code><br>
-        • <b>Inspect Agent:</b> <code>/inspect deepseek</code><br>
-        • <b>Reset Agent Pool:</b> <code>/reset</code><br>
-        • <b>Normal Direct Goal:</b> <code>Write a full marketing campaign</code> (auto leader routing)
+        • <b>Inspect Agent:</b> <code>/inspect deepseek</code> | <b>Reset Pool:</b> <code>/reset</code><br><br>
+        
+        <b>🤖 Autonomous Agent Tool Execution:</b><br>
+        • Ask natural language questions (e.g. <i>'Search web for latest Python release'</i> or <i>'Read file project.yml'</i>) — agents will autonomously select and run internal tools dynamically!
         </div>
         """)
         d_lay.addWidget(body)
@@ -691,6 +821,14 @@ class MainWindow(QMainWindow):
     def on_sketch_sent_to_studio(self, sketch_path: str):
         self.pages["media_studio"].attach_sketch(sketch_path)
         self.switch_page("media_studio")
+
+    def on_multi_tasks_submitted(self, tasks_list: list):
+        if not tasks_list:
+            return
+        self.show_system_cursor_for_task(f"Deploying {len(tasks_list)} Parallel Tasks", duration_sec=3.5)
+        for task_txt, agents_str, label in tasks_list:
+            self.launch_pipeline(task_txt, agents_str, label)
+        self.switch_page("launch")
 
     def launch_pipeline(self, task: str, agents: str, label: str):
         try:
@@ -726,6 +864,8 @@ class MainWindow(QMainWindow):
 
             try:
                 self.pages["launch"].update_running_processes(self.running_procs)
+                if hasattr(self.pages["home"], "update_running_processes"):
+                    self.pages["home"].update_running_processes(self.running_procs)
                 self.sidebar.update_active_missions(self.running_procs)
                 self.switch_page("launch")
             except Exception as e:

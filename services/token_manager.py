@@ -391,8 +391,12 @@ class TokenManager:
     # ── Graph Data Feeds ──────────────────────────────────────────────────────
     def get_daily_history(self, days: int = 7) -> List[Dict[str, Any]]:
         """
-        Returns chronologically sorted daily token aggregates for area/bar graphs.
+        Returns chronologically sorted continuous daily token aggregates for area/bar graphs.
+        Guarantees an unbroken trailing N-day window ending at today (UTC).
         """
+        now = datetime.now(timezone.utc)
+        date_list = [(now - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days - 1, -1, -1)]
+
         conn = self._get_connection()
         cur = conn.execute("""
             SELECT 
@@ -402,30 +406,36 @@ class TokenManager:
                 COALESCE(SUM(total_tokens), 0) as total_tokens,
                 COUNT(*) as requests_count
             FROM token_ledger
+            WHERE date_str IN ({})
             GROUP BY date_str
-            ORDER BY date_str DESC
-            LIMIT ?
-        """, (days,))
+        """.format(','.join('?' for _ in date_list)), date_list)
 
-        rows = cur.fetchall()
-        # Sort chronologically ascending for the chart X-axis
+        rows_map = {r["date_str"]: dict(r) for r in cur.fetchall()}
+
         result = []
-        for r in reversed(rows):
-            # Format friendly label (e.g. 'Sep 14')
-            try:
-                dt = datetime.strptime(r["date_str"], "%Y-%m-%d")
-                friendly = dt.strftime("%b %d")
-            except Exception:
-                friendly = r["date_str"]
+        for d_str in date_list:
+            dt = datetime.strptime(d_str, "%Y-%m-%d")
+            friendly = dt.strftime("%b %d")
+            data_row = rows_map.get(d_str)
 
-            result.append({
-                "date": r["date_str"],
-                "label": friendly,
-                "prompt_tokens": r["prompt_tokens"],
-                "completion_tokens": r["completion_tokens"],
-                "total_tokens": r["total_tokens"],
-                "requests_count": r["requests_count"]
-            })
+            if data_row:
+                result.append({
+                    "date": d_str,
+                    "label": friendly,
+                    "prompt_tokens": data_row["prompt_tokens"],
+                    "completion_tokens": data_row["completion_tokens"],
+                    "total_tokens": data_row["total_tokens"],
+                    "requests_count": data_row["requests_count"]
+                })
+            else:
+                result.append({
+                    "date": d_str,
+                    "label": friendly,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "requests_count": 0
+                })
         return result
 
     def get_model_distribution(self) -> List[Dict[str, Any]]:

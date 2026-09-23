@@ -66,6 +66,7 @@
 15. [Automated Testing & Quality Assurance](#15-automated-testing--quality-assurance)
 16. [Security, Sandboxing & Credential Governance](#16-security-sandboxing--credential-governance)
 17. [Developer Extension Guide (Adding Agents, Skills & Tools)](#17-developer-extension-guide)
+18. [LAYA System 1 Non-Autoregressive Decision Engine (`core/system/laya_engine.py`)](#18-laya-system-1-non-autoregressive-decision-engine)
 
 ---
 
@@ -508,6 +509,54 @@ Agentic Web is built with enterprise security controls:
 1. Open `json/mcp_config.json`.
 2. Add a new 9-field server entry conforming to the standard schema.
 3. Restart the MCP Hub or click **Refresh Servers** in `gui/pages/mcp_hub.py`.
+
+---
+
+## 18. LAYA System 1 Non-Autoregressive Decision Engine
+
+### 18.1 Overview & Architectural Fit
+The **LAYA System 1 Decision Engine** (`core/system/laya_engine.py`) provides high-throughput, deterministic decision contracts for the Agentic Web workstation. Unlike generative autoregressive LLMs that produce token streams with multi-second latency and potential JSON schema drift, LAYA evaluates typed decision contracts in a **single forward-pass in under 40 milliseconds (sub-40ms)**.
+
+```mermaid
+graph LR
+    UserPrompt["User Prompt / API Ingress"] --> LayaEngine["LAYA System 1 Engine (<40ms)"]
+    LayaEngine -->|Confidence >= 0.85| FastPath["Deterministic Fast-Path Dispatch"]
+    LayaEngine -->|Confidence < 0.85 or Ambiguous| System2["System 2 CoT Fallback (Gemini / DeepSeek)"]
+    LayaEngine -->|Security Flag True| SandboxGate["Isolated Sandbox Enforcement"]
+```
+
+### 18.2 Core Decision Primitives
+LAYA operates across three strictly typed decision primitives:
+1. **`choice` (Categorical Partitioning)**: Mutually exclusive categorical routing (e.g. `gemini_leader`, `deepseek_coder`, `claude_auditor`, `web_researcher`, `system_exec`, `multi_agent_squad`).
+2. **`score` (Ordinal / Scale Assessment)**: Ordered progression tiers for computational depth and priority (`trivial_fast`, `standard_single_turn`, `complex_multi_turn`, `critical_sandbox_required`).
+3. **`noul` (Binary Hypothesis Verification)**: Precise Yes/No gatekeepers (`requires_system2_fallback`, `is_security_sensitive`, `requires_sandbox_isolation`).
+
+### 18.3 State Normalization Schema
+Raw runtime payloads are normalized into flat, high-signal JSON structures stripped of noisy trace history:
+```json
+{
+  "entity_id": "state_1774356789123",
+  "primary_text": "/deepseek - implement distributed caching layer in Python",
+  "command_token": "deepseek",
+  "has_slash_prefix": true,
+  "token_length": 8,
+  "detected_file_extensions": ["py"],
+  "contains_shell_keywords": false,
+  "contains_web_urls": false,
+  "contains_code_keywords": true,
+  "context_attributes": {
+    "workspace": "agentic-web"
+  }
+}
+```
+
+### 18.4 Operational Routing & Gating Rules
+- **Fast-Path Action**: When `primary_confidence >= 0.85` and `requires_system2_fallback == False`, prompt is immediately dispatched to target specialist without generative token delays.
+- **Security Boundary Gate**: When `is_security_sensitive == True` or `privilege_level == "elevated_system"`, tool or command execution is quarantined inside restricted subprocess sandbox.
+- **System 2 Fallback**: When confidence is below threshold or intent is underspecified, request falls back to deliberative multi-agent CoT (Gemini 2.0 / DeepSeek-R1 / MaxMasAI Harness).
+
+### 18.5 Plugin Calling & Tool Gatekeeping
+The `PluginManager` (`core/harness/plugin_base.py`) invokes `evaluate_plugin_laya_contract` before executing any dynamic plugin tool (`call_plugin_tool`), attaching LAYA sub-40ms telemetry and enforcing sandbox boundaries.
 
 ---
 

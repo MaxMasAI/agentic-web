@@ -457,14 +457,46 @@ class TokenManagerPage(QWidget):
         if lbl_s:
             lbl_s.setText(sub_val)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.refresh_data()
+
     def update_countdown_and_live_ticks(self):
-        """Calculates live countdown until midnight UTC reset."""
+        """Calculates live countdown until midnight UTC reset and syncs real-time metrics."""
         sec = self.mgr.get_seconds_until_midnight_utc()
         hrs = sec // 3600
         mins = (sec % 3600) // 60
         secs = sec % 60
         time_str = f"{hrs:02d}h {mins:02d}m {secs:02d}s"
         self._update_card_text(self.card_reset, time_str, "Resets daily at 00:00:00 UTC")
+
+        # Periodically refresh full database telemetry every 3 seconds for real-time tracking
+        if not hasattr(self, "_tick_counter"):
+            self._tick_counter = 0
+        self._tick_counter += 1
+        if self._tick_counter % 3 == 0:
+            lifetime = self.mgr.get_lifetime_summary()
+            today = self.mgr.get_today_summary()
+            tot_tok = lifetime["total_tokens"]
+            tot_str = f"{tot_tok:,} Tokens"
+            p_tok = lifetime["total_prompt_tokens"]
+            c_tok = lifetime["total_completion_tokens"]
+            sub_str = f"Prompt: {p_tok:,} · Completion: {c_tok:,}"
+            self._update_card_text(self.card_lifetime, tot_str, sub_str)
+
+            today_tok = today["today_tokens"]
+            lim = today["combined_daily_limit"]
+            lim_str = f"{lim/1_000_000_000:.1f}B" if lim >= 1_000_000_000 else f"{lim/1_000_000:.0f}M"
+            self._update_card_text(
+                self.card_today,
+                f"{today_tok:,} / {lim_str}",
+                f"{today['usage_percent']}% of Combined Daily Quotas"
+            )
+            self._update_card_text(
+                self.card_saved,
+                f"${lifetime['total_saved_usd']:.2f} USD Saved",
+                f"Today: ${today['today_saved_usd']:.2f} · Lifetime Total"
+            )
 
     def _render_quotas_grid(self, statuses: List[Dict[str, Any]]):
         # Clear existing items in grid

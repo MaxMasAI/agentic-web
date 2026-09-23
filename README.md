@@ -118,7 +118,13 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 * **🚀 Native Windows App Launcher**: Zero-latency direct launching of desktop system utilities (`Notepad`, `Task Manager`, `Calc`, `VS Code`, `Settings`).
 * **📐 Microsoft PowerToys FancyZones Tiling**: Automatic zero-overlap 3-column desktop layout snapping via native Windows Win32 APIs.
 
-### 📦 10. Developer Experience & Portable Distribution
+### ⚡ 10. LAYA System 1 Non-Autoregressive Decision Engine (<40ms)
+* **⚡ Sub-40ms Deterministic Forward Pass**: Evaluates user ingress prompts and plugin tool calls using typed decision contracts without generative LLM token delay.
+* **🎯 3 Typed Decision Primitives**: Native `choice` (categorical specialist partitioning), `score` (execution urgency & depth tier), and `noul` (binary hypotheses for security boundaries & System 2 fallback).
+* **🔒 Calibrated Probabilistic Confidence Gating**: Threshold-based fast-path auto-execution ($\ge 0.85$) with zero JSON schema drift, automatically escalating ambiguous tasks to System 2 Chain-of-Thought deliberation (Gemini / DeepSeek-R1).
+* **🛡️ Plugin Tool Gatekeeping & Sandbox Isolation**: Intercepts plugin tool executions, analyzes privilege tiers, and enforces subprocess sandboxing for elevated system actions.
+
+### 📦 11. Developer Experience & Portable Distribution
 * **⚡ Live Auto-Reload Engine (`dev.py` / `dev.bat`)**: Intelligent change debouncer and process tree terminator that auto-restarts the app on `Ctrl+S`.
 * **📦 Single-File Portable Executable (`STD_EXE.py`)**: 1-click builder compiling the entire desktop suite into a standalone Windows `.exe` without requiring Python.
 * **🐳 Docker Compose Containerization**: 1-command reproducible multi-platform environment setup passing X11/Wayland display sockets.

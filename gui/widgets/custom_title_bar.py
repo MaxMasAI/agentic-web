@@ -145,31 +145,31 @@ class CustomTitleBar(QFrame):
         self.btn_snapshot.clicked.connect(self.snapshot_requested.emit)
         layout.addWidget(self.btn_snapshot)
 
-        # System Mouse Cursor Overlay Toggle Button (Auto-shows during system tasks or pinned via toggle)
-        self.btn_cursor = QPushButton("⚡ System Cursor")
+        # Agent / Gemini Mouse Cursor Overlay Toggle Button
+        self.btn_cursor = QPushButton("✨ Gemini Cursor")
         self.btn_cursor.setCheckable(True)
         self.btn_cursor.setChecked(False)
         self.btn_cursor.setFixedHeight(30)
         self.btn_cursor.setCursor(QCursor(Qt.PointingHandCursor))
-        self.btn_cursor.setToolTip("System Cursor: Auto-activates on system-level tasks (Click to force always ON)")
+        self.btn_cursor.setToolTip("Gemini Cursor: Master Leader visual cursor overlay (Click to toggle always ON)")
         self.btn_cursor.setStyleSheet("""
             QPushButton {
-                background: rgba(239, 68, 68, 0.08);
-                border: 1px solid rgba(239, 68, 68, 0.25);
+                background: rgba(124, 58, 237, 0.12);
+                border: 1px solid rgba(124, 58, 237, 0.35);
                 border-radius: 6px;
-                color: #fca5a5;
+                color: #c4b5fd;
                 font-size: 11px;
                 font-weight: 700;
                 padding: 2px 8px;
             }
             QPushButton:hover {
-                background: rgba(239, 68, 68, 0.22);
-                border-color: #ef4444;
+                background: rgba(124, 58, 237, 0.25);
+                border-color: #a78bfa;
                 color: #ffffff;
             }
             QPushButton:checked {
-                background: rgba(239, 68, 68, 0.35);
-                border-color: #ef4444;
+                background: rgba(124, 58, 237, 0.45);
+                border-color: #a78bfa;
                 color: #ffffff;
             }
         """)

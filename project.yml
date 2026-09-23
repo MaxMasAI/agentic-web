@@ -99,7 +99,7 @@ agents:
     name: "Google Gemini"
     role: "Master Orchestrator & Task Decomposer"
     color: "#1e6b52"
-    url: "https://gemini.google.com/app"
+    url: "https://gemini.google.com"
 
   specialists:
     - id: "deepseek"

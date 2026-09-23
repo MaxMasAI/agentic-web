@@ -240,6 +240,25 @@ class {clean_id.title().replace("_", "")}Plugin(BasePlugin):
             return step
 
         try:
+            # 0. LAYA System 1 Non-Autoregressive Decision Contract Evaluation (<40ms)
+            try:
+                from core.laya_engine import LayaDecisionEngine
+                laya_engine = LayaDecisionEngine.get_instance()
+                laya_res = laya_engine.route_with_laya(prompt, {"model_id": model_id, "task_id": task_id})
+                _emit_step(
+                    "laya_system1",
+                    f"⚡ LAYA System 1 Decision Contract ({laya_res.latency_ms}ms)",
+                    f"• Ingress Latency: {laya_res.latency_ms} ms (Sub-40ms Guarantee)\n"
+                    f"• Target Specialist: {laya_res.primary_choice.upper()} (Confidence: {int(laya_res.primary_confidence*100)}%)\n"
+                    f"• Execution Depth: {laya_res.urgency_tier}\n"
+                    f"• Fast-Path Eligible: {'YES - Direct Dispatch' if laya_res.fast_path_eligible else 'NO (System 2 CoT Fallback)'}\n"
+                    f"• Security Sensitive: {'YES [Sandbox Enforced]' if laya_res.is_security_sensitive else 'NO [Safe]'}\n"
+                    f"• Primitives Evaluated: choice(target_specialist), score(execution_depth), noul(requires_fallback, is_security)",
+                    meta=laya_res.to_dict()
+                )
+            except Exception as laya_err:
+                _emit_step("laya_system1", "⚡ LAYA System 1 Gate", f"LAYA Gatekeeper: {laya_err}")
+
             # 1. Dispatch Lifecycle Event: USER_PROMPT through all plugins
             payload = {"prompt": prompt, "model_id": model_id, "task_id": task_id}
             for p_id, plugin in self.plugin_manager.plugins.items():

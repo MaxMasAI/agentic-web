@@ -20,6 +20,7 @@ from utils.latency_manager import load_latency_config, save_latency_config, PROF
 
 class TaskDispatchPage(QWidget):
     launch_requested = Signal(str, str, str)
+    multi_tasks_submitted = Signal(list)
     abort_requested = Signal(str)
 
     def __init__(self, parent=None):
@@ -40,9 +41,9 @@ class TaskDispatchPage(QWidget):
         # Title
         t_box = QVBoxLayout()
         t_box.setSpacing(2)
-        title = QLabel("🚀 TASK DISPATCH CONSOLE")
+        title = QLabel("⚡ MULTI-AGENT TASK DISPATCHER")
         title.setStyleSheet("font-size: 26px; font-weight: 800; color: #38bdf8; letter-spacing: 1.2px;")
-        subtitle = QLabel("Configure Mission Parameters & Monitor Live Multi-Agent Output")
+        subtitle = QLabel("Autonomous Multi-Agent Collaborative Execution & Live Telemetry Monitor")
         subtitle.setStyleSheet("font-size: 12px; color: #64748b; font-family: monospace; margin-bottom: 8px;")
         t_box.addWidget(title)
         t_box.addWidget(subtitle)
@@ -141,6 +142,11 @@ class TaskDispatchPage(QWidget):
         mode_row.addWidget(self.rb_auto)
         mode_row.addWidget(self.rb_manual)
         left_box.addLayout(mode_row)
+
+        self.cb_auto_split = QCheckBox("⚡ Auto-Split Compound Prompts into Multi-Agent Tasks")
+        self.cb_auto_split.setChecked(True)
+        self.cb_auto_split.setStyleSheet("color: #38bdf8; font-weight: 700; font-size: 11px;")
+        left_box.addWidget(self.cb_auto_split)
 
         # Manual Agents Checkboxes Frame
         self.manual_frame = QFrame()
@@ -256,6 +262,7 @@ class TaskDispatchPage(QWidget):
 
         self.pool_monitor = PoolMonitor()
         self.pool_monitor.direct_task_submitted.connect(self.prefill_task)
+        self.pool_monitor.multi_tasks_submitted.connect(self.multi_tasks_submitted.emit)
         self.layout.addWidget(self.pool_monitor)
 
         self.layout.addStretch()
@@ -316,6 +323,20 @@ class TaskDispatchPage(QWidget):
         if not prompt:
             QMessageBox.warning(self, "Missing Instructions", "Please enter a mission prompt / instructions.")
             return
+
+        # Check for multi-task auto-splitting
+        if hasattr(self, 'cb_auto_split') and self.cb_auto_split.isChecked():
+            from core.command_router import split_multi_task_prompt
+            subtasks = split_multi_task_prompt(prompt)
+            if len(subtasks) > 1:
+                self.prompt_edit.clear()
+                self.codename_edit.clear()
+                for idx, t_info in enumerate(subtasks, 1):
+                    sub_txt = t_info.get("task", prompt)
+                    sub_agt = t_info.get("agents", "auto")
+                    sub_code = f"[{idx}/{len(subtasks)}] {sub_agt.upper()} @ {time.strftime('%H:%M:%S')}"
+                    self.launch_requested.emit(sub_txt, sub_agt, sub_code)
+                return
 
         if self.rb_auto.isChecked():
             agents_str = "auto"

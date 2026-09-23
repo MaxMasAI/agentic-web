@@ -378,31 +378,51 @@ class MaxMasAIHarnessPage(QWidget):
 
     def add_step_card(self, step: HarnessStep):
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background: rgba(15, 23, 42, 0.85);
-                border: 1px solid rgba(56, 189, 248, 0.25);
-                border-radius: 6px;
-                padding: 8px;
-            }
-        """)
+        is_laya = step.step_type == "laya_system1"
+        
+        if is_laya:
+            card.setStyleSheet("""
+                QFrame {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(14, 116, 144, 0.4), stop:1 rgba(15, 23, 42, 0.9));
+                    border: 1.5px solid #38bdf8;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+            """)
+        else:
+            card.setStyleSheet("""
+                QFrame {
+                    background: rgba(15, 23, 42, 0.85);
+                    border: 1px solid rgba(56, 189, 248, 0.25);
+                    border-radius: 6px;
+                    padding: 8px;
+                }
+            """)
         c_layout = QVBoxLayout(card)
         c_layout.setContentsMargins(6, 6, 6, 6)
         c_layout.setSpacing(4)
 
         header = QHBoxLayout()
         title = QLabel(f"#{step.step_num} {step.title}")
-        title.setStyleSheet("font-weight: 700; color: #38bdf8; font-size: 12px;")
+        title.setStyleSheet("font-weight: 700; color: #38bdf8; font-size: 12px;" if not is_laya else "font-weight: 800; color: #7dd3fc; font-size: 12.5px;")
+        
+        if is_laya:
+            badge = QLabel("⚡ SYSTEM 1 FAST-PATH")
+            badge.setStyleSheet("background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-family: monospace;")
+            header.addWidget(title)
+            header.addWidget(badge)
+        else:
+            header.addWidget(title)
+            
+        header.addStretch()
         time_lbl = QLabel(f"{step.duration_ms}ms")
         time_lbl.setStyleSheet("color: #64748b; font-family: monospace; font-size: 10px;")
-        header.addWidget(title)
-        header.addStretch()
         header.addWidget(time_lbl)
         c_layout.addLayout(header)
 
         content = QLabel(step.content)
         content.setWordWrap(True)
-        content.setStyleSheet("color: #cbd5e1; font-size: 11.5px; font-family: 'JetBrains Mono', Consolas, monospace;")
+        content.setStyleSheet("color: #cbd5e1; font-size: 11.5px; font-family: 'JetBrains Mono', Consolas, monospace;" if not is_laya else "color: #f1f5f9; font-size: 11.5px; font-family: 'JetBrains Mono', Consolas, monospace; line-height: 1.4;")
         c_layout.addWidget(content)
 
         # Insert before stretch

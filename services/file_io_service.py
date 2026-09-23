@@ -31,9 +31,16 @@ class FileIOService:
         self.indexed_files: List[str] = []
 
     def _resolve_path(self, path: str) -> str:
-        """Resolves path relative to base_dir if not absolute."""
+        """Resolves path relative to workspace or base_dir if not absolute."""
         if os.path.isabs(path):
             return os.path.abspath(path)
+        if os.path.exists(path):
+            return os.path.abspath(path)
+        # Check workspace root
+        ws_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        candidate = os.path.join(ws_root, path)
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
         return os.path.abspath(os.path.join(self.base_dir, path))
 
     # 1. Read File
