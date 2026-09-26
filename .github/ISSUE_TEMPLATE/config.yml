@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🚀 Live Web Platform
+    url: https://agentic-web-self.vercel.app/
+    about: Explore the interactive live Agentic Web cloud showcase.
+  - name: 📖 Architecture Documentation Site
+    url: https://agentic-web-self.vercel.app/
+    about: Read the complete 5-tier architecture, API reference, and 382+ skills index.
+  - name: 💬 Community Discussions & Questions
+    url: https://github.com/MaxMasAI/agentic-web/discussions
+    about: Ask questions, share workflows, or connect with fellow developers.

@@ -14,10 +14,10 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QGroupBox, QScrollArea, QCheckBox, QMessageBox,
     QFrame, QProgressBar, QStackedWidget, QComboBox, QSpinBox,
-    QDoubleSpinBox, QTextEdit, QSlider
+    QDoubleSpinBox, QTextEdit, QSlider, QGridLayout
 )
-from PySide6.QtCore import Qt, QThread, Signal, QSize
-from PySide6.QtGui import QFont, QIcon, QColor, QCursor
+from PySide6.QtCore import Qt, QThread, Signal, QSize, QUrl
+from PySide6.QtGui import QFont, QIcon, QColor, QCursor, QDesktopServices
 
 from services.app_config import config
 from services.llm_provider import load_api_keys, save_api_keys
@@ -1400,20 +1400,281 @@ class SettingsPage(QWidget):
         panel = QWidget()
         lay = QVBoxLayout(panel)
         lay.setContentsMargins(15, 15, 15, 15)
-        lay.setSpacing(10)
+        lay.setSpacing(16)
 
-        lay.addWidget(create_section_header("ℹ️ About", "Information about the application, version, and license."))
+        lay.addWidget(create_section_header("ℹ️ About & System Information", "Comprehensive architecture details, repository links, integrated AI ecosystems, and licensing."))
 
-        info_lbl = QLabel(
-            "<h3>Agentic Web Console</h3>"
-            "<p>Version: 1.0.0<br/>"
-            "Build Date: 2026-09-05</p>"
-            "<p>A leader-worker multi-AI collaborative system and live voice orchestrator.<br/>"
-            "Powered by Google Gemini 2.0 and PySide6.</p>"
+        # 1. Hero Banner Card
+        hero_card = QFrame()
+        hero_card.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #111827, stop:0.5 #0f172a, stop:1 #1e1b4b);
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 16px;
+            }
+        """)
+        h_lay = QVBoxLayout(hero_card)
+        h_lay.setSpacing(10)
+
+        h_title_row = QHBoxLayout()
+        h_title = QLabel("🤖 Agentic Web OS — Autonomous AI Workbench")
+        h_title.setStyleSheet("font-size: 18px; font-weight: 800; color: #38bdf8; letter-spacing: 0.5px;")
+        h_title_row.addWidget(h_title)
+        h_title_row.addStretch()
+
+        ver_badge = QLabel("v2.5.0 Production")
+        ver_badge.setStyleSheet("background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 11px;")
+        h_title_row.addWidget(ver_badge)
+
+        status_badge = QLabel("● System Online")
+        status_badge.setStyleSheet("background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 11px;")
+        h_title_row.addWidget(status_badge)
+        h_lay.addLayout(h_title_row)
+
+        h_desc = QLabel(
+            "An enterprise-grade autonomous multi-agent operating system, live browser orchestration engine, and "
+            "leader-worker collaborative workspace powered by Google Gemini 2.0, Claude, DeepSeek, and PySide6."
         )
-        info_lbl.setWordWrap(True)
-        info_lbl.setStyleSheet("color: #cbd5e1; font-size: 13px; line-height: 1.5;")
-        lay.addWidget(info_lbl)
+        h_desc.setWordWrap(True)
+        h_desc.setStyleSheet("color: #cbd5e1; font-size: 12.5px; line-height: 1.5;")
+        h_lay.addWidget(h_desc)
 
+        # Web Platform Link Row
+        web_link_row = QHBoxLayout()
+        web_link_row.setSpacing(10)
+
+        web_icon_lbl = QLabel("🌐 <b>Live Web Portal:</b>")
+        web_icon_lbl.setStyleSheet("color: #34d399; font-size: 12px;")
+        web_link_row.addWidget(web_icon_lbl)
+
+        web_url_lbl = QLabel("<a href='https://agentic-web-self.vercel.app/' style='color: #38bdf8; text-decoration: underline; font-weight: bold;'>https://agentic-web-self.vercel.app/</a>")
+        web_url_lbl.setOpenExternalLinks(True)
+        web_url_lbl.setStyleSheet("font-size: 12px; font-family: monospace;")
+        web_link_row.addWidget(web_url_lbl)
+        web_link_row.addStretch()
+
+        btn_launch_web = QPushButton("🚀 Launch Web Platform")
+        btn_launch_web.setProperty("class", "btn-primary")
+        btn_launch_web.setFixedHeight(30)
+        btn_launch_web.setCursor(Qt.PointingHandCursor)
+        btn_launch_web.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://agentic-web-self.vercel.app/")))
+        web_link_row.addWidget(btn_launch_web)
+
+        btn_about_modal = QPushButton("ℹ️ About Modal")
+        btn_about_modal.setProperty("class", "btn-secondary")
+        btn_about_modal.setFixedHeight(30)
+        btn_about_modal.setCursor(Qt.PointingHandCursor)
+        btn_about_modal.clicked.connect(self.on_show_about_dialog)
+        web_link_row.addWidget(btn_about_modal)
+
+        h_lay.addLayout(web_link_row)
+        lay.addWidget(hero_card)
+
+        # 2. Live Inventory & Capabilities Grid
+        inv_box = QGroupBox("📊 Live System Inventory & Capabilities")
+        inv_box.setStyleSheet("QGroupBox { font-weight: 700; color: #38bdf8; border: 1px solid #1e293b; border-radius: 8px; margin-top: 10px; padding-top: 14px; background: #0b1120; }")
+        inv_lay = QGridLayout(inv_box)
+        inv_lay.setContentsMargins(12, 12, 12, 12)
+        inv_lay.setSpacing(10)
+
+        # Get dynamic stats
+        agency_count = 287
+        skills_count = 382
+        try:
+            from core.agency_agents_manager import agency_manager
+            agency_count = agency_manager.get_total_count()
+        except Exception:
+            pass
+
+        try:
+            from core.skills_manager import skills_manager
+            skills_count = len(skills_manager.list_all_skills())
+        except Exception:
+            pass
+        
+        squads_count = 0
+        subagents_path = os.path.join("json", "subagents.json")
+        if os.path.exists(subagents_path):
+            try:
+                with open(subagents_path, "r", encoding="utf-8") as f:
+                    squads_count = len(json.load(f))
+            except Exception:
+                pass
+
+        metrics = [
+            ("🎭 Agency AI Personas", f"{agency_count} Production Specialists", "Across 18 Divisions (Engineering, Security, Design, etc.)", "#38bdf8"),
+            ("📥 Skills Vault", f"{skills_count} Active Skills", "Modular Claude AI-style Markdown packages (*.md)", "#a855f7"),
+            ("⚡ Registered Squads", f"{squads_count} Tactical Strike Teams", "Multi-model collaborative sub-agent teams", "#10b981"),
+            ("🔌 MCP Server", "Model Context Protocol", "Seamless external tool connections & JSON-RPC runtime", "#f59e0b"),
+            ("🧠 Multi-Model Matrix", "10+ LLM Engines", "Gemini, DeepSeek, Claude, ChatGPT, Perplexity, DALL-E, Grok...", "#6366f1"),
+            ("🖥️ Architecture", "Local-First Desktop OS", "PySide6 / Python 3.12+ / Client-side Zero Telemetry", "#ec4899"),
+        ]
+
+        for i, (m_title, m_val, m_sub, m_col) in enumerate(metrics):
+            m_card = QFrame()
+            m_card.setStyleSheet(f"background: #141c2e; border: 1px solid #1e293b; border-left: 3px solid {m_col}; border-radius: 6px; padding: 8px;")
+            m_l = QVBoxLayout(m_card)
+            m_l.setContentsMargins(4, 4, 4, 4)
+            m_l.setSpacing(2)
+
+            t_lbl = QLabel(m_title)
+            t_lbl.setStyleSheet("font-size: 11px; font-weight: 700; color: #94a3b8;")
+            v_lbl = QLabel(m_val)
+            v_lbl.setStyleSheet(f"font-size: 13.5px; font-weight: 800; color: {m_col};")
+            s_lbl = QLabel(m_sub)
+            s_lbl.setStyleSheet("font-size: 10.5px; color: #64748b;")
+            s_lbl.setWordWrap(True)
+
+            m_l.addWidget(t_lbl)
+            m_l.addWidget(v_lbl)
+            m_l.addWidget(s_lbl)
+            inv_lay.addWidget(m_card, i // 3, i % 3)
+
+        lay.addWidget(inv_box)
+
+        # 3. Official Git Links & Repositories Section
+        git_box = QGroupBox("🌐 Official Web Platform & Git Repositories")
+        git_box.setStyleSheet("QGroupBox { font-weight: 700; color: #a855f7; border: 1px solid #1e293b; border-radius: 8px; margin-top: 10px; padding-top: 14px; background: #0b1120; }")
+        git_lay = QVBoxLayout(git_box)
+        git_lay.setContentsMargins(12, 12, 12, 12)
+        git_lay.setSpacing(10)
+
+        repos = [
+            {
+                "name": "Agentic Web Live Cloud Platform (Vercel)",
+                "author": "MaxMasAI / Vercel",
+                "desc": "Official live deployed web application and interactive cloud workbench interface.",
+                "url": "https://agentic-web-self.vercel.app/",
+                "badge": "Live Web Portal",
+                "color": "#10b981",
+                "btn_label": "🌐 Open Web App"
+            },
+            {
+                "name": "agentic-web (Main OS Repository)",
+                "author": "MaxMasAI",
+                "desc": "Autonomous Multi-Agent Web OS, PySide6 Desktop GUI, Tool Dispatcher & Live Orchestration Workbench.",
+                "url": "https://github.com/MaxMasAI/agentic-web",
+                "badge": "Core Project",
+                "color": "#38bdf8",
+                "btn_label": "🔗 Open Git Repo"
+            },
+            {
+                "name": "The Agency — 287+ AI Specialists Catalog",
+                "author": "msitarzewski",
+                "desc": "The largest open catalog of 287+ production-grade specialized AI agent personas and runbooks across 18 specialized divisions.",
+                "url": "https://github.com/msitarzewski/agency-agents",
+                "badge": "Personas Engine",
+                "color": "#a855f7",
+                "btn_label": "🎭 Open Agency Repo"
+            },
+            {
+                "name": "agent-skills (Dynamic Skills Vault)",
+                "author": "addyosmani",
+                "desc": "Collection of modular skills and prompt packages for AI engineering, testing, debugging, and web performance.",
+                "url": "https://github.com/addyosmani/agent-skills",
+                "badge": "Skills Library",
+                "color": "#10b981",
+                "btn_label": "📥 Open Skills Repo"
+            },
+            {
+                "name": "Model Context Protocol (MCP) Official Specification",
+                "author": "modelcontextprotocol",
+                "desc": "Open standard protocol enabling safe, seamless bidirectional connections between AI models and local or remote tools.",
+                "url": "https://github.com/modelcontextprotocol",
+                "badge": "Standard Protocol",
+                "color": "#f59e0b",
+                "btn_label": "🔌 Open MCP Spec"
+            },
+            {
+                "name": "Google Gemini Developer API & Documentation",
+                "author": "Google DeepMind / Google AI",
+                "desc": "Official developer guides, API specifications, and multimodal SDK reference for Gemini 2.0 Flash and Pro models.",
+                "url": "https://ai.google.dev",
+                "badge": "LLM Infrastructure",
+                "color": "#3b82f6",
+                "btn_label": "✨ Open Gemini Docs"
+            }
+        ]
+
+        for r in repos:
+            r_card = QFrame()
+            r_card.setStyleSheet(f"background: #141c2e; border: 1px solid #1e293b; border-left: 3px solid {r['color']}; border-radius: 6px; padding: 10px;")
+            r_row = QHBoxLayout(r_card)
+            r_row.setContentsMargins(6, 6, 6, 6)
+            r_row.setSpacing(12)
+
+            info_v = QVBoxLayout()
+            info_v.setSpacing(3)
+
+            top_h = QHBoxLayout()
+            top_h.setSpacing(8)
+            r_name = QLabel(f"<b>{r['name']}</b>")
+            r_name.setStyleSheet("font-size: 13.5px; color: #f8fafc;")
+            top_h.addWidget(r_name)
+
+            r_badge = QLabel(r["badge"])
+            r_badge.setStyleSheet(f"background: rgba(56, 189, 248, 0.12); color: {r['color']}; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; padding: 1px 6px; font-size: 9.5px; font-weight: 700;")
+            top_h.addWidget(r_badge)
+
+            r_author = QLabel(f"by @{r['author']}")
+            r_author.setStyleSheet("font-size: 11px; color: #64748b;")
+            top_h.addWidget(r_author)
+            top_h.addStretch()
+            info_v.addLayout(top_h)
+
+            r_desc = QLabel(r["desc"])
+            r_desc.setWordWrap(True)
+            r_desc.setStyleSheet("font-size: 11.5px; color: #94a3b8;")
+            info_v.addWidget(r_desc)
+
+            r_link_lbl = QLabel(f"<a href='{r['url']}' style='color: #38bdf8; text-decoration: none;'>{r['url']}</a>")
+            r_link_lbl.setOpenExternalLinks(True)
+            r_link_lbl.setStyleSheet("font-size: 11px; font-family: monospace;")
+            info_v.addWidget(r_link_lbl)
+
+            r_row.addLayout(info_v, stretch=1)
+
+            btn_open = QPushButton(r.get("btn_label", "🔗 Open Link"))
+            btn_open.setProperty("class", "btn-secondary")
+            btn_open.setFixedWidth(150)
+            btn_open.setFixedHeight(32)
+            btn_open.setCursor(Qt.PointingHandCursor)
+            url_to_open = r["url"]
+            btn_open.clicked.connect(lambda _, u=url_to_open: QDesktopServices.openUrl(QUrl(u)))
+            r_row.addWidget(btn_open)
+
+            git_lay.addWidget(r_card)
+
+        lay.addWidget(git_box)
+
+        # 4. License & Open Source Acknowledgement
+        lic_card = QFrame()
+        lic_card.setStyleSheet("background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 10px;")
+        lic_lay = QVBoxLayout(lic_card)
+        lic_lay.setSpacing(4)
+
+        lic_title = QLabel("📜 License & Open-Source Acknowledgements")
+        lic_title.setStyleSheet("font-size: 12px; font-weight: 700; color: #cbd5e1;")
+        lic_lay.addWidget(lic_title)
+
+        lic_body = QLabel(
+            "Agentic Web OS is released under the <b>MIT License</b>. Built with open-source technologies including "
+            "PySide6 (Qt for Python), Google GenAI SDK, requests, websockets, and SQLite. "
+            "All persona definitions and runbooks are maintained by their respective authors under permissive open-source licenses."
+        )
+        lic_body.setWordWrap(True)
+        lic_body.setStyleSheet("font-size: 11px; color: #64748b; line-height: 1.4;")
+        lic_lay.addWidget(lic_body)
+
+        lay.addWidget(lic_card)
         lay.addStretch(1)
         return panel
+
+    def on_show_about_dialog(self):
+        try:
+            from gui.widgets.about_dialog import AboutDialog
+            dialog = AboutDialog(self)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(self, "About Dialog Error", f"Failed to open About dialog: {e}")

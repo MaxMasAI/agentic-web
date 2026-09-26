@@ -1,0 +1,91 @@
+name: 🐛 Bug Report
+description: Report an issue or unexpected behavior in Agentic Web.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please ensure you have scrubbed all sensitive API tokens or credentials before submitting.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can maintainers reproduce this issue?
+      placeholder: |
+        1. Launch application with `run.bat`
+        2. Go to 'Task Dispatch'
+        3. Click 'Send Prompt'
+        4. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The agent should complete task decomposition without throwing an exception.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows 11
+        - Windows 10
+        - Linux (Ubuntu/Debian)
+        - Linux (Arch/Fedora)
+        - macOS (Apple Silicon M1/M2/M3)
+        - macOS (Intel)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: python-version
+    attributes:
+      label: Python Version
+      options:
+        - Python 3.12
+        - Python 3.11
+        - Python 3.10
+        - Python 3.13
+        - Standalone Executable (.exe)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output or Stack Trace
+      description: Please copy and paste any relevant terminal or debug log output.
+      render: shell
+      placeholder: |
+        Traceback (most recent call last):
+          ...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct & Issue Checklist
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true
+        - label: I have removed all private API keys and sensitive credentials from this report.
+          required: true
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

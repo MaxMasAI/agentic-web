@@ -330,6 +330,7 @@ class MainWindow(QMainWindow):
         self.title_bar = CustomTitleBar(self)
         self.title_bar.snapshot_requested.connect(self.capture_app_tabs_to_images)
         self.title_bar.cursor_toggled.connect(self.toggle_system_cursor)
+        self.title_bar.about_requested.connect(self.show_about_dialog)
         root_layout.addWidget(self.title_bar)
 
         # Body Horizontal Layout
@@ -568,6 +569,12 @@ class MainWindow(QMainWindow):
         btn_box.addWidget(close_btn)
         d_layout.addLayout(btn_box)
 
+        dialog.exec()
+
+    def show_about_dialog(self):
+        """Displays the official About dialog modal with full versioning, links, and license."""
+        from gui.widgets.about_dialog import AboutDialog
+        dialog = AboutDialog(self)
         dialog.exec()
 
     def init_timers(self):

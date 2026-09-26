@@ -1,0 +1,59 @@
+name: 🤖 New Agent Persona or Skill Request
+description: Propose a new specialized AI persona or senior engineering skill to be added to the Skills Vault.
+title: "[Agent/Skill]: "
+labels: ["agent-persona", "skills-vault"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agentic Web features 382+ dynamic skills and 287+ Agency AI personas. Propose a new specialist agent or engineering skill!
+
+  - type: input
+    id: persona-name
+    attributes:
+      label: Persona / Skill Name
+      description: What is the official title of this agent or skill?
+      placeholder: e.g. Quantum Computing Algorithm Designer
+    validations:
+      required: true
+
+  - type: dropdown
+    id: division
+    attributes:
+      label: Division / Category
+      options:
+        - Engineering
+        - Security
+        - Design
+        - Marketing
+        - Spatial Computing & XR
+        - GIS & Geospatial
+        - Healthcare & Life Sciences
+        - Finance & FinOps
+        - Testing & QA
+        - Game Development
+        - Product & Project Management
+        - Academic & Research
+        - Sales & Support
+        - Addy Osmani Senior Engineering
+        - Specialized / Custom
+    validations:
+      required: true
+
+  - type: textarea
+    id: persona-vibe
+    attributes:
+      label: Persona Vibe / Directive Quote
+      description: A punchy, memorable 1-line quote or operational directive defining this persona's philosophy.
+      placeholder: e.g. "Optimize quantum circuits for zero decoherence and minimal gate depth."
+    validations:
+      required: true
+
+  - type: textarea
+    id: persona-capabilities
+    attributes:
+      label: Core Capabilities & Tool Requirements
+      description: What tasks can this persona perform, and what tools / MCP protocols does it need?
+      placeholder: Describe the step-by-step responsibilities, acceptance criteria, and tool integrations...
+    validations:
+      required: true

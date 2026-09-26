@@ -87,6 +87,18 @@ class AgencyAgentsDialog(QDialog):
         hdr_box.addLayout(title_box)
         hdr_box.addStretch()
 
+        self.btn_add_all_squads = QPushButton("⚡ Add All to Squads")
+        self.btn_add_all_squads.setStyleSheet("background-color: #1e293b; color: #38bdf8; border: 1px solid #0284c7; border-radius: 6px; padding: 6px 12px; font-weight: 700;")
+        self.btn_add_all_squads.setToolTip("Batch registers all 287+ agents into your Squad Roster")
+        self.btn_add_all_squads.clicked.connect(self.on_add_all_to_squads)
+        hdr_box.addWidget(self.btn_add_all_squads)
+
+        self.btn_ingest_all_skills = QPushButton("📥 Ingest All to Skills")
+        self.btn_ingest_all_skills.setStyleSheet("background-color: #1e293b; color: #a855f7; border: 1px solid #7e22ce; border-radius: 6px; padding: 6px 12px; font-weight: 700;")
+        self.btn_ingest_all_skills.setToolTip("Batch imports all 287+ agent personas into Skills Vault")
+        self.btn_ingest_all_skills.clicked.connect(self.on_ingest_all_to_skills)
+        hdr_box.addWidget(self.btn_ingest_all_skills)
+
         self.stats_lbl = QLabel(f"<b>{agency_manager.get_total_count()} Agents Ready</b>")
         self.stats_lbl.setStyleSheet("background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 4px 12px; font-size: 12px;")
         hdr_box.addWidget(self.stats_lbl)
@@ -115,17 +127,29 @@ class AgencyAgentsDialog(QDialog):
 
         # Splitter: Left List, Right Inspector
         splitter = QSplitter(Qt.Horizontal)
+        splitter.setChildrenCollapsible(False)
+        splitter.setStyleSheet("""
+            QSplitter::handle:horizontal {
+                background-color: #1e293b;
+                width: 5px;
+            }
+            QSplitter::handle:horizontal:hover {
+                background-color: #38bdf8;
+            }
+        """)
 
         # Left: Scrollable Agent Cards
         left_widget = QWidget()
+        left_widget.setMinimumWidth(380)
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.cards_container = QWidget()
         self.cards_layout = QVBoxLayout(self.cards_container)
-        self.cards_layout.setContentsMargins(4, 4, 4, 4)
+        self.cards_layout.setContentsMargins(4, 4, 8, 4)
         self.cards_layout.setSpacing(8)
         self.scroll_area.setWidget(self.cards_container)
         left_layout.addWidget(self.scroll_area)
@@ -133,8 +157,9 @@ class AgencyAgentsDialog(QDialog):
 
         # Right: Detail Inspector
         right_widget = QWidget()
+        right_widget.setMinimumWidth(460)
         right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(8, 0, 0, 0)
+        right_layout.setContentsMargins(12, 0, 0, 0)
         right_layout.setSpacing(10)
 
         self.detail_title = QLabel("Select an Agent to Inspect")
@@ -166,8 +191,9 @@ class AgencyAgentsDialog(QDialog):
         right_layout.addLayout(btn_action_row)
         splitter.addWidget(right_widget)
 
-        splitter.setStretchFactor(0, 3)
-        splitter.setStretchFactor(1, 4)
+        splitter.setSizes([420, 680])
+        splitter.setStretchFactor(0, 4)
+        splitter.setStretchFactor(1, 6)
         main_layout.addWidget(splitter, stretch=1)
 
     def populate_divisions(self):
@@ -223,50 +249,63 @@ class AgencyAgentsDialog(QDialog):
 
     def create_agent_card(self, agent: dict) -> QFrame:
         card = QFrame()
+        card.setObjectName("AgentCard")
         div_color = agent.get("division_color") or "#3b82f6"
+        
+        # Safe RGBA parsing for Qt QSS
+        div_bg = "rgba(56, 189, 248, 0.12)"
+        div_border = "rgba(56, 189, 248, 0.35)"
+        h = div_color.lstrip("#")
+        if len(h) == 6:
+            r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+            div_bg = f"rgba({r}, {g}, {b}, 0.12)"
+            div_border = f"rgba({r}, {g}, {b}, 0.35)"
+
         card.setStyleSheet(f"""
-            QFrame {{
+            QFrame#AgentCard {{
                 background-color: #1e293b;
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-left: 4px solid {div_color};
                 border-radius: 8px;
-                padding: 8px;
+                padding: 10px;
             }}
-            QFrame:hover {{
+            QFrame#AgentCard:hover {{
                 background-color: #273549;
                 border: 1px solid #38bdf8;
+                border-left: 4px solid {div_color};
             }}
         """)
         card.setCursor(Qt.PointingHandCursor)
 
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(6, 6, 6, 6)
-        layout.setSpacing(4)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(5)
 
         # Top Tag Row (Placed on top of the title)
         tag_row = QHBoxLayout()
         tag_row.setContentsMargins(0, 0, 0, 0)
+
         badge = QLabel(agent.get("division_label", "").upper())
-        badge.setStyleSheet(f"background: {div_color}22; color: {div_color}; border: 1px solid {div_color}55; border-radius: 4px; padding: 2px 8px; font-size: 9.5px; font-weight: 700;")
+        badge.setStyleSheet(f"background: {div_bg}; color: {div_color}; border: 1px solid {div_border}; border-radius: 4px; padding: 2px 8px; font-size: 9.5px; font-weight: 700;")
         tag_row.addWidget(badge)
         tag_row.addStretch()
         layout.addLayout(tag_row)
 
         # Title
         name_lbl = QLabel(f"<b>{agent.get('emoji', '🤖')} {agent.get('name', 'Agent')}</b>")
-        name_lbl.setStyleSheet("font-size: 13.5px; color: #f8fafc; font-weight: 700;")
+        name_lbl.setStyleSheet("font-size: 13.5px; color: #f8fafc; font-weight: 700; background: transparent; border: none;")
         layout.addWidget(name_lbl)
 
         # Vibe / description
         if agent.get("vibe"):
             vibe_lbl = QLabel(f"⚡ {agent['vibe']}")
             vibe_lbl.setWordWrap(True)
-            vibe_lbl.setStyleSheet("font-size: 11px; color: #38bdf8;")
+            vibe_lbl.setStyleSheet("font-size: 11px; color: #38bdf8; background: transparent; border: none;")
             layout.addWidget(vibe_lbl)
         elif agent.get("description"):
             desc_lbl = QLabel(agent["description"][:100] + "...")
             desc_lbl.setWordWrap(True)
-            desc_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
+            desc_lbl.setStyleSheet("font-size: 11px; color: #94a3b8; background: transparent; border: none;")
             layout.addWidget(desc_lbl)
 
         # Connect click
@@ -287,3 +326,35 @@ class AgencyAgentsDialog(QDialog):
         if self.selected_agent:
             self.agent_selected.emit(self.selected_agent)
             self.accept()
+
+    def on_add_all_to_squads(self):
+        from PySide6.QtWidgets import QMessageBox
+        added, total = agency_manager.register_all_agents_as_squads()
+        if added > 0:
+            QMessageBox.information(
+                self,
+                "Squad Roster Updated",
+                f"⚡ Successfully registered {added} new Agency Squads into Roster!\nTotal squads ready: {total}"
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Squad Roster Synchronized",
+                f"All 287+ Agency Agents are already registered in the Squad Roster!\nTotal squads: {total}"
+            )
+
+    def on_ingest_all_to_skills(self):
+        from PySide6.QtWidgets import QMessageBox
+        added, total = agency_manager.ingest_all_agents_as_skills()
+        if added > 0:
+            QMessageBox.information(
+                self,
+                "Skills Vault Updated",
+                f"📥 Successfully ingested {added} new agent skills into the Skills Vault!\nTotal active skills: {total}"
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Skills Vault Synchronized",
+                f"All 287+ Agency Agent personas are already indexed in the Skills Vault!\nTotal active skills: {total}"
+            )

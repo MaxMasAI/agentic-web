@@ -180,8 +180,10 @@ class FileExplorerPage(QWidget):
 
             badge_text = "PROTECTED" if is_protected else (ext.replace(".", "").upper() or "FILE")
             badge_col = "#38bdf8" if is_protected else "#818cf8"
+            bg_col = "rgba(56, 189, 248, 0.15)" if is_protected else "rgba(129, 140, 248, 0.15)"
+            border_col = "rgba(56, 189, 248, 0.35)" if is_protected else "rgba(129, 140, 248, 0.35)"
             badge = QLabel(badge_text)
-            badge.setStyleSheet(f"background: {badge_col}22; color: {badge_col}; border: 1px solid {badge_col}55; border-radius: 10px; padding: 2px 8px; font-size: 9px; font-weight: 800;")
+            badge.setStyleSheet(f"background: {bg_col}; color: {badge_col}; border: 1px solid {border_col}; border-radius: 10px; padding: 2px 8px; font-size: 9px; font-weight: 800;")
             row.addWidget(badge)
             row.addStretch()
 

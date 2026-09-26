@@ -11,6 +11,8 @@ from gui.widgets.workflow_hud_widget import WorkflowHUDWidget, AgentWorkflowCard
 from gui.widgets.custom_widget_registry import CustomWidgetRegistry, get_custom_widget_registry
 from gui.widgets.custom_title_bar import CustomTitleBar
 
+from gui.widgets.about_dialog import AboutDialog
+
 __all__ = [
     "MetricCard",
     "PoolMonitor",
@@ -22,5 +24,6 @@ __all__ = [
     "AgentWorkflowCard",
     "CustomWidgetRegistry",
     "get_custom_widget_registry",
-    "CustomTitleBar"
+    "CustomTitleBar",
+    "AboutDialog"
 ]

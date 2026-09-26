@@ -583,6 +583,46 @@ function updateAgentCursors() {
   requestAnimationFrame(updateAgentCursors);
 }
 
+/* ── Skills Vault Interactive Filtering & Live Search ── */
+let currentSkillDivision = 'all';
+
+function filterSkills(division, btn) {
+  currentSkillDivision = division;
+  document.querySelectorAll('.skills-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applySkillsFilters();
+}
+
+function searchSkills(query) {
+  applySkillsFilters();
+}
+
+function applySkillsFilters() {
+  const searchInput = document.getElementById('skillSearchInput');
+  const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const cards = document.querySelectorAll('.skill-card');
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const cardDiv = card.getAttribute('data-division') || 'general';
+    const text = card.innerText.toLowerCase();
+    const matchesDiv = (currentSkillDivision === 'all' || cardDiv === currentSkillDivision);
+    const matchesSearch = (!q || text.includes(q));
+
+    if (matchesDiv && matchesSearch) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const countBadge = document.getElementById('skillsCountBadge');
+  if (countBadge) {
+    countBadge.innerText = `Showing ${visibleCount} of ${cards.length} Skills`;
+  }
+}
+
 // Launch engines on document ready
 function initApp() {
   initAgentCursors();
@@ -594,3 +634,4 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
+

@@ -42,6 +42,7 @@ def create_camera_icon(color: str = "#38bdf8", size: int = 32) -> QIcon:
 class CustomTitleBar(QFrame):
     snapshot_requested = Signal()
     cursor_toggled = Signal(bool)
+    about_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -71,6 +72,9 @@ class CustomTitleBar(QFrame):
         # 1. Glowing Logo Badge
         self.logo_lbl = QLabel("⚡")
         self.logo_lbl.setAlignment(Qt.AlignCenter)
+        self.logo_lbl.setCursor(Qt.PointingHandCursor)
+        self.logo_lbl.setToolTip("Click to View About & System Details")
+        self.logo_lbl.mousePressEvent = lambda _: self.about_requested.emit()
         self.logo_lbl.setStyleSheet("""
             QLabel {
                 background: rgba(56, 189, 248, 0.15);
@@ -81,17 +85,27 @@ class CustomTitleBar(QFrame):
                 font-weight: 800;
                 padding: 2px 7px;
             }
+            QLabel:hover {
+                background: rgba(56, 189, 248, 0.35);
+                border-color: #38bdf8;
+            }
         """)
         layout.addWidget(self.logo_lbl)
 
         # 2. Main Application Title
         self.title_lbl = QLabel("AUTONOMOUS MULTI-AGENT OS")
+        self.title_lbl.setCursor(Qt.PointingHandCursor)
+        self.title_lbl.setToolTip("Click to View About & System Details")
+        self.title_lbl.mousePressEvent = lambda _: self.about_requested.emit()
         self.title_lbl.setStyleSheet("""
             QLabel {
                 font-size: 12px;
                 font-weight: 800;
                 color: #ffffff;
                 letter-spacing: 0.9px;
+            }
+            QLabel:hover {
+                color: #38bdf8;
             }
         """)
         layout.addWidget(self.title_lbl)

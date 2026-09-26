@@ -91,12 +91,14 @@ class SlashItemWidget(QWidget):
         if cat:
             cat_lbl = QLabel(cat.upper())
             cat_color = "#38bdf8" if cat in ("Agent", "Leader") else "#10b981" if cat == "Squad" else "#a855f7" if cat in ("Workflow", "Studio") else "#f59e0b"
+            cat_bg = "rgba(56, 189, 248, 0.15)" if cat in ("Agent", "Leader") else "rgba(16, 185, 129, 0.15)" if cat == "Squad" else "rgba(168, 85, 247, 0.15)" if cat in ("Workflow", "Studio") else "rgba(245, 158, 11, 0.15)"
+            cat_border = "rgba(56, 189, 248, 0.35)" if cat in ("Agent", "Leader") else "rgba(16, 185, 129, 0.35)" if cat == "Squad" else "rgba(168, 85, 247, 0.35)" if cat in ("Workflow", "Studio") else "rgba(245, 158, 11, 0.35)"
             cat_lbl.setStyleSheet(f"""
                 font-size: 9px;
                 font-weight: 800;
                 color: {cat_color};
-                background: {cat_color}22;
-                border: 1px solid {cat_color}44;
+                background: {cat_bg};
+                border: 1px solid {cat_border};
                 border-radius: 4px;
                 padding: 1px 5px;
             """)
