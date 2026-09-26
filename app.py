@@ -233,7 +233,30 @@ class MainWindow(QMainWindow):
         self.system_cursor_overlay = None
         self._cursor_auto_hide_timer = None
         try:
-            from system.system_cursor import DesktopSystemCursorOverlay
+            DesktopSystemCursorOverlay = None
+            try:
+                import system.system_cursor as _sys_cursor
+                DesktopSystemCursorOverlay = getattr(_sys_cursor, "DesktopSystemCursorOverlay", None)
+            except (ImportError, AttributeError):
+                pass
+
+            if not DesktopSystemCursorOverlay:
+                try:
+                    from system import DesktopSystemCursorOverlay
+                except (ImportError, AttributeError):
+                    pass
+
+            if not DesktopSystemCursorOverlay:
+                # Direct file import fallback to root system/system_cursor.py
+                import importlib.util
+                sys_cursor_file = os.path.join(PROJECT_ROOT, "system", "system_cursor.py")
+                if os.path.exists(sys_cursor_file):
+                    spec = importlib.util.spec_from_file_location("root_system_cursor_pkg", sys_cursor_file)
+                    if spec and spec.loader:
+                        mod = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(mod)
+                        DesktopSystemCursorOverlay = getattr(mod, "DesktopSystemCursorOverlay", None)
+
             if DesktopSystemCursorOverlay:
                 self.system_cursor_overlay = DesktopSystemCursorOverlay(agent_id="gemini")
                 self.system_cursor_overlay.hide()
@@ -999,7 +1022,17 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(APP_QSS)
+    
+    # Load central QSS theme conforming to design_system_ui_theme_documentation.md
+    theme_path = os.path.join(PROJECT_ROOT, "theme.qss")
+    if os.path.exists(theme_path):
+        try:
+            with open(theme_path, "r", encoding="utf-8") as f:
+                app.setStyleSheet(f.read())
+        except Exception:
+            app.setStyleSheet(APP_QSS)
+    else:
+        app.setStyleSheet(APP_QSS)
 
     window = MainWindow()
     window.show()

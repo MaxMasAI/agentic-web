@@ -133,6 +133,33 @@ class ExpertsManager:
     def list_active_experts(self) -> List[Dict[str, Any]]:
         return [e for e in self.presets.values() if e.get("enabled", True)]
 
+    def import_agency_agent(self, agency_agent_id: str) -> Optional[Dict[str, Any]]:
+        """Imports an agent persona from the 287+ Agency Agents catalog into active experts."""
+        try:
+            from core.agency_agents_manager import agency_manager
+            agent = agency_manager.get_agent_by_id(agency_agent_id)
+            if not agent:
+                return None
+            full_prompt = agency_manager.get_full_agent_markdown(agency_agent_id) or agent.get("system_prompt", "")
+            
+            preset_entry = {
+                "id": agent["id"],
+                "name": f"{agent.get('emoji', '🤖')} {agent['name']}",
+                "role": f"{agent.get('division_label', 'Specialist')} - {agent.get('vibe', agent.get('name'))}",
+                "description": agent.get("description", agent.get("vibe", "")),
+                "system_prompt": full_prompt,
+                "enabled": True,
+                "tools": ["python_exec", "file_io", "web_browser"],
+                "division": agent.get("division", "specialized"),
+                "color": agent.get("color", "#3B82F6")
+            }
+            self.presets[agent["id"]] = preset_entry
+            self.save_presets()
+            return preset_entry
+        except Exception as e:
+            print(f"[ExpertsManager] Error importing agency agent {agency_agent_id}: {e}")
+            return None
+
     def enable_expert(self, expert_id: str, enabled: bool = True) -> bool:
         if expert_id in self.presets:
             self.presets[expert_id]["enabled"] = enabled

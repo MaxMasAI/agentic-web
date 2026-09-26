@@ -1,5 +1,6 @@
 """
 gui/pages/squad_roster.py - Autonomous AI Squad Generation & Roster Management
+Conforms strictly to design_system_ui_theme_documentation.md
 """
 
 import os
@@ -19,31 +20,31 @@ SUBAGENTS_FILE = os.path.join("json", "subagents.json")
 
 AUTOGEN_TEMPLATES = [
     {
-        "name": "⚡ Full-Stack Web & E-Commerce Prototypers",
+        "name": "Full-Stack Web & E-Commerce Prototypers",
         "desc": "High-velocity web development, responsive CSS, API architecture & visual assets",
         "task": "Develop a production-ready responsive e-commerce web application with animated product cards and interactive checkout",
         "agents": ["gemini", "deepseek", "chatgpt", "dalle"]
     },
     {
-        "name": "🛡️ Architecture, Security & QA Red Team",
+        "name": "Architecture, Security & QA Red Team",
         "desc": "Deep technical analysis, zero-trust security audit, accessibility compliance & unit testing",
         "task": "Perform a comprehensive security audit, architecture review, and defensive programming verification",
         "agents": ["gemini", "claude", "deepseek", "perplexity"]
     },
     {
-        "name": "📈 Viral Growth, Content & Social Strategy",
+        "name": "Viral Growth, Content & Social Strategy",
         "desc": "Audience hooks, platform-tailored copy, trend citations & graphic design",
         "task": "Create a multi-channel viral product launch campaign with social copy, hashtags, and hero visual assets",
         "agents": ["gemini", "chatgpt", "meta_ai", "dalle"]
     },
     {
-        "name": "🏎️ High-Performance Compute & Scientific Reasoning",
+        "name": "High-Performance Compute & Scientific Reasoning",
         "desc": "GPU optimization, algorithmic complexity analysis & live technical search",
         "task": "Benchmark computational efficiency, optimize algorithm latency, and verify live scientific citations",
         "agents": ["gemini", "nvidia_ai", "deepseek", "perplexity"]
     },
     {
-        "name": "🌐 Enterprise Multilingual & Logistics Hub",
+        "name": "Enterprise Multilingual & Logistics Hub",
         "desc": "Cross-language localization, enterprise spreadsheets & structured documentation",
         "task": "Translate and localize software documentation across European languages with formatted enterprise sheets",
         "agents": ["gemini", "mistral", "copilot", "chatgpt"]
@@ -64,31 +65,45 @@ class SquadRosterPage(QWidget):
     def init_ui(self):
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll.setProperty("class", "card")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
         self.layout.setContentsMargins(20, 20, 20, 20)
         self.layout.setSpacing(16)
 
-        # Title
+        # Top Actions Row: Title + Browse Agency Agents
+        top_action_row = QHBoxLayout()
         t_box = QVBoxLayout()
         t_box.setSpacing(2)
-        title = QLabel("🤖 AGENT SQUAD ROSTER")
-        title.setStyleSheet("font-size: 26px; font-weight: 800; color: #38bdf8; letter-spacing: 1.2px;")
+        title = QLabel("AGENT SQUAD ROSTER")
+        title.setProperty("class", "metric-value")
         subtitle = QLabel("Design Specialized Sub-Agent Teams & Trigger Instant Deployments")
-        subtitle.setStyleSheet("font-size: 12px; color: #64748b; font-family: monospace; margin-bottom: 4px;")
+        subtitle.setProperty("class", "metric-label")
         t_box.addWidget(title)
         t_box.addWidget(subtitle)
-        self.layout.addLayout(t_box)
+        top_action_row.addLayout(t_box)
+        top_action_row.addStretch()
+
+        self.btn_skills_vault = QPushButton("Ingest Skills (*.md / Git)")
+        self.btn_skills_vault.setProperty("class", "btn-secondary")
+        self.btn_skills_vault.clicked.connect(self.on_open_skills_vault)
+        top_action_row.addWidget(self.btn_skills_vault)
+
+        self.btn_agency_catalog = QPushButton("Browse 287+ Agency Agents")
+        self.btn_agency_catalog.setProperty("class", "btn-primary")
+        self.btn_agency_catalog.clicked.connect(self.on_open_agency_catalog)
+        top_action_row.addWidget(self.btn_agency_catalog)
+        self.layout.addLayout(top_action_row)
 
         # Autonomous AI Squad Generation Box
-        auto_grp = QGroupBox("✨ Autonomous AI Squad Generator (Auto-Create for Future Usage)")
+        auto_grp = QGroupBox("Autonomous AI Squad Generator (Auto-Create for Future Usage)")
+        auto_grp.setProperty("class", "card")
         auto_layout = QVBoxLayout(auto_grp)
         auto_layout.setSpacing(10)
 
         auto_desc = QLabel("Let the AI orchestrator analyze your project scope and automatically assemble synergy-matched specialist teams.")
-        auto_desc.setStyleSheet("font-size: 12px; color: #cbd5e1;")
+        auto_desc.setProperty("class", "metric-label")
         auto_layout.addWidget(auto_desc)
 
         row_auto = QHBoxLayout()
@@ -96,26 +111,31 @@ class SquadRosterPage(QWidget):
 
         # Custom Auto-Synthesizer
         v_syn = QVBoxLayout()
-        v_syn.addWidget(QLabel("<b>🤖 Auto-Synthesize from Any Custom Goal:</b>"))
+        lbl_syn = QLabel("Auto-Synthesize from Any Custom Goal:")
+        lbl_syn.setProperty("class", "metric-label")
+        v_syn.addWidget(lbl_syn)
         self.auto_goal_edit = QLineEdit()
         self.auto_goal_edit.setPlaceholderText("e.g. AI-Powered Medical Fact Checker, Crypto Trading Dashboard, 3D Game UI...")
         v_syn.addWidget(self.auto_goal_edit)
 
-        self.btn_auto_create = QPushButton("✨ Auto-Generate & Register Custom Squad")
-        self.btn_auto_create.setProperty("class", "primary-btn")
+        self.btn_auto_create = QPushButton("Auto-Generate & Register Custom Squad")
+        self.btn_auto_create.setProperty("class", "btn-primary")
         self.btn_auto_create.clicked.connect(self.on_auto_synthesize)
         v_syn.addWidget(self.btn_auto_create)
         row_auto.addLayout(v_syn, stretch=1)
 
         # 1-Click Fast Presets
         v_pre = QVBoxLayout()
-        v_pre.addWidget(QLabel("<b>⚡ 1-Click Fast Squad Presets:</b>"))
+        lbl_pre = QLabel("1-Click Fast Squad Presets:")
+        lbl_pre.setProperty("class", "metric-label")
+        v_pre.addWidget(lbl_pre)
         self.preset_combo = QComboBox()
         for p in AUTOGEN_TEMPLATES:
             self.preset_combo.addItem(p["name"])
         v_pre.addWidget(self.preset_combo)
 
-        self.btn_add_preset = QPushButton("➕ Add Selected Preset to Roster")
+        self.btn_add_preset = QPushButton("Add Selected Preset to Roster")
+        self.btn_add_preset.setProperty("class", "btn-secondary")
         self.btn_add_preset.clicked.connect(self.on_add_preset)
         v_pre.addWidget(self.btn_add_preset)
         row_auto.addLayout(v_pre, stretch=1)
@@ -131,27 +151,35 @@ class SquadRosterPage(QWidget):
         left_v = QVBoxLayout()
         left_v.setSpacing(10)
 
-        sec_create = QLabel("➕ Assemble New Squad")
-        sec_create.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px;")
+        sec_create = QLabel("ASSEMBLE NEW SQUAD")
+        sec_create.setProperty("class", "sidebar-group-label")
         left_v.addWidget(sec_create)
 
-        left_v.addWidget(QLabel("<b>Squad Codename:</b>"))
+        lbl_sname = QLabel("Squad Codename:")
+        lbl_sname.setProperty("class", "metric-label")
+        left_v.addWidget(lbl_sname)
         self.squad_name_edit = QLineEdit()
         self.squad_name_edit.setPlaceholderText("e.g. Web Dev Strike Team, Research & Fact Checking")
         left_v.addWidget(self.squad_name_edit)
 
-        left_v.addWidget(QLabel("<b>Preset Mission Goal:</b>"))
+        lbl_sgoal = QLabel("Preset Mission Goal:")
+        lbl_sgoal.setProperty("class", "metric-label")
+        left_v.addWidget(lbl_sgoal)
         self.squad_task_edit = QTextEdit()
         self.squad_task_edit.setPlaceholderText("Default task assigned when launching this squad...")
         self.squad_task_edit.setFixedHeight(90)
         left_v.addWidget(self.squad_task_edit)
 
-        left_v.addWidget(QLabel("<b>Specialization / Scope:</b>"))
+        lbl_sdesc = QLabel("Specialization / Scope:")
+        lbl_sdesc.setProperty("class", "metric-label")
+        left_v.addWidget(lbl_sdesc)
         self.squad_desc_edit = QLineEdit()
         self.squad_desc_edit.setPlaceholderText("Brief scope summary")
         left_v.addWidget(self.squad_desc_edit)
 
-        left_v.addWidget(QLabel("<b>Assign Specialists to Squad:</b> (Gemini Master Leader always included)"))
+        lbl_assign = QLabel("Assign Specialists to Squad (Leader included):")
+        lbl_assign.setProperty("class", "metric-label")
+        left_v.addWidget(lbl_assign)
         
         agent_options = [
             ("deepseek", "DeepSeek (Creative & Coder)"),
@@ -169,8 +197,8 @@ class SquadRosterPage(QWidget):
             self.create_agent_boxes[aid] = cb
             left_v.addWidget(cb)
 
-        self.btn_save_squad = QPushButton("💾 Register Squad in Roster")
-        self.btn_save_squad.setProperty("class", "primary-btn")
+        self.btn_save_squad = QPushButton("Register Squad in Roster")
+        self.btn_save_squad.setProperty("class", "btn-primary")
         self.btn_save_squad.setFixedHeight(38)
         self.btn_save_squad.clicked.connect(self.on_save_manual_squad)
         left_v.addWidget(self.btn_save_squad)
@@ -182,13 +210,13 @@ class SquadRosterPage(QWidget):
         right_v.setSpacing(10)
 
         top_r = QHBoxLayout()
-        sec_roster = QLabel("📦 Registered Squad Roster")
-        sec_roster.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8;")
+        sec_roster = QLabel("REGISTERED SQUAD ROSTER")
+        sec_roster.setProperty("class", "sidebar-group-label")
         top_r.addWidget(sec_roster)
         top_r.addStretch()
 
-        self.btn_scan_learner = QPushButton("🧠 Scan History & Auto-Create Squads")
-        self.btn_scan_learner.setStyleSheet("font-size: 11px; padding: 4px 10px; border-radius: 6px;")
+        self.btn_scan_learner = QPushButton("Scan History & Auto-Create")
+        self.btn_scan_learner.setProperty("class", "btn-secondary")
         self.btn_scan_learner.clicked.connect(self.on_scan_learner)
         top_r.addWidget(self.btn_scan_learner)
         right_v.addLayout(top_r)
@@ -210,6 +238,68 @@ class SquadRosterPage(QWidget):
         main_vbox.addWidget(scroll)
 
         self.load_squads_from_file()
+
+    def on_open_skills_vault(self):
+        try:
+            from gui.widgets.skill_importer_dialog import SkillImporterDialog
+            dialog = SkillImporterDialog(self)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(self, "Skills Vault Error", f"Failed to open Skills Vault: {e}")
+
+    def on_open_agency_catalog(self):
+        try:
+            from gui.widgets.agency_agents_dialog import AgencyAgentsDialog
+            dialog = AgencyAgentsDialog(self)
+            dialog.agent_selected.connect(self.on_agency_agent_selected)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(self, "Catalog Error", f"Failed to open Agency Agents Catalog: {e}")
+
+    def on_agency_agent_selected(self, agent: dict):
+        agent_name = agent.get("name", "Specialist")
+        emoji = agent.get("emoji", "")
+        div_label = agent.get("division_label", "General")
+        vibe = agent.get("vibe", "")
+        desc = agent.get("description", "")
+        
+        self.squad_name_edit.setText(f"{agent_name} Strike Squad")
+        self.squad_desc_edit.setText(f"[{div_label}] {vibe or desc[:80]}")
+        self.squad_task_edit.setPlainText(
+            f"Act as senior specialist: {agent_name} ({div_label}).\n"
+            f"Directive: {vibe}\n"
+            f"Deliverable: {desc}\n"
+            f"Execute specialized domain task adhering to production-grade quality."
+        )
+
+        div_lower = agent.get("division", "").lower()
+        for cb in self.create_agent_boxes.values():
+            cb.setChecked(False)
+
+        if div_lower in ["engineering", "testing", "game-development"]:
+            self.create_agent_boxes.get("deepseek", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("claude", QCheckBox()).setChecked(True)
+        elif div_lower in ["security"]:
+            self.create_agent_boxes.get("claude", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("deepseek", QCheckBox()).setChecked(True)
+        elif div_lower in ["design", "spatial-computing"]:
+            self.create_agent_boxes.get("dalle", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("chatgpt", QCheckBox()).setChecked(True)
+        elif div_lower in ["marketing", "paid-media", "sales"]:
+            self.create_agent_boxes.get("meta_ai", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("chatgpt", QCheckBox()).setChecked(True)
+        elif div_lower in ["research", "academic", "healthcare", "gis"]:
+            self.create_agent_boxes.get("perplexity", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("claude", QCheckBox()).setChecked(True)
+        else:
+            self.create_agent_boxes.get("chatgpt", QCheckBox()).setChecked(True)
+            self.create_agent_boxes.get("deepseek", QCheckBox()).setChecked(True)
+
+        QMessageBox.information(
+            self,
+            "Agent Loaded into Form",
+            f"Loaded '{agent_name}' ({div_label}) into the Squad Assembly form!\nClick 'Register Squad in Roster' or customize prompt."
+        )
 
     def on_auto_synthesize(self):
         goal = self.auto_goal_edit.text().strip()
@@ -239,7 +329,7 @@ class SquadRosterPage(QWidget):
             selected_ai.append("chatgpt")
 
         new_squad = {
-            "name": f"🎯 {goal.title()[:35]} Strike Team",
+            "name": f"{goal.title()[:35]} Strike Team",
             "task": f"Execute end-to-end multi-agent mission for: {goal}",
             "desc": f"Specialized AI team configured for {goal}",
             "agents": list(dict.fromkeys(selected_ai)),
@@ -335,69 +425,60 @@ class SquadRosterPage(QWidget):
 
         if not self.subagents:
             no_squads_lbl = QLabel("No squads registered yet. Assemble your first squad or use the Auto-Generator.")
-            no_squads_lbl.setStyleSheet("color: #64748b; font-style: italic; padding: 12px;")
+            no_squads_lbl.setProperty("class", "metric-label")
             self.squads_list_layout.addWidget(no_squads_lbl)
             return
 
         for idx, sq in enumerate(self.subagents):
             card = QFrame()
             is_auto = sq.get("auto_learned", False)
-            border_col = "#34d399" if is_auto else "#818cf8"
+            card.setProperty("class", "card-featured" if is_auto else "card")
 
-            card.setStyleSheet(f"""
-                QFrame {{
-                    background: rgba(15, 23, 42, 0.75);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-left: 4px solid {border_col};
-                    border-radius: 10px;
-                    padding: 10px;
-                }}
-            """)
             c_layout = QVBoxLayout(card)
-            c_layout.setContentsMargins(8, 8, 8, 8)
+            c_layout.setContentsMargins(12, 12, 12, 12)
             c_layout.setSpacing(6)
 
             # Header
             hdr = QHBoxLayout()
-            name_lbl = QLabel(f"<b>{sq.get('name', 'Squad')}</b>")
-            name_lbl.setStyleSheet("font-size: 13.5px; font-weight: 700; color: #f8fafc;")
+            name_lbl = QLabel(sq.get('name', 'Squad'))
+            name_lbl.setProperty("class", "metric-value")
             hdr.addWidget(name_lbl)
 
             if is_auto:
-                badge = QLabel("BRAIN AUTO-LEARNED")
-                badge.setStyleSheet("background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b98155; border-radius: 10px; padding: 2px 8px; font-size: 9px; font-weight: 800;")
+                badge = QLabel("AUTO-LEARNED")
+                badge.setProperty("class", "badge-idle")
                 hdr.addWidget(badge)
 
             hdr.addStretch()
             created_lbl = QLabel(sq.get("created", ""))
-            created_lbl.setStyleSheet("font-size: 10px; color: #64748b; font-family: monospace;")
+            created_lbl.setProperty("class", "metric-label")
             hdr.addWidget(created_lbl)
             c_layout.addLayout(hdr)
 
             if sq.get("desc"):
                 desc_lbl = QLabel(sq["desc"])
-                desc_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
+                desc_lbl.setProperty("class", "metric-label")
                 c_layout.addWidget(desc_lbl)
 
-            roster_lbl = QLabel(f"<b>Roster:</b> <code>{', '.join(sq.get('agents', []))}</code>")
-            roster_lbl.setStyleSheet("font-size: 11px; color: #38bdf8;")
+            roster_lbl = QLabel(f"Roster: {', '.join(sq.get('agents', []))}")
+            roster_lbl.setProperty("class", "metric-label")
             c_layout.addWidget(roster_lbl)
 
             task_snippet = sq.get("task", "")
-            task_lbl = QLabel(f"<b>Preset Task:</b> {task_snippet[:90]}...")
-            task_lbl.setStyleSheet("font-size: 11.5px; color: #cbd5e1;")
+            task_lbl = QLabel(f"Preset Task: {task_snippet[:90]}...")
+            task_lbl.setProperty("class", "metric-label")
             c_layout.addWidget(task_lbl)
 
             # Action Buttons
             btn_row = QHBoxLayout()
-            btn_deploy = QPushButton("🚀 Deploy Squad")
-            btn_deploy.setProperty("class", "primary-btn")
+            btn_deploy = QPushButton("Deploy Squad")
+            btn_deploy.setProperty("class", "btn-primary")
             btn_deploy.setFixedHeight(28)
             btn_deploy.clicked.connect(lambda _, s=sq: self.deploy_squad(s))
             btn_row.addWidget(btn_deploy)
 
-            btn_del = QPushButton("🗑 Decommission")
-            btn_del.setProperty("class", "danger-btn")
+            btn_del = QPushButton("Decommission")
+            btn_del.setProperty("class", "btn-secondary")
             btn_del.setFixedHeight(28)
             btn_del.clicked.connect(lambda _, i=idx: self.delete_squad(i))
             btn_row.addWidget(btn_del)

@@ -1,5 +1,6 @@
 """
 gui/pages/task_dispatch.py - Task Dispatch Console & Live Telemetry Monitor
+Conforms strictly to design_system_ui_theme_documentation.md
 """
 
 import os
@@ -31,7 +32,7 @@ class TaskDispatchPage(QWidget):
     def init_ui(self):
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll.setProperty("class", "card")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
@@ -41,10 +42,10 @@ class TaskDispatchPage(QWidget):
         # Title
         t_box = QVBoxLayout()
         t_box.setSpacing(2)
-        title = QLabel("⚡ MULTI-AGENT TASK DISPATCHER")
-        title.setStyleSheet("font-size: 26px; font-weight: 800; color: #38bdf8; letter-spacing: 1.2px;")
+        title = QLabel("MULTI-AGENT TASK DISPATCHER")
+        title.setProperty("class", "metric-value")
         subtitle = QLabel("Autonomous Multi-Agent Collaborative Execution & Live Telemetry Monitor")
-        subtitle.setStyleSheet("font-size: 12px; color: #64748b; font-family: monospace; margin-bottom: 8px;")
+        subtitle.setProperty("class", "metric-label")
         t_box.addWidget(title)
         t_box.addWidget(subtitle)
         self.layout.addLayout(t_box)
@@ -57,22 +58,28 @@ class TaskDispatchPage(QWidget):
         left_box = QVBoxLayout()
         left_box.setSpacing(12)
 
-        sec1 = QLabel("⚙️ Mission Configuration")
-        sec1.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px;")
+        sec1 = QLabel("MISSION CONFIGURATION")
+        sec1.setProperty("class", "sidebar-group-label")
         left_box.addWidget(sec1)
 
         # Latency Group Box
-        self.latency_grp = QGroupBox("⚡ Inter-Agent Communication Latency Tuning")
+        self.latency_grp = QGroupBox("Inter-Agent Communication Latency Tuning")
+        self.latency_grp.setProperty("class", "card")
         lat_layout = QVBoxLayout(self.latency_grp)
         lat_layout.setSpacing(8)
 
         # Presets Row
         preset_row = QHBoxLayout()
-        btn_turbo = QPushButton("🚀 Turbo (0.5s)")
+        btn_turbo = QPushButton("Turbo (0.5s)")
+        btn_turbo.setProperty("class", "btn-secondary")
         btn_turbo.clicked.connect(lambda *args: self.apply_latency_profile("turbo"))
-        btn_bal = QPushButton("⚖️ Balanced (1.5s)")
+        
+        btn_bal = QPushButton("Balanced (1.5s)")
+        btn_bal.setProperty("class", "btn-secondary")
         btn_bal.clicked.connect(lambda *args: self.apply_latency_profile("balanced"))
-        btn_paced = QPushButton("🐢 Paced (3.5s)")
+        
+        btn_paced = QPushButton("Paced (3.5s)")
+        btn_paced.setProperty("class", "btn-secondary")
         btn_paced.clicked.connect(lambda *args: self.apply_latency_profile("paced"))
         
         preset_row.addWidget(btn_turbo)
@@ -81,20 +88,24 @@ class TaskDispatchPage(QWidget):
         lat_layout.addLayout(preset_row)
 
         self.lat_info_lbl = QLabel()
-        self.lat_info_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
+        self.lat_info_lbl.setProperty("class", "metric-label")
         lat_layout.addWidget(self.lat_info_lbl)
 
         # Custom Sliders
         sl_grid = QHBoxLayout()
         v1 = QVBoxLayout()
-        v1.addWidget(QLabel("Dispatch Delay (s):"))
+        lbl_d = QLabel("Dispatch Delay (s):")
+        lbl_d.setProperty("class", "metric-label")
+        v1.addWidget(lbl_d)
         self.sl_dispatch = QSlider(Qt.Horizontal)
         self.sl_dispatch.setRange(2, 80)
         self.sl_dispatch.setValue(15)
         self.sl_dispatch.valueChanged.connect(self.save_custom_latency)
         v1.addWidget(self.sl_dispatch)
         
-        v1.addWidget(QLabel("Settling Interval (s):"))
+        lbl_s = QLabel("Settling Interval (s):")
+        lbl_s.setProperty("class", "metric-label")
+        v1.addWidget(lbl_s)
         self.sl_settle = QSlider(Qt.Horizontal)
         self.sl_settle.setRange(3, 50)
         self.sl_settle.setValue(15)
@@ -103,14 +114,18 @@ class TaskDispatchPage(QWidget):
         sl_grid.addLayout(v1)
 
         v2 = QVBoxLayout()
-        v2.addWidget(QLabel("Debate Latency (s):"))
+        lbl_deb = QLabel("Debate Latency (s):")
+        lbl_deb.setProperty("class", "metric-label")
+        v2.addWidget(lbl_deb)
         self.sl_debate = QSlider(Qt.Horizontal)
         self.sl_debate.setRange(5, 100)
         self.sl_debate.setValue(20)
         self.sl_debate.valueChanged.connect(self.save_custom_latency)
         v2.addWidget(self.sl_debate)
 
-        v2.addWidget(QLabel("Max Timeout (s):"))
+        lbl_t = QLabel("Max Timeout (s):")
+        lbl_t.setProperty("class", "metric-label")
+        v2.addWidget(lbl_t)
         self.sl_timeout = QSlider(Qt.Horizontal)
         self.sl_timeout.setRange(30, 300)
         self.sl_timeout.setValue(120)
@@ -122,7 +137,9 @@ class TaskDispatchPage(QWidget):
         left_box.addWidget(self.latency_grp)
 
         # Mission Prompt
-        left_box.addWidget(QLabel("<b>Mission Prompt / Instructions:</b>"))
+        lbl_prompt = QLabel("Mission Prompt / Instructions:")
+        lbl_prompt.setProperty("class", "metric-label")
+        left_box.addWidget(lbl_prompt)
         self.prompt_edit = QTextEdit()
         self.prompt_edit.setPlaceholderText("Describe your project, code requirements, research topic, or design asset... (Ctrl+Enter to deploy)")
         self.prompt_edit.setFixedHeight(120)
@@ -130,30 +147,33 @@ class TaskDispatchPage(QWidget):
         left_box.addWidget(self.prompt_edit)
 
         # Agent Allocation Strategy
-        left_box.addWidget(QLabel("<b>Agent Allocation Strategy:</b>"))
+        lbl_strat = QLabel("Agent Allocation Strategy:")
+        lbl_strat.setProperty("class", "metric-label")
+        left_box.addWidget(lbl_strat)
         mode_row = QHBoxLayout()
-        self.rb_auto = QRadioButton("🤖 Dynamic AI Auto-Select")
+        self.rb_auto = QRadioButton("Dynamic AI Auto-Select")
         self.rb_auto.setChecked(True)
         self.rb_auto.toggled.connect(self.on_alloc_mode_changed)
 
-        self.rb_manual = QRadioButton("✋ Manual Specialist Squad Selection")
+        self.rb_manual = QRadioButton("Manual Specialist Squad Selection")
         self.rb_manual.toggled.connect(self.on_alloc_mode_changed)
 
         mode_row.addWidget(self.rb_auto)
         mode_row.addWidget(self.rb_manual)
         left_box.addLayout(mode_row)
 
-        self.cb_auto_split = QCheckBox("⚡ Auto-Split Compound Prompts into Multi-Agent Tasks")
+        self.cb_auto_split = QCheckBox("Auto-Split Compound Prompts into Multi-Agent Tasks")
         self.cb_auto_split.setChecked(True)
-        self.cb_auto_split.setStyleSheet("color: #38bdf8; font-weight: 700; font-size: 11px;")
         left_box.addWidget(self.cb_auto_split)
 
         # Manual Agents Checkboxes Frame
         self.manual_frame = QFrame()
-        self.manual_frame.setStyleSheet("background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 6px;")
+        self.manual_frame.setProperty("class", "card")
         m_layout = QVBoxLayout(self.manual_frame)
         m_layout.setSpacing(4)
-        m_layout.addWidget(QLabel("<span style='color:#38bdf8;font-weight:700;'>Select Agents for Squad:</span> (Select Gemini for direct sole execution or combine with specialists)"))
+        lbl_sq = QLabel("Select Agents for Squad:")
+        lbl_sq.setProperty("class", "sidebar-group-label")
+        m_layout.addWidget(lbl_sq)
 
         agents_roster = [
             ("gemini", "Google Gemini — Master Orchestrator & Direct Execution"),
@@ -178,14 +198,16 @@ class TaskDispatchPage(QWidget):
         left_box.addWidget(self.manual_frame)
 
         # Mission Codename
-        left_box.addWidget(QLabel("<b>Mission Codename (Optional):</b>"))
+        lbl_code = QLabel("Mission Codename (Optional):")
+        lbl_code.setProperty("class", "metric-label")
+        left_box.addWidget(lbl_code)
         self.codename_edit = QLineEdit()
         self.codename_edit.setPlaceholderText("e.g. Modern Web Dashboard v1")
         left_box.addWidget(self.codename_edit)
 
         # Deploy Button
-        self.deploy_btn = QPushButton("🚀 Deploy Mission to Agent Pool")
-        self.deploy_btn.setProperty("class", "primary-btn")
+        self.deploy_btn = QPushButton("Deploy Mission to Agent Pool")
+        self.deploy_btn.setProperty("class", "btn-primary")
         self.deploy_btn.setFixedHeight(42)
         self.deploy_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.deploy_btn.setToolTip("Deploy Mission to Agent Pool (Ctrl+Enter)")
@@ -207,13 +229,15 @@ class TaskDispatchPage(QWidget):
         right_box = QVBoxLayout()
         right_box.setSpacing(10)
 
-        sec2 = QLabel("📡 Live Telemetry & Execution Log")
-        sec2.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px;")
+        sec2 = QLabel("LIVE TELEMETRY & EXECUTION LOG")
+        sec2.setProperty("class", "sidebar-group-label")
         right_box.addWidget(sec2)
 
         # Mission Selector Row
         sel_row = QHBoxLayout()
-        sel_row.addWidget(QLabel("<b>Mission Stream:</b>"))
+        lbl_ms = QLabel("Mission Stream:")
+        lbl_ms.setProperty("class", "metric-label")
+        sel_row.addWidget(lbl_ms)
         self.stream_combo = QComboBox()
         self.stream_combo.currentIndexChanged.connect(self.on_stream_selected)
         sel_row.addWidget(self.stream_combo, stretch=2)
@@ -221,7 +245,7 @@ class TaskDispatchPage(QWidget):
 
         # Mission Status Info Bar
         self.status_bar_lbl = QLabel("No active mission selected.")
-        self.status_bar_lbl.setStyleSheet("font-size: 12px; color: #94a3b8; background: rgba(15, 23, 42, 0.7); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);")
+        self.status_bar_lbl.setProperty("class", "card")
         right_box.addWidget(self.status_bar_lbl)
 
         # Real-Time Multi-Agent Workflow HUD
@@ -235,13 +259,14 @@ class TaskDispatchPage(QWidget):
 
         # Monitor Action Buttons
         btn_row = QHBoxLayout()
-        self.refresh_btn = QPushButton("🔄 Refresh Telemetry")
+        self.refresh_btn = QPushButton("Refresh Telemetry")
+        self.refresh_btn.setProperty("class", "btn-secondary")
         self.refresh_btn.setToolTip("Refresh Live Terminal Output (F5 / Ctrl+R)")
         self.refresh_btn.clicked.connect(self.refresh_terminal)
         btn_row.addWidget(self.refresh_btn)
 
-        self.abort_btn = QPushButton("⏹ Abort Mission")
-        self.abort_btn.setProperty("class", "danger-btn")
+        self.abort_btn = QPushButton("Abort Mission")
+        self.abort_btn.setProperty("class", "btn-secondary")
         self.abort_btn.setToolTip("Abort Mission (Ctrl+Shift+X)")
         self.abort_btn.clicked.connect(self.on_abort_clicked)
         btn_row.addWidget(self.abort_btn)
@@ -256,8 +281,8 @@ class TaskDispatchPage(QWidget):
         self.layout.addLayout(split_layout)
 
         # Bottom: Live Agent Pool Monitor
-        sec3 = QLabel("⚡ Live Agent Pool Hierarchy")
-        sec3.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px; margin-top: 10px;")
+        sec3 = QLabel("LIVE AGENT POOL HIERARCHY")
+        sec3.setProperty("class", "sidebar-group-label")
         self.layout.addWidget(sec3)
 
         self.pool_monitor = PoolMonitor()
@@ -316,7 +341,7 @@ class TaskDispatchPage(QWidget):
         self.update_latency_label(curr)
 
     def update_latency_label(self, curr: dict):
-        self.lat_info_lbl.setText(f"Active Profile: <b><span style='color:#38bdf8;'>{curr.get('profile', 'balanced').upper()}</span></b> (Dispatch: {curr.get('dispatch_delay_sec', 1.5)}s · Settling: {curr.get('check_interval_sec', 1.5)}s · Debate: {curr.get('debate_delay_sec', 2.0)}s)")
+        self.lat_info_lbl.setText(f"Active Profile: {curr.get('profile', 'balanced').upper()} (Dispatch: {curr.get('dispatch_delay_sec', 1.5)}s · Settling: {curr.get('check_interval_sec', 1.5)}s · Debate: {curr.get('debate_delay_sec', 2.0)}s)")
 
     def on_deploy_clicked(self):
         prompt = self.prompt_edit.toPlainText().strip()
@@ -346,7 +371,6 @@ class TaskDispatchPage(QWidget):
                 if cb.isChecked():
                     selected.append(aid)
             if not selected:
-                # Default to Gemini if nothing selected in manual mode
                 selected = ["gemini"]
             agents_str = ",".join(selected)
 
@@ -382,13 +406,10 @@ class TaskDispatchPage(QWidget):
 
         info = self.running_procs[label]
         status = info.get("status", "unknown").upper()
-        col = "#10b981" if status == "DONE" else ("#fbbf24" if status == "RUNNING" else "#ef4444")
         
         self.status_bar_lbl.setText(
-            f"<b>Status:</b> <span style='color:{col};font-weight:800;'>{status}</span> &nbsp;|&nbsp; "
-            f"<b>Started:</b> {info.get('started', '')} &nbsp;|&nbsp; "
-            f"<b>Pool:</b> <code>[{info.get('agents', '')}]</code><br>"
-            f"<b>Goal:</b> {info.get('task', '')}"
+            f"Status: {status} | Started: {info.get('started', '')} | Pool: [{info.get('agents', '')}]\n"
+            f"Goal: {info.get('task', '')}"
         )
         self.refresh_terminal()
 

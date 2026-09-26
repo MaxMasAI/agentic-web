@@ -1,13 +1,11 @@
 """
 gui/pages/mission_control.py - Mission Control (Home Page)
+Conforms strictly to design_system_ui_theme_documentation.md
 """
 
-import os
-import glob
-import re
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QSizePolicy
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QScrollArea,
+    QFrame
 )
 from PySide6.QtCore import Qt, Signal
 
@@ -28,69 +26,73 @@ class MissionControlPage(QWidget):
     def init_ui(self):
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setProperty("class", "card")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
         self.layout.setContentsMargins(20, 20, 20, 20)
-        self.layout.setSpacing(18)
+        self.layout.setSpacing(16)
 
         # Header Title Banner
         title_box = QVBoxLayout()
         title_box.setSpacing(2)
         
-        main_title = QLabel("⚡ AGENT MISSION CONTROL")
-        main_title.setStyleSheet("""
-            font-size: 26px;
-            font-weight: 800;
-            color: #38bdf8;
-            letter-spacing: 1.2px;
-            font-family: 'Segoe UI', sans-serif;
-        """)
+        main_title = QLabel("AGENT MISSION CONTROL")
+        main_title.setProperty("class", "metric-value")
         
         subtitle = QLabel("Autonomous Leader-Worker Collaborative Operations Console")
-        subtitle.setStyleSheet("font-size: 12px; color: #64748b; font-family: monospace; margin-bottom: 8px;")
+        subtitle.setProperty("class", "metric-label")
         
         title_box.addWidget(main_title)
         title_box.addWidget(subtitle)
         self.layout.addLayout(title_box)
 
-        # 7 Top Interactive Telemetry Metric Cards
-        self.cards_layout = QHBoxLayout()
+        # Interactive Telemetry Metric Cards (Clean 4x2 Grid to prevent horizontal overflow)
+        self.cards_layout = QGridLayout()
         self.cards_layout.setSpacing(10)
 
-        self.card_tokens = MetricCard("1.019B+", "Free Tokens", "#ff4b4b", is_clickable=True)
+        self.card_tokens = MetricCard("1.019B+", "Free Tokens", is_clickable=True)
         self.card_tokens.clicked.connect(lambda *args: self.navigate_requested.emit("tokens"))
 
-        self.card_tasks = MetricCard("0", "Tasks Done", "#38bdf8", is_clickable=True)
+        self.card_tasks = MetricCard("0", "Tasks Done", is_clickable=True)
         self.card_tasks.clicked.connect(lambda *args: self.navigate_requested.emit("history"))
 
-        self.card_mem = MetricCard("0", "Memories", "#fbbf24", is_clickable=True)
+        self.card_mem = MetricCard("0", "Memories", is_clickable=True)
         self.card_mem.clicked.connect(lambda *args: self.navigate_requested.emit("memory"))
 
-        self.card_play = MetricCard("LIVE", "Playground", "#10b981", is_clickable=True)
+        self.card_play = MetricCard("LIVE", "Playground", is_clickable=True)
         self.card_play.clicked.connect(lambda *args: self.navigate_requested.emit("playground"))
 
-        self.card_squads = MetricCard("0", "Squad Roster", "#818cf8", is_clickable=True)
+        self.card_squads = MetricCard("0", "Squad Roster", is_clickable=True)
         self.card_squads.clicked.connect(lambda *args: self.navigate_requested.emit("subagents"))
 
-        self.card_skills = MetricCard("0", "Skills", "#c084fc", is_clickable=True)
-        self.card_skills.clicked.connect(lambda *args: self.navigate_requested.emit("mcp"))
+        self.card_skills = MetricCard("0", "Skills", is_clickable=True)
+        self.card_skills.clicked.connect(self.on_open_skills_vault)
 
-        self.card_assets = MetricCard("0", "Assets", "#38bdf8", is_clickable=True)
+        self.card_assets = MetricCard("0", "Assets", is_clickable=True)
         self.card_assets.clicked.connect(lambda *args: self.navigate_requested.emit("explorer"))
 
-        self.card_active = MetricCard("0", "Active Runs", "#f87171", is_clickable=True)
+        self.card_active = MetricCard("0", "Active Runs", is_clickable=True)
         self.card_active.clicked.connect(lambda *args: self.navigate_requested.emit("launch"))
 
-        for c in [self.card_tokens, self.card_tasks, self.card_mem, self.card_play, self.card_squads, self.card_skills, self.card_assets, self.card_active]:
-            self.cards_layout.addWidget(c)
+        # Row 0: Operations & Storage
+        self.cards_layout.addWidget(self.card_tokens, 0, 0)
+        self.cards_layout.addWidget(self.card_tasks, 0, 1)
+        self.cards_layout.addWidget(self.card_mem, 0, 2)
+        self.cards_layout.addWidget(self.card_play, 0, 3)
+
+        # Row 1: Ecosystem & Capabilities
+        self.cards_layout.addWidget(self.card_squads, 1, 0)
+        self.cards_layout.addWidget(self.card_skills, 1, 1)
+        self.cards_layout.addWidget(self.card_assets, 1, 2)
+        self.cards_layout.addWidget(self.card_active, 1, 3)
 
         self.layout.addLayout(self.cards_layout)
 
         # Section: Multi-Agent Command Hierarchy & Pool Monitor
-        sec_hdr = QLabel("⚡ Multi-Agent Command Hierarchy & Live Pool")
-        sec_hdr.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px; margin-top: 10px;")
+        sec_hdr = QLabel("COMMAND HIERARCHY & LIVE POOL")
+        sec_hdr.setProperty("class", "sidebar-group-label")
         self.layout.addWidget(sec_hdr)
 
         self.pool_monitor = PoolMonitor()
@@ -100,8 +102,8 @@ class MissionControlPage(QWidget):
         self.layout.addWidget(self.pool_monitor)
 
         # Section: Recent Completed Missions
-        sec_hist = QLabel("📋 Recent Completed Missions")
-        sec_hist.setStyleSheet("font-size: 15px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px; margin-top: 14px;")
+        sec_hist = QLabel("RECENT COMPLETED MISSIONS")
+        sec_hist.setProperty("class", "sidebar-group-label")
         self.layout.addWidget(sec_hist)
 
         self.recent_missions_container = QWidget()
@@ -155,40 +157,39 @@ class MissionControlPage(QWidget):
 
         if not tasks:
             no_tasks_lbl = QLabel("No missions executed yet. Dispatch a task to begin.")
-            no_tasks_lbl.setStyleSheet("color: #64748b; font-style: italic; padding: 10px;")
+            no_tasks_lbl.setProperty("class", "metric-label")
             self.recent_missions_layout.addWidget(no_tasks_lbl)
         else:
             for i, t in enumerate(tasks[:5]):
                 card = QFrame()
-                card.setStyleSheet("""
-                    QFrame {
-                        background: rgba(15, 23, 42, 0.6);
-                        border: 1px solid rgba(255, 255, 255, 0.07);
-                        border-radius: 8px;
-                        padding: 10px;
-                    }
-                    QFrame:hover {
-                        border-color: rgba(56, 189, 248, 0.35);
-                    }
-                """)
+                card.setProperty("class", "card")
                 c_layout = QHBoxLayout(card)
-                c_layout.setContentsMargins(8, 8, 8, 8)
+                c_layout.setContentsMargins(12, 8, 12, 8)
 
                 left_v = QVBoxLayout()
-                t_lbl = QLabel(f"<b>#{len(tasks)-i}</b>  {t.get('task', 'Untitled Mission')}")
-                t_lbl.setStyleSheet("font-size: 13px; font-weight: 700; color: #f8fafc;")
+                t_lbl = QLabel(f"#{len(tasks)-i}  {t.get('task', 'Untitled Mission')}")
+                t_lbl.setProperty("class", "metric-value")
                 time_lbl = QLabel(t.get('timestamp', ''))
-                time_lbl.setStyleSheet("font-size: 11px; color: #64748b; font-family: monospace;")
+                time_lbl.setProperty("class", "metric-label")
                 left_v.addWidget(t_lbl)
                 left_v.addWidget(time_lbl)
 
                 badge = QLabel("COMPLETED")
-                badge.setStyleSheet("background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b98155; border-radius: 10px; padding: 2px 10px; font-weight: 800; font-size: 10px;")
+                badge.setProperty("class", "badge-idle")
 
                 c_layout.addLayout(left_v)
                 c_layout.addStretch()
                 c_layout.addWidget(badge)
                 self.recent_missions_layout.addWidget(card)
+
+    def on_open_skills_vault(self):
+        try:
+            from gui.widgets.skill_importer_dialog import SkillImporterDialog
+            dialog = SkillImporterDialog(self)
+            dialog.skills_updated.connect(lambda: self.card_skills.set_value(str(get_skills_count())))
+            dialog.exec()
+        except Exception:
+            self.navigate_requested.emit("mcp")
 
     def update_running_processes(self, procs: dict):
         if hasattr(self, "pool_monitor") and self.pool_monitor:

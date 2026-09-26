@@ -170,28 +170,66 @@ SUPERPOWERS_SKILLS_MAP: Dict[str, List[Dict[str, str]]] = {
 }
 
 
-def get_agent_skills_directive(agent_id: str) -> str:
+def get_agent_skills_directive(agent_id: str, task_prompt: str = "") -> str:
     """
-    Returns formatted Engineering Skills and Superpowers prompt block for the designated agent.
+    Returns formatted Engineering Skills, Agency Personas, and dynamically imported skills
+    from the skills/ directory matching the task prompt or agent role.
     """
-    aid = agent_id.lower()
+    aid = agent_id.lower().strip()
     addy_skills = AGENT_SKILLS_MAP.get(aid, [])
     super_skills = SUPERPOWERS_SKILLS_MAP.get(aid, [])
     
-    if not addy_skills and not super_skills:
+    # Check if agent is an Agency Agent
+    agency_agent_info = None
+    try:
+        from core.agency_agents_manager import agency_manager
+        agency_agent_info = agency_manager.get_agent_by_id(aid)
+    except Exception:
+        pass
+
+    # Check for matching dynamically ingested skills from skills/ folder
+    dynamic_skills = []
+    try:
+        from core.skills_manager import skills_manager
+        if task_prompt:
+            dynamic_skills = skills_manager.match_skills_for_task(task_prompt, max_skills=2)
+    except Exception:
+        pass
+    
+    if not addy_skills and not super_skills and not agency_agent_info and not dynamic_skills:
         return ""
     
-    directive = "\n=== APPLIED SENIOR ENGINEERING & SUPERPOWERS SKILLS ===\n"
-    directive += "You are required to adhere to the following professional engineering standards:\n"
-    
-    for s in addy_skills:
-        directive += f"- [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
-        
-    if super_skills:
-        directive += "\n--- Active Superpowers Protocols ---\n"
-        for s in super_skills:
-            directive += f"• [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
+    directive = "\n=== APPLIED SENIOR ENGINEERING & SPECIALIST DIRECTIVES ===\n"
+    if agency_agent_info:
+        directive += f"Role: {agency_agent_info.get('name')} ({agency_agent_info.get('division_label')})\n"
+        if agency_agent_info.get("vibe"):
+            directive += f"Vibe & Tone: {agency_agent_info.get('vibe')}\n"
+        if agency_agent_info.get("description"):
+            directive += f"Mission: {agency_agent_info.get('description')}\n"
+        directive += "\n"
+
+    if dynamic_skills:
+        directive += "--- Dynamically Active Skills (Claude AI Skills Vault) ---\n"
+        for ds in dynamic_skills:
+            directive += f"• Skill [{ds.get('name')}]: {ds.get('description')}\n"
+            content = skills_manager.get_skill_content(ds.get("id"))
+            if content:
+                # Include concise key rules
+                directive += f"  Instructions:\n{content[:500]}\n"
+        directive += "\n"
+
+    if addy_skills or super_skills:
+        directive += "You are required to adhere to the following professional engineering standards:\n"
+        for s in addy_skills:
+            directive += f"- [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
             
-    directive += "=======================================================\n\n"
+        if super_skills:
+            directive += "\n--- Active Superpowers Protocols ---\n"
+            for s in super_skills:
+                directive += f"• [{s['phase'].upper()}] {s['skill']}: {s['rule']}\n"
+                
+    directive += "===========================================================\n\n"
     return directive
+
+
 

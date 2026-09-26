@@ -124,7 +124,13 @@ An enterprise-grade autonomous multi-agent operating system and native **PySide6
 * **🔒 Calibrated Probabilistic Confidence Gating**: Threshold-based fast-path auto-execution ($\ge 0.85$) with zero JSON schema drift, automatically escalating ambiguous tasks to System 2 Chain-of-Thought deliberation (Gemini / DeepSeek-R1).
 * **🛡️ Plugin Tool Gatekeeping & Sandbox Isolation**: Intercepts plugin tool executions, analyzes privilege tiers, and enforces subprocess sandboxing for elevated system actions.
 
-### 📦 11. Developer Experience & Portable Distribution
+### 🎭 11. The Agency: 287+ Specialized AI Agents Roster (18 Divisions)
+* **🤖 287+ Production-Grade Specialists**: Battle-tested domain expert personas across 18 core divisions (*Engineering, Security, Design, Marketing, Game Dev, GIS, Healthcare, Product, Testing, Spatial Computing, Finance, Academic, and Specialized*).
+* **🔍 Interactive GUI Catalog & Inspector**: Dedicated PySide6 split-screen browser in Squad Roster with instant fuzzy search, division filtering, and full Markdown persona inspection.
+* **🚀 1-Click Squad Assembly & Deployment**: Auto-formats mission tasks, injects authentic specialist vibes & quality rules, and preselects optimal AI models for instant execution.
+* **🧩 Runtime Persona & DAG Node Injection**: Dynamically inject specialist directives into LLM prompt chains, Expert Co-op memory contexts, and Infinite Canvas DAG nodes.
+
+### 📦 12. Developer Experience & Portable Distribution
 * **⚡ Live Auto-Reload Engine (`dev.py` / `dev.bat`)**: Intelligent change debouncer and process tree terminator that auto-restarts the app on `Ctrl+S`.
 * **📦 Single-File Portable Executable (`STD_EXE.py`)**: 1-click builder compiling the entire desktop suite into a standalone Windows `.exe` without requiring Python.
 * **🐳 Docker Compose Containerization**: 1-command reproducible multi-platform environment setup passing X11/Wayland display sockets.
@@ -197,21 +203,34 @@ graph TD
 
 ---
 
-## 🔌 2. Model Context Protocol (MCP) Subsystem
-- **Addy Osmani Agent Skills (`https://github.com/addyosmani/agent-skills.git`)**:
+## 🔌 2. Model Context Protocol (MCP) & Claude AI Skills Engine
+- **🧠 Claude AI Dynamic Skills Ingestor (`skills/`)**:
+  - Ingest, parse, and store skills (`SKILL.md` / `*.md`) from **any GitHub repository URL**, local markdown file, or live prompt editor.
+  - Automatically indexes metadata, triggers, and rules into `json/skills_registry.json`.
+  - **Dynamic Runtime Prompt Injection**: Automatically matches relevant skills for any user goal and embeds instructions into active LLM pipelines (Gemini, Claude, DeepSeek, ChatGPT).
+- **Addy Osmani Senior Skills (`https://github.com/addyosmani/agent-skills.git`)**:
   - Live remote integration connecting 24 senior engineering skills (Spec-Driven Development, TDD, Architectural Review, Code Simplification, Security & A11y Audits).
-  - Dynamically injected into each agent's execution prompt according to their task role.
 - **CitroLabs Ego-Lite Parallel Browser (`https://github.com/citrolabs/ego-lite.git`)**:
   - Isolated Chromium spaces, authenticated Chrome session reuse, and high-speed CDP DOM extraction.
 - **Standardized 9-Field Schema**:
   - All MCP configurations in `json/mcp_config.json` conform strictly to the 9-field schema (`name`, `repository`, `api_endpoint`, `raw_base_url`, `version`, `skills_count`, `status`, `type`, `description`).
 
-## 🖥️ 3. Futuristic PySide6 Desktop Console
+---
+
+## 🎭 3. The Agency: 287+ Specialized AI Agents (18 Divisions)
+- **Roster & Taxonomy**: Complete catalog of 287+ battle-tested AI specialist personas across 18 specialized divisions (*Engineering, Security, Design, Marketing, Game Dev, GIS, Healthcare, Product, Testing, Spatial Computing, Finance, Academic, and Specialized*).
+- **Interactive Visual Inspector**: Dedicated PySide6 split-screen browser in **Squad Roster** to filter by division, search keywords, and inspect full Markdown persona instructions, code deliverables, and rules.
+- **1-Click Squad Assembly & Dispatch**: Selecting an agent auto-formats mission directives, injects authentic domain vibes, and preselects optimal AI models (Gemini, DeepSeek, Claude, ChatGPT, DALL-E 3) for instant deployment.
+- **Dynamic Directive Injection (`core/agency_agents_manager.py`)**: Seamlessly resolves specialist rules, constraints, and quality standards for active LLM pipelines and Infinite Canvas DAG nodes.
+
+---
+
+## 🖥️ 4. Futuristic PySide6 Desktop Console
 - **🛰️ Mission Control (Home):** Interactive telemetry cards (`Tasks Completed`, `Memory Items`, `Squad Roster`, `Agent Skills`, `Assets Saved`, `Active Missions`), Gemini Direct Task Dispatcher, and real-time Multi-Agent Hierarchy Monitor.
 - **🌳 Agent Command Hierarchy Tree:** Switchable tree & grid view with Gemini Leader at the root branching into the specialist clusters with live `🟢 FREE` vs `🟡 BUSY` indicators and agent activity inspector.
 - **🚀 Task Dispatch Console:** Custom agent loop selector, latency & communication speed tuner, real-time streaming log terminal, and process manager.
 - **🎮 Playground Studio:** Live HTML/CSS/JS sandbox with real-time deliverable preview, isolated Python execution sandbox, and task code extractor.
-- **🤖 Agent Squads:** Autonomous AI Squad generator based on project scope, 1-click fast presets, and repeated pattern auto-learner.
+- **🤖 Agent Squads & Agency Agents Roster:** Browse 287+ specialized AI agents across 18 divisions, inspect personas & deliverables in a split-screen modal, 1-click squad auto-synthesizer, fast presets, and repeated pattern auto-learner.
 - **📋 Mission Archive:** Searchable mission history with 5 deep inspection tabs (Gemini Plan, Worker Outputs, Final Approved Result, Live Sandbox, Downloaded Assets) and full-resolution screenshot lightboxes.
 - **🔌 MCP Service Hub:** Live tool tester with dynamic parameter forms, server registry, parameter schema explorer, and custom server registration.
 - **🧠 Neural Memory Vault:** Cross-mission factual memory search, semantic categorization, importance rating, pin priority, deduplication, and `RULES.md` exporter.

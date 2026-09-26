@@ -30,7 +30,8 @@ class MCPHubPage(QWidget):
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(14)
 
-        # Header Title
+        # Header Title + Actions
+        top_hdr = QHBoxLayout()
         t_box = QVBoxLayout()
         t_box.setSpacing(2)
         title = QLabel("🔌 DYNAMIC MCP SERVICE HUB")
@@ -39,22 +40,44 @@ class MCPHubPage(QWidget):
         subtitle.setStyleSheet("font-size: 12px; color: #64748b; font-family: monospace; margin-bottom: 4px;")
         t_box.addWidget(title)
         t_box.addWidget(subtitle)
-        main_layout.addLayout(t_box)
+        top_hdr.addLayout(t_box)
+        top_hdr.addStretch()
+
+        self.btn_open_skills_dialog = QPushButton("🧠 Ingest Skills (GitHub / *.md)")
+        self.btn_open_skills_dialog.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #8b5cf6, stop:1 #38bdf8);
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 12.5px;
+                border-radius: 8px;
+                padding: 8px 16px;
+                border: none;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #7c3aed, stop:1 #0284c7);
+            }
+        """)
+        self.btn_open_skills_dialog.clicked.connect(self.on_open_skills_importer)
+        top_hdr.addWidget(self.btn_open_skills_dialog)
+        main_layout.addLayout(top_hdr)
 
         # 4 Telemetry Cards
         self.telemetry_layout = QHBoxLayout()
         self.card_servers = MetricCard("0", "Connected Servers", "#38bdf8")
         self.card_tools = MetricCard("0", "Registered Tools", "#10b981")
-        self.card_skills = MetricCard("0", "Engineering Skills", "#fbbf24")
+        self.card_skills = MetricCard("0", "Active Skills (skills/)", "#fbbf24", is_clickable=True)
+        self.card_skills.clicked.connect(self.on_open_skills_importer)
         self.card_proto = MetricCard("Live Git", "Transport Protocol", "#818cf8")
 
         for c in [self.card_servers, self.card_tools, self.card_skills, self.card_proto]:
             self.telemetry_layout.addWidget(c)
         main_layout.addLayout(self.telemetry_layout)
 
-        # 5 Tabs
+        # 6 Tabs
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tool_tester_tab(), "⚡ Live Tool Tester & Dispatcher")
+        self.tabs.addTab(self.create_skills_vault_tab(), "🧠 Claude AI Skills Vault (skills/)")
         self.tabs.addTab(self.create_server_registry_tab(), "🗄️ MCP Server Registry")
         self.tabs.addTab(self.create_tool_catalog_tab(), "📜 Dynamic Tool Catalog & Schemas")
         self.tabs.addTab(self.create_add_server_tab(), "➕ Register Custom MCP Server")
@@ -66,7 +89,13 @@ class MCPHubPage(QWidget):
     def refresh_mcp_data(self):
         servers = list_mcp_servers()
         tools = list_mcp_tools()
-        skills = get_skills_count()
+        
+        # Load total skills from skills_manager
+        try:
+            from core.skills_manager import skills_manager
+            skills = len(skills_manager.list_all_skills())
+        except Exception:
+            skills = get_skills_count()
 
         self.card_servers.set_value(str(len(servers)))
         self.card_tools.set_value(str(len(tools)))
@@ -88,6 +117,111 @@ class MCPHubPage(QWidget):
 
         # Update Tool Catalog List
         self.render_catalog_cards(tools)
+
+    def on_open_skills_importer(self):
+        try:
+            from gui.widgets.skill_importer_dialog import SkillImporterDialog
+            dialog = SkillImporterDialog(self)
+            dialog.skills_updated.connect(self.refresh_mcp_data)
+            dialog.skills_updated.connect(self.refresh_skills_vault_list)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(self, "Skills Dialog Error", f"Failed to open Skills Vault: {e}")
+
+    # ──────────────────────────────────────────
+    #  Tab: Claude AI Skills Vault
+    # ──────────────────────────────────────────
+    def create_skills_vault_tab(self):
+        tab = QWidget()
+        lay = QVBoxLayout(tab)
+        lay.setContentsMargins(12, 12, 12, 12)
+        lay.setSpacing(10)
+
+        top_row = QHBoxLayout()
+        lbl = QLabel("<b>🧠 Installed Skills in <code>skills/</code> (Auto-injected into AI Models)</b>")
+        lbl.setStyleSheet("font-size: 13px; color: #38bdf8;")
+        top_row.addWidget(lbl)
+        top_row.addStretch()
+
+        btn_import = QPushButton("➕ Ingest from GitHub / File")
+        btn_import.setProperty("class", "primary-btn")
+        btn_import.clicked.connect(self.on_open_skills_importer)
+        top_row.addWidget(btn_import)
+        lay.addLayout(top_row)
+
+        self.skills_scroll = QScrollArea()
+        self.skills_scroll.setWidgetResizable(True)
+        self.skills_container = QWidget()
+        self.skills_vault_layout = QVBoxLayout(self.skills_container)
+        self.skills_vault_layout.setContentsMargins(0, 0, 0, 0)
+        self.skills_vault_layout.setSpacing(8)
+        self.skills_scroll.setWidget(self.skills_container)
+        lay.addWidget(self.skills_scroll, stretch=1)
+
+        self.refresh_skills_vault_list()
+        return tab
+
+    def refresh_skills_vault_list(self):
+        if not hasattr(self, "skills_vault_layout"):
+            return
+
+        while self.skills_vault_layout.count():
+            item = self.skills_vault_layout.takeAt(0)
+            w = item.widget()
+            if w:
+                w.deleteLater()
+
+        try:
+            from core.skills_manager import skills_manager
+            skills = skills_manager.list_all_skills()
+        except Exception:
+            skills = []
+
+        if not skills:
+            empty = QLabel("No skills detected in skills/ folder. Click 'Ingest from GitHub / File' to add skills!")
+            empty.setStyleSheet("color: #64748b; font-size: 12px; padding: 20px;")
+            self.skills_vault_layout.addWidget(empty)
+            return
+
+        for s in skills:
+            card = QFrame()
+            card.setStyleSheet("""
+                QFrame {
+                    background-color: #1e293b;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-left: 4px solid #38bdf8;
+                    border-radius: 6px;
+                    padding: 8px;
+                }
+            """)
+            c_lay = QVBoxLayout(card)
+            c_lay.setContentsMargins(8, 8, 8, 8)
+            c_lay.setSpacing(4)
+
+            hdr = QHBoxLayout()
+            name_l = QLabel(f"<b>🧠 {s.get('name', 'Skill')}</b>")
+            name_l.setStyleSheet("font-size: 13px; color: #f8fafc;")
+            hdr.addWidget(name_l)
+            hdr.addStretch()
+
+            cat_b = QLabel(s.get("category", "engineering").upper())
+            cat_b.setStyleSheet("background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-radius: 4px; padding: 2px 6px; font-size: 9.5px; font-weight: 700;")
+            hdr.addWidget(cat_b)
+            c_lay.addLayout(hdr)
+
+            if s.get("description"):
+                desc_l = QLabel(s["description"])
+                desc_l.setStyleSheet("color: #94a3b8; font-size: 11.5px;")
+                desc_l.setWordWrap(True)
+                c_lay.addWidget(desc_l)
+
+            path_l = QLabel(f"📁 Path: <code>{s.get('file_rel_path')}</code> | Triggers: {', '.join(s.get('triggers', [])) or 'Prompt Matching'}")
+            path_l.setStyleSheet("color: #64748b; font-size: 10.5px; font-family: monospace;")
+            c_lay.addWidget(path_l)
+
+            self.skills_vault_layout.addWidget(card)
+
+        self.skills_vault_layout.addStretch()
 
     # ──────────────────────────────────────────
     #  Tab 1: Live Tool Tester

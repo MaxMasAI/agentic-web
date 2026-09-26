@@ -76,7 +76,13 @@ def get_remote_skills_list() -> List[dict]:
     return DEFAULT_REMOTE_SKILLS
 
 def get_skills_count() -> int:
-    """Returns total count of available Addy Osmani skills."""
+    """Returns total count of live installed skills in skills/ folder."""
+    try:
+        from core.skills_manager import skills_manager
+        all_skills = skills_manager.list_all_skills()
+        return len(all_skills)
+    except Exception:
+        pass
     skills = get_remote_skills_list()
     return len(skills) if skills else len(DEFAULT_REMOTE_SKILLS)
 

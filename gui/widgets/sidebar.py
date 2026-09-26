@@ -1,58 +1,41 @@
 """
-gui/widgets/sidebar.py - Modern Categorized Sci-Fi Sidebar with Dropdown Settings & Accordion Sections
-Supports full collapsible dropdown settings menu, fluid auto-hide, and keyboard shortcuts.
+gui/widgets/sidebar.py - Modern Categorized Dark Theme Sidebar (ModernSidebar)
+Conforms strictly to design_system_ui_theme_documentation.md
 """
 
 from typing import Dict, List, Tuple, Optional
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QSizePolicy, QScrollArea
+    QFrame, QSizePolicy, QScrollArea, QButtonGroup
 )
 from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QTimer, Property
 from PySide6.QtGui import QCursor
 
 
 class CollapsibleSection(QWidget):
-    """Collapsible Dropdown Accordion Section with animated toggle."""
+    """Collapsible Dropdown Section styled with design system tokens."""
     def __init__(self, title: str, start_collapsed: bool = False, parent=None):
         super().__init__(parent)
-        self.raw_title = title
+        self.raw_title = str(title).upper()
         self.is_collapsed = start_collapsed
 
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(2)
 
-        # Dropdown Header Button
+        # Header Group Button / Label
         self.header_btn = QPushButton()
         self.header_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.header_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.header_btn.setFixedHeight(28)
-        self.header_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #7dd3fc;
-                border: none;
-                text-align: left;
-                padding-left: 6px;
-                padding-right: 6px;
-                font-size: 10.5px;
-                font-weight: 800;
-                letter-spacing: 0.8px;
-            }
-            QPushButton:hover {
-                color: #38bdf8;
-                background-color: rgba(56, 189, 248, 0.08);
-                border-radius: 4px;
-            }
-        """)
+        self.header_btn.setProperty("class", "sidebar-group-label")
         self.header_btn.clicked.connect(self.toggle_collapse)
         self.main_layout.addWidget(self.header_btn)
 
         # Content Container for Child Buttons
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
-        self.content_layout.setContentsMargins(0, 0, 0, 4)
+        self.content_layout.setContentsMargins(0, 0, 0, 2)
         self.content_layout.setSpacing(2)
         self.main_layout.addWidget(self.content_widget)
 
@@ -85,27 +68,31 @@ class CollapsibleSection(QWidget):
             self.set_collapsed(False)
 
 
-class Sidebar(QWidget):
+class ModernSidebar(QFrame):
+    """
+    Modern Dark Theme Navigation Sidebar for Autonomous Multi-Agent OS.
+    Implements Design System Token Architecture, nav-button, and group-label patterns.
+    """
     page_changed = Signal(str)
     abort_requested = Signal(str)
 
-    EXPANDED_WIDTH = 240
+    EXPANDED_WIDTH = 250
     COLLAPSED_WIDTH = 58
 
     NAV_SECTIONS = [
-        ("🚀 OPERATIONS", [
+        ("OPERATIONS", [
             ("home", "🛰️", "Mission Control"),
             ("launch", "⚡", "Task Dispatcher"),
             ("subagents", "🤖", "Agent Squads"),
             ("history", "📋", "Mission Archive"),
         ]),
-        ("💬 ASSISTANT MODES", [
+        ("ASSISTANT MODES", [
             ("chat", "💬", "Universal Chat"),
             ("chat_files", "📄", "Chat with Files (RAG)"),
             ("research", "🔍", "Deep Research"),
             ("media_studio", "🎨", "Image & Video Studio"),
         ]),
-        ("🛠️ CREATIVE & TOOLS", [
+        ("CREATIVE & TOOLS", [
             ("vscode", "💻", "VS Code Studio"),
             ("canvas_dev", "🌌", "Agent Canvas IDE"),
             ("playground", "🎮", "Playground Studio"),
@@ -115,13 +102,13 @@ class Sidebar(QWidget):
             ("notepad", "📝", "Smart Notepad"),
             ("scheduler", "⏰", "Task Scheduler"),
         ]),
-        ("🔌 SYSTEM", [
+        ("SYSTEM & MCP", [
             ("tokens", "💎", "Token Manager"),
             ("mcp", "🔌", "MCP Service Hub"),
             ("memory", "🧠", "Neural Memory"),
             ("explorer", "📁", "Folder Explorer"),
         ]),
-        ("⚙️ SETTINGS", [
+        ("SETTINGS", [
             ("settings_general", "🌐", "General"),
             ("settings_api_keys", "🔑", "API Keys"),
             ("settings_layout", "🎨", "Layout"),
@@ -168,10 +155,14 @@ class Sidebar(QWidget):
             return f"{icon}  {label}  ({hk})"
         return f"{icon}  {label}"
 
-    def __init__(self, parent=None):
+    def __init__(self, on_navigate_callback=None, parent=None):
         super().__init__(parent)
-        self.setObjectName("SidebarWidget")
+        self.setObjectName("sidebarContainer")
         self.active_page = "home"
+        self.on_navigate_callback = on_navigate_callback
+        if on_navigate_callback:
+            self.page_changed.connect(on_navigate_callback)
+
         self.buttons: Dict[str, Tuple[QPushButton, str, str, Optional[CollapsibleSection]]] = {}
         self.sections: List[CollapsibleSection] = []
         self._last_active_procs_keys = None
@@ -192,7 +183,7 @@ class Sidebar(QWidget):
 
         # Fluid Sliding Property Animation
         self.anim = QPropertyAnimation(self, b"sidebar_width")
-        self.anim.setDuration(220)
+        self.anim.setDuration(200)
         self.anim.setEasingCurve(QEasingCurve.OutCubic)
 
         self.init_ui()
@@ -218,119 +209,58 @@ class Sidebar(QWidget):
         main_vbox.setContentsMargins(0, 0, 0, 0)
         main_vbox.setSpacing(0)
 
+        # 1. Scrollable Action List (Header Box Removed)
         self.scroll = QScrollArea()
+        self.scroll.setObjectName("sidebarScrollArea")
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll.setStyleSheet("border: none; background: transparent;")
 
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
-        self.layout.setContentsMargins(6, 10, 6, 10)
-        self.layout.setSpacing(4)
+        self.layout.setContentsMargins(4, 6, 4, 6)
+        self.layout.setSpacing(2)
 
-        # Brand Box Header
-        self.brand_frame = QFrame()
-        self.brand_frame.setObjectName("BrandFrame")
-        self.brand_frame.setStyleSheet("""
-            QFrame#BrandFrame {
-                background: rgba(15, 23, 42, 0.7);
-                border: 1px solid rgba(56, 189, 248, 0.2);
-                border-radius: 8px;
-                padding: 4px;
-            }
-        """)
-        brand_vbox = QVBoxLayout(self.brand_frame)
-        brand_vbox.setContentsMargins(4, 4, 4, 4)
-        brand_vbox.setSpacing(2)
-
-        top_brand = QHBoxLayout()
-        top_brand.setContentsMargins(0, 0, 0, 0)
-        top_brand.setSpacing(6)
-
-        self.logo_btn = QPushButton("⚡")
-        self.logo_btn.setFixedSize(36, 32)
-        self.logo_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.logo_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(56, 189, 248, 0.15);
-                border: 1px solid rgba(56, 189, 248, 0.3);
-                border-radius: 6px;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background: rgba(56, 189, 248, 0.3);
-            }
-        """)
-        self.logo_btn.setToolTip("Toggle Pin / Auto-Hide Sidebar (Ctrl+B)")
-        self.logo_btn.clicked.connect(self.toggle_pin)
-        top_brand.addWidget(self.logo_btn)
-
-        self.title_lbl = QLabel("AGENT CONSOLE")
-        self.title_lbl.setStyleSheet("font-weight: 800; font-size: 12.5px; color: #38bdf8; letter-spacing: 0.8px;")
-        top_brand.addWidget(self.title_lbl)
-
-        self.pin_btn = QPushButton("✨")
-        self.pin_btn.setFixedSize(24, 24)
-        self.pin_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.pin_btn.setToolTip("Auto-Hide Active (Click to Pin Open) (Ctrl+B)")
-        self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #38bdf8;")
-        self.pin_btn.clicked.connect(self.toggle_pin)
-        top_brand.addWidget(self.pin_btn)
-
-        brand_vbox.addLayout(top_brand)
-
-        self.status_lbl = QLabel("● SYSTEM ONLINE")
-        self.status_lbl.setStyleSheet("font-size: 9px; font-weight: 700; color: #10b981; margin-left: 6px; letter-spacing: 0.5px;")
-        brand_vbox.addWidget(self.status_lbl)
-
-        self.layout.addWidget(self.brand_frame)
-        self.layout.addSpacing(4)
+        self.btn_group = QButtonGroup(self)
+        self.btn_group.setExclusive(True)
 
         # Active Missions Container
         self.active_missions_frame = QFrame()
-        self.active_missions_frame.setObjectName("ActiveMissionsFrame")
-        self.active_missions_frame.setStyleSheet("""
-            QFrame#ActiveMissionsFrame {
-                background: rgba(245, 158, 11, 0.08);
-                border: 1px solid rgba(245, 158, 11, 0.3);
-                border-radius: 8px;
-                padding: 4px;
-            }
-        """)
+        self.active_missions_frame.setProperty("class", "card")
         self.active_missions_layout = QVBoxLayout(self.active_missions_frame)
         self.active_missions_layout.setContentsMargins(4, 4, 4, 4)
         self.active_missions_frame.hide()
 
         # ── Dropdown Accordion Sections ──
         for section_title, items in self.NAV_SECTIONS:
-            # Default close/collapse bottom two sections (SYSTEM and SETTINGS)
             should_start_collapsed = "SYSTEM" in section_title or "SETTINGS" in section_title
             section_widget = CollapsibleSection(section_title, start_collapsed=should_start_collapsed)
             self.layout.addWidget(section_widget)
             self.sections.append(section_widget)
 
             for key, icon, label in items:
-                btn = QPushButton(f"  {icon}  {label}")
-                btn.setProperty("class", "nav-btn")
+                btn = QPushButton(f"{icon}  {label}")
+                btn.setProperty("class", "nav-button")
                 btn.setCheckable(True)
                 btn.setCursor(QCursor(Qt.PointingHandCursor))
                 btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-                btn.setFixedHeight(32)
+                btn.setFixedHeight(34)
                 btn.setToolTip(self.get_tooltip(key, icon, label))
                 btn.clicked.connect(lambda checked=False, k=key: self.on_button_clicked(k))
+                
+                self.btn_group.addButton(btn)
                 self.buttons[key] = (btn, icon, label, section_widget)
                 section_widget.add_widget(btn)
 
             if "OPERATIONS" in section_title:
                 self.layout.addWidget(self.active_missions_frame)
-                self.layout.addSpacing(6)
+                self.layout.addSpacing(4)
 
         self.layout.addStretch()
 
-        # Footer Stats Frame
+        # Footer Status
         self.footer_lbl = QLabel("0 Tasks · 0 Mems")
-        self.footer_lbl.setStyleSheet("font-size: 9.5px; color: #64748b; padding-top: 4px; border-top: 1px solid rgba(255, 255, 255, 0.08);")
+        self.footer_lbl.setProperty("class", "metric-label")
         self.footer_lbl.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.footer_lbl)
 
@@ -355,15 +285,19 @@ class Sidebar(QWidget):
     def toggle_pin(self):
         """Toggles between Auto-Hide mode and Pinned Open mode."""
         self.auto_hide = not self.auto_hide
+        if hasattr(self, "pin_btn") and self.pin_btn:
+            if self.auto_hide:
+                self.pin_btn.setText("✨")
+                self.pin_btn.setToolTip("Auto-Hide Active (Hover to Expand) (Ctrl+B)")
+                self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 11px; color: #64748B;")
+            else:
+                self.pin_btn.setText("📌")
+                self.pin_btn.setToolTip("Sidebar Pinned Open (Ctrl+B)")
+                self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 11px; color: #38BDF8;")
         if self.auto_hide:
-            self.pin_btn.setText("✨")
-            self.pin_btn.setToolTip("Auto-Hide Active (Hover to Expand) (Ctrl+B)")
-            self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #38bdf8;")
             self._do_collapse()
         else:
-            self.pin_btn.setText("📌")
-            self.pin_btn.setToolTip("Sidebar Pinned Open (Click to Auto-Hide) (Ctrl+B)")
-            self.pin_btn.setStyleSheet("background: transparent; border: none; font-size: 12px; color: #10b981; font-weight: bold;")
+            self.collapse_timer.stop()
             self._do_expand()
 
     def _do_expand(self):
@@ -374,8 +308,6 @@ class Sidebar(QWidget):
         self.anim.start()
 
     def _do_collapse(self):
-        if not self.auto_hide:
-            return
         self.is_expanded = False
         self.anim.stop()
         self.anim.setStartValue(self.width())
@@ -383,131 +315,98 @@ class Sidebar(QWidget):
         self.anim.start()
 
     def set_collapsed_state(self, collapsed: bool):
-        """Updates text visibility and button labels for compact or expanded state."""
-        self.title_lbl.setVisible(not collapsed)
-        self.pin_btn.setVisible(not collapsed)
-        self.status_lbl.setVisible(not collapsed)
-        self.footer_lbl.setVisible(not collapsed)
+        if hasattr(self, "title_lbl") and self.title_lbl:
+            self.title_lbl.setVisible(not collapsed)
+        if hasattr(self, "status_lbl") and self.status_lbl:
+            self.status_lbl.setVisible(not collapsed)
+        if hasattr(self, "pin_btn") and self.pin_btn:
+            self.pin_btn.setVisible(not collapsed)
+        if hasattr(self, "footer_lbl") and self.footer_lbl:
+            self.footer_lbl.setVisible(not collapsed)
 
         for sec in self.sections:
             sec.update_header_text(is_sidebar_compact=collapsed)
-            if collapsed:
-                sec.content_widget.setVisible(True)
-            else:
-                sec.content_widget.setVisible(not sec.is_collapsed)
 
         for key, (btn, icon, label, sec) in self.buttons.items():
-            tip = self.get_tooltip(key, icon, label)
             if collapsed:
                 btn.setText(icon)
-                btn.setToolTip(tip)
+                btn.setToolTip(f"{label} ({icon})")
             else:
-                btn.setText(f"  {icon}  {label}")
-                btn.setToolTip(tip)
+                btn.setText(f"{icon}  {label}")
+                btn.setToolTip(self.get_tooltip(key, icon, label))
 
-    def on_button_clicked(self, page_key: str):
-        if page_key in self.buttons:
-            btn, icon, label, sec = self.buttons[page_key]
-            if sec:
-                sec.expand()
-            if page_key != self.active_page:
-                self.active_page = page_key
-                self.update_button_states()
-                self.page_changed.emit(page_key)
-                if self.auto_hide:
-                    self.collapse_timer.start(100)
-
-    def set_active_page(self, page_key: str, emit_signal: bool = False):
-        if page_key in self.buttons:
-            btn, icon, label, sec = self.buttons[page_key]
-            if sec:
-                sec.expand()
-            if self.active_page != page_key:
-                self.active_page = page_key
-                self.update_button_states()
-                if emit_signal:
-                    self.page_changed.emit(page_key)
+    def on_button_clicked(self, key: str):
+        self.active_page = key
+        self.update_button_states()
+        self.page_changed.emit(key)
 
     def update_button_states(self):
         for key, (btn, icon, label, sec) in self.buttons.items():
-            is_active = (key == self.active_page)
+            is_active = (key == self.active_page) or (self.active_page.startswith("settings_") and key == self.active_page)
             btn.setChecked(is_active)
-            if is_active:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(56, 189, 248, 0.25), stop:1 rgba(14, 165, 233, 0.1));
-                        color: #38bdf8;
-                        border: 1px solid rgba(56, 189, 248, 0.6);
-                        font-weight: 700;
-                        border-radius: 7px;
-                        text-align: left;
-                        font-size: 12px;
-                        padding-left: 8px;
-                    }
-                """)
-            else:
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: transparent;
-                        color: #94a3b8;
-                        border: 1px solid transparent;
-                        border-radius: 7px;
-                        text-align: left;
-                        font-size: 12px;
-                        padding-left: 8px;
-                    }
-                    QPushButton:hover {
-                        background-color: rgba(56, 189, 248, 0.08);
-                        color: #f1f5f9;
-                        border-color: rgba(56, 189, 248, 0.2);
-                    }
-                """)
+            if is_active and sec:
+                sec.expand()
 
-    def update_stats(self, tasks_count: int, memory_count: int, skills_count: int):
-        new_text = f"<b>{tasks_count}</b> Tasks · <b>{memory_count}</b> Mems"
-        if self.footer_lbl.text() != new_text:
-            self.footer_lbl.setText(new_text)
+    def set_active_page(self, key: str, emit_signal: bool = False):
+        self.active_page = key
+        self.update_button_states()
+        if emit_signal:
+            self.page_changed.emit(key)
 
-    def update_active_missions(self, running_procs: dict):
-        active = {k: v for k, v in running_procs.items() if v.get("status") == "running"}
-        active_keys = tuple(sorted(active.keys()))
-        
-        if self._last_active_procs_keys == active_keys:
+    def set_active(self, key: str, emit_signal: bool = False):
+        self.set_active_page(key, emit_signal=emit_signal)
+
+    def update_footer_stats(self, tasks_done: int, total_memories: int):
+        self.footer_lbl.setText(f"{tasks_done} Done · {total_memories} Mems")
+
+    def update_stats(self, tasks_done: int, total_memories: int, skills_count: int = 0):
+        if skills_count > 0:
+            self.footer_lbl.setText(f"{tasks_done} Done · {total_memories} Mem · {skills_count} Skills")
+        else:
+            self.footer_lbl.setText(f"{tasks_done} Done · {total_memories} Mems")
+
+    def update_active_missions(self, procs_dict: dict):
+        self.update_active_processes(procs_dict)
+
+    def update_active_processes(self, procs_dict: dict):
+        current_keys = set(procs_dict.keys())
+        if current_keys == self._last_active_procs_keys:
             return
-        self._last_active_procs_keys = active_keys
+        self._last_active_procs_keys = current_keys
 
         while self.active_missions_layout.count():
             item = self.active_missions_layout.takeAt(0)
             w = item.widget()
             if w:
                 w.deleteLater()
-            l = item.layout()
-            if l:
-                while l.count():
-                    sub = l.takeAt(0)
-                    if sub.widget():
-                        sub.widget().deleteLater()
 
-        if active:
-            self.active_missions_frame.show()
-            title = QLabel(f"⚡ LIVE ({len(active)})")
-            title.setStyleSheet("font-size: 10px; font-weight: 800; color: #fbbf24; margin-bottom: 2px;")
-            self.active_missions_layout.addWidget(title)
-
-            for label, info in active.items():
-                lbl_row = QHBoxLayout()
-                m_lbl = QLabel(f"● {label[:10]}")
-                m_lbl.setStyleSheet("font-size: 10px; color: #fde68a;")
-                
-                abort_btn = QPushButton("⏹")
-                abort_btn.setProperty("class", "danger-btn")
-                abort_btn.setFixedSize(20, 20)
-                abort_btn.setToolTip(f"Abort {label}")
-                abort_btn.setStyleSheet("font-size: 9px; padding: 0px; border-radius: 4px; background: #dc2626; color: white;")
-                abort_btn.clicked.connect(lambda _, l=label: self.abort_requested.emit(l))
-                
-                lbl_row.addWidget(m_lbl)
-                lbl_row.addWidget(abort_btn)
-                self.active_missions_layout.addLayout(lbl_row)
-        else:
+        if not procs_dict:
             self.active_missions_frame.hide()
+            return
+
+        self.active_missions_frame.show()
+        lbl_head = QLabel("⚡ ACTIVE RUNS")
+        lbl_head.setProperty("class", "sidebar-group-label")
+        self.active_missions_layout.addWidget(lbl_head)
+
+        for mid, info in procs_dict.items():
+            row = QHBoxLayout()
+            row.setContentsMargins(2, 2, 2, 2)
+            row.setSpacing(4)
+
+            name_lbl = QLabel(f"● {info.get('title', mid)[:14]}")
+            name_lbl.setProperty("class", "badge-busy")
+            row.addWidget(name_lbl, stretch=1)
+
+            btn_kill = QPushButton("✕")
+            btn_kill.setFixedSize(18, 18)
+            btn_kill.setProperty("class", "btn-secondary")
+            btn_kill.setCursor(QCursor(Qt.PointingHandCursor))
+            btn_kill.clicked.connect(lambda _, m=mid: self.abort_requested.emit(m))
+            row.addWidget(btn_kill)
+
+            self.active_missions_layout.addLayout(row)
+
+
+# Alias for backward compatibility
+Sidebar = ModernSidebar

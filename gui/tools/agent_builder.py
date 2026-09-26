@@ -100,7 +100,8 @@ class VisualAgentNode(QGraphicsRectItem):
         self.setPen(QPen(QColor(accent), 2))
 
         # Title and Type Text Item
-        self.title_item = QGraphicsTextItem(f"<b>[{type_label}]</b>\n{title}", self)
+        self.title_item = QGraphicsTextItem(self)
+        self.title_item.setHtml(f"<b>[{type_label}]</b><br>{title}")
         self.title_item.setDefaultTextColor(QColor("#f8fafc"))
         self.title_item.setFont(QFont("Segoe UI", 9))
         self.title_item.setPos(10, 8)
@@ -309,7 +310,14 @@ class AgentBuilderPage(QWidget):
                 new_title, ok = QInputDialog.getText(self, "Edit Title", "Node Title:", text=node.title)
                 if ok and new_title.strip():
                     node.title = new_title.strip()
-                    node.title_item.setHtml(f"<b>[{node.node_type.upper()}]</b><br>{node.title}")
+                    palette = {
+                        NodeType.START: "🎯 START",
+                        NodeType.AGENT: "🤖 AGENT",
+                        NodeType.MEMORY: "🧠 SHARED MEMORY",
+                        NodeType.END: "🏁 END"
+                    }
+                    lbl = palette.get(node.node_type, node.node_type.upper())
+                    node.title_item.setHtml(f"<b>[{lbl}]</b><br>{node.title}")
         else:
             add_s = menu.addAction("🎯 Add Start Node")
             add_a = menu.addAction("🤖 Add Agent Node")
